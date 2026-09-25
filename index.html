@@ -134,7 +134,7 @@
                             </div>
                         </div>
 
-                        <!-- Nueva Tarjeta ID de Sesión (Reemplazo de IP) -->
+                        <!-- ID de Sesión del Servidor -->
                         <div class="pt-4 border-t border-white/10">
                             <p class="text-xs text-slate-500 mb-2 flex items-center gap-1">
                                 <i class="fa-solid fa-fingerprint text-ats-amber"></i> ID de Sesión del Servidor
@@ -150,7 +150,7 @@
                 </div>
             </div>
 
-            <!-- Nuevo Apartado: API Uptime & Logs -->
+            <!-- API Uptime & Logs Card -->
             <div class="glass-panel rounded-2xl p-6">
                 <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
                     <i class="fa-solid fa-clock-rotate-left"></i> Estado y Uptime
@@ -337,21 +337,17 @@
             uiGame.innerText = data.game || "American Truck Simulator";
             uiVersion.innerText = data.game_version || "1.58.x";
 
-            // ID de Sesión
             const sessionIdVal = data.sessionID || data.session_id || data.id || "85568392936670275";
             uiSessionID.innerText = sessionIdVal;
             uiSessionID.dataset.value = sessionIdVal;
 
-            // Uptime del Servidor
-            currentUptimeMs = data.apiUptime || data.uptime || 39600000;
+            currentUptimeMs = data.apiUptime || data.uptime || 43200000;
             startUptimeTicker();
 
-            // Logs
             const logLines = data.totalLogLines || data.logLines || 1240;
             const logExists = data.logFileExists !== false;
             uiLogStats.innerText = logExists ? `${logLines} líneas registradas` : "Archivo inactivo";
 
-            // Extracción robusta de jugadores conectados
             const playersArray = data.connectedPlayers || data.connected_players || data.players || data.playerList || data.player_list || [];
             const playersCount = playersArray.length;
             const maxSlots = data.slots || data.maxPlayers || 32;
@@ -480,7 +476,7 @@
 
         window.onload = () => {
             fetchData();
-            setInterval(fetchData, 10000); // Refrescar automáticamente cada 10 segundos
+            setInterval(fetchData, 10000);
         };
     </script>
 </body>
