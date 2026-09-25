@@ -1,0 +1,399 @@
+<!DOCTYPE html>
+<html lang="es" class="dark">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ATS Server Telemetry - Vercel Edition</title>
+    
+    <!-- Tailwind CSS -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Google Fonts -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
+
+    <script>
+        tailwind.config = {
+            darkMode: 'class',
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Inter', 'sans-serif'],
+                        display: ['Oswald', 'sans-serif'],
+                        mono: ['JetBrains Mono', 'monospace'],
+                    },
+                    colors: {
+                        ats: {
+                            dark: '#0f172a',
+                            panel: '#1e293b',
+                            amber: '#f59e0b',
+                            amberDark: '#d97706',
+                            green: '#10b981',
+                            red: '#ef4444'
+                        }
+                    },
+                    animation: {
+                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
+                    }
+                }
+            }
+        }
+    </script>
+
+    <style>
+        body {
+            background-color: #0f172a;
+            background-image: 
+                radial-gradient(at 0% 0%, hsla(217,100%,16%,1) 0px, transparent 50%),
+                radial-gradient(at 100% 100%, hsla(38,100%,20%,0.3) 0px, transparent 50%);
+            background-attachment: fixed;
+            color: #f8fafc;
+        }
+        
+        ::-webkit-scrollbar { width: 6px; }
+        ::-webkit-scrollbar-track { background: #0f172a; }
+        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
+        ::-webkit-scrollbar-thumb:hover { background: #475569; }
+
+        .glass-panel {
+            background: rgba(30, 41, 59, 0.7);
+            backdrop-filter: blur(12px);
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
+        }
+
+        .striped-bg {
+            background-image: repeating-linear-gradient(
+                45deg,
+                transparent,
+                transparent 10px,
+                rgba(0,0,0,0.2) 10px,
+                rgba(0,0,0,0.2) 20px
+            );
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-ats-amber selection:text-white">
+
+    <!-- Header -->
+    <header class="border-b border-white/10 bg-ats-panel/50 backdrop-blur-md sticky top-0 z-50">
+        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
+            <div class="flex items-center gap-3">
+                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-ats-amber to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+                    <i class="fa-solid fa-truck-fast text-xl"></i>
+                </div>
+                <div>
+                    <h1 class="font-display text-xl font-bold tracking-wide uppercase text-white leading-tight">ATS <span class="text-ats-amber">Convoy</span></h1>
+                    <p class="text-[10px] text-slate-400 font-mono tracking-widest uppercase">Live Server Telemetry</p>
+                </div>
+            </div>
+            
+            <div class="flex items-center gap-4">
+                <button onclick="fetchData()" id="refreshBtn" class="text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 w-9 h-9 rounded-full flex items-center justify-center" title="Actualizar datos">
+                    <i class="fa-solid fa-rotate-right"></i>
+                </button>
+                <div id="globalStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold">
+                    <span class="w-2 h-2 rounded-full bg-slate-500" id="statusDot"></span>
+                    <span id="statusText" class="text-slate-300">Conectando...</span>
+                </div>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content -->
+    <main class="flex-1 max-w-6xl mx-auto w-full p-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Left Column: Server Info -->
+        <div class="lg:col-span-1 flex flex-col gap-6">
+            
+            <!-- Server Status Card -->
+            <div class="glass-panel rounded-2xl overflow-hidden relative">
+                <div class="h-1 w-full bg-gradient-to-r from-ats-amber to-amber-600" id="cardAccent"></div>
+                
+                <div class="p-6">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                        <i class="fa-solid fa-server"></i> Info del Servidor
+                    </h2>
+                    
+                    <div class="space-y-5">
+                        <div>
+                            <p class="text-xs text-slate-500 mb-1">Nombre del Host</p>
+                            <p class="text-lg font-bold text-white font-display tracking-wide truncate" id="uiServerName">Cargando...</p>
+                        </div>
+
+                        <div class="grid grid-cols-2 gap-4">
+                            <div class="bg-black/20 p-3 rounded-xl border border-white/5">
+                                <p class="text-xs text-slate-500 mb-1"><i class="fa-solid fa-gamepad text-ats-amber/70 mr-1"></i> Juego</p>
+                                <p class="font-semibold text-white truncate text-xs" id="uiGame">ATS</p>
+                            </div>
+                            <div class="bg-black/20 p-3 rounded-xl border border-white/5">
+                                <p class="text-xs text-slate-500 mb-1"><i class="fa-solid fa-code-branch text-ats-amber/70 mr-1"></i> Versión</p>
+                                <p class="font-mono font-semibold text-white text-xs truncate" id="uiVersion">---</p>
+                            </div>
+                        </div>
+
+                        <div class="pt-4 border-t border-white/10">
+                            <p class="text-xs text-slate-500 mb-2">Conexión Directa IP</p>
+                            <div class="flex items-center gap-2">
+                                <code class="flex-1 bg-black/40 text-ats-amber font-mono text-sm px-3 py-2 rounded-lg border border-ats-amber/20 select-all">198.199.67.5:27016</code>
+                                <button onclick="copyIP()" class="bg-ats-amber hover:bg-ats-amberDark text-white px-3 py-2 rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-amber-500/20" title="Copiar IP">
+                                    <i class="fa-regular fa-copy"></i>
+                                </button>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+            <!-- Capacity Card -->
+            <div class="glass-panel rounded-2xl p-6">
+                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
+                    <i class="fa-solid fa-users"></i> Capacidad
+                </h2>
+
+                <div class="flex items-end justify-between mb-2">
+                    <span class="text-3xl font-display font-bold text-white" id="uiPlayersCount">0</span>
+                    <span class="text-slate-400 font-medium mb-1" id="uiMaxPlayers">/ 32 Conductores</span>
+                </div>
+
+                <div class="h-4 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
+                    <div id="uiProgressBar" class="h-full bg-ats-amber striped-bg transition-all duration-1000 ease-out" style="width: 0%;"></div>
+                </div>
+                <p class="text-right text-[10px] text-slate-500 mt-1" id="uiPercentage">0% Ocupado</p>
+            </div>
+
+        </div>
+
+        <!-- Right Column: Drivers List -->
+        <div class="lg:col-span-2">
+            <div class="glass-panel rounded-2xl h-full flex flex-col">
+                <div class="p-6 border-b border-white/5 flex items-center justify-between">
+                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
+                        <i class="fa-solid fa-list"></i> Conductores en Ruta
+                    </h2>
+                    <span class="bg-ats-amber/20 text-ats-amber border border-ats-amber/30 px-2 py-0.5 rounded-full text-xs font-bold" id="uiListCount">0</span>
+                </div>
+
+                <div class="flex-1 p-6 overflow-y-auto" id="driversContainer">
+                    <!-- Loading State -->
+                    <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-3 py-10" id="loadingState">
+                        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-ats-amber"></i>
+                        <p class="text-sm">Obteniendo telemetría desde Vercel Serverless...</p>
+                    </div>
+
+                    <!-- Empty State -->
+                    <div class="hidden flex-col items-center justify-center h-full text-slate-500 space-y-3 py-10" id="emptyState">
+                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-road text-2xl opacity-50"></i>
+                        </div>
+                        <p class="text-sm font-medium text-slate-400">Las carreteras están vacías.</p>
+                        <p class="text-xs">No hay conductores conectados en este momento.</p>
+                    </div>
+
+                    <!-- Error State -->
+                    <div class="hidden flex-col items-center justify-center h-full text-red-400 space-y-3 py-10" id="errorState">
+                        <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
+                            <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
+                        </div>
+                        <p class="text-sm font-medium">Servidor Fuera de Línea</p>
+                        <p class="text-xs opacity-75 text-center max-w-[280px]" id="errorReason">No se pudo consultar el proxy de Vercel.</p>
+                    </div>
+
+                    <!-- Drivers Grid -->
+                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden" id="driversGrid"></div>
+                </div>
+                
+                <div class="p-3 border-t border-white/5 bg-black/20 text-center flex items-center justify-between px-6">
+                    <p class="text-[10px] text-slate-500 flex items-center gap-2">
+                        <i class="fa-solid fa-satellite-dish"></i> Refresco automático cada 30 segundos
+                    </p>
+                    <span class="text-[9px] text-slate-400 font-mono" id="endpointTag">Endpoint: /api/status</span>
+                </div>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Notification Toast -->
+    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl border border-white/10 flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50">
+        <i class="fa-solid fa-circle-check text-ats-green"></i>
+        <span class="text-sm font-medium" id="toastMsg">Mensaje</span>
+    </div>
+
+    <script>
+        const uiServerName = document.getElementById('uiServerName');
+        const uiGame = document.getElementById('uiGame');
+        const uiVersion = document.getElementById('uiVersion');
+        const uiPlayersCount = document.getElementById('uiPlayersCount');
+        const uiMaxPlayers = document.getElementById('uiMaxPlayers');
+        const uiProgressBar = document.getElementById('uiProgressBar');
+        const uiPercentage = document.getElementById('uiPercentage');
+        const uiListCount = document.getElementById('uiListCount');
+        
+        const statusDot = document.getElementById('statusDot');
+        const statusText = document.getElementById('statusText');
+        const globalStatus = document.getElementById('globalStatus');
+        const cardAccent = document.getElementById('cardAccent');
+        const refreshBtn = document.getElementById('refreshBtn');
+
+        const driversGrid = document.getElementById('driversGrid');
+        const loadingState = document.getElementById('loadingState');
+        const emptyState = document.getElementById('emptyState');
+        const errorState = document.getElementById('errorState');
+        const errorReason = document.getElementById('errorReason');
+
+        async function fetchData() {
+            setLoadingState();
+
+            try {
+                const controller = new AbortController();
+                const timeoutId = setTimeout(() => controller.abort(), 8000);
+
+                // En Vercel, la función serverless responde en esta ruta relativa
+                const res = await fetch('/api/status', { signal: controller.signal });
+                clearTimeout(timeoutId);
+
+                if (!res.ok) {
+                    throw new Error(`Respuesta del proxy HTTP ${res.status}`);
+                }
+
+                const data = await res.json();
+
+                if (data && (data.serverRunning === true || data.online === true)) {
+                    updateUI(data);
+                    showToast('Telemetría en vivo actualizada');
+                } else {
+                    showOfflineUI(data.error || 'El servidor reporta estar detenido');
+                }
+            } catch (err) {
+                showOfflineUI(err.message || 'Error al conectar con Vercel Serverless');
+            } finally {
+                setTimeout(() => {
+                    refreshBtn.querySelector('i').classList.remove('fa-spin');
+                }, 400);
+            }
+        }
+
+        function updateUI(data) {
+            statusDot.className = "w-2 h-2 rounded-full bg-ats-green animate-pulse-slow";
+            statusText.innerText = "Online";
+            statusText.className = "text-ats-green font-bold";
+            globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-green/10 border border-ats-green/30 text-xs font-semibold";
+            cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-green to-emerald-500";
+
+            uiServerName.innerText = data.serverName || "Servidor ATS";
+            uiGame.innerText = data.game || "ATS";
+            uiVersion.innerText = data.game_version || "1.58.x";
+
+            const playersArray = data.connectedPlayers || data.playerList || [];
+            const playersCount = playersArray.length;
+            const maxSlots = data.slots || data.maxPlayers || 32;
+            const percentage = maxSlots > 0 ? Math.round((playersCount / maxSlots) * 100) : 0;
+
+            uiPlayersCount.innerText = playersCount;
+            uiMaxPlayers.innerText = `/ ${maxSlots} Cond.`;
+            uiProgressBar.style.width = `${percentage}%`;
+            uiPercentage.innerText = `${percentage}% Ocupado`;
+            uiListCount.innerText = playersCount;
+
+            renderDrivers(playersArray);
+        }
+
+        function showOfflineUI(reason) {
+            statusDot.className = "w-2 h-2 rounded-full bg-ats-red";
+            statusText.innerText = "Offline";
+            statusText.className = "text-ats-red font-bold";
+            globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-red/10 border border-ats-red/30 text-xs font-semibold";
+            cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-red to-red-700";
+
+            uiServerName.innerText = "Servidor Inaccesible";
+            uiGame.innerText = "---";
+            uiVersion.innerText = "---";
+            uiPlayersCount.innerText = "0";
+            uiProgressBar.style.width = "0%";
+            uiPercentage.innerText = "0% Ocupado";
+            uiListCount.innerText = "0";
+
+            if (reason) errorReason.innerText = `Detalle: ${reason}`;
+
+            loadingState.classList.add('hidden');
+            emptyState.classList.add('hidden');
+            driversGrid.classList.add('hidden');
+            errorState.classList.remove('hidden');
+            errorState.classList.add('flex');
+        }
+
+        function renderDrivers(list) {
+            loadingState.classList.add('hidden');
+            errorState.classList.add('hidden');
+            driversGrid.innerHTML = '';
+
+            if (!list || list.length === 0) {
+                emptyState.classList.remove('hidden');
+                emptyState.classList.add('flex');
+                driversGrid.classList.add('hidden');
+                return;
+            }
+
+            emptyState.classList.add('hidden');
+            driversGrid.classList.remove('hidden');
+
+            list.forEach(player => {
+                const name = typeof player === 'object' ? (player.username || player.name) : player;
+                const clientId = (typeof player === 'object' && player.client_id) ? `#${player.client_id}` : '';
+
+                const card = document.createElement('div');
+                card.className = "bg-white/5 hover:bg-white/10 border border-white/5 p-3 rounded-xl flex items-center justify-between transition-colors group";
+                
+                card.innerHTML = `
+                    <div class="flex items-center gap-3 overflow-hidden">
+                        <div class="w-8 h-8 rounded bg-ats-amber/20 text-ats-amber flex items-center justify-center shrink-0 font-mono text-xs font-bold">
+                            ${clientId || '<i class="fa-solid fa-steering-wheel"></i>'}
+                        </div>
+                        <span class="font-medium text-sm text-slate-200 truncate" title="${name}">${name}</span>
+                    </div>
+                    <span class="w-2 h-2 rounded-full bg-ats-green shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="En Ruta"></span>
+                `;
+                driversGrid.appendChild(card);
+            });
+        }
+
+        function setLoadingState() {
+            refreshBtn.querySelector('i').classList.add('fa-spin');
+            if (driversGrid.children.length === 0) {
+                loadingState.classList.remove('hidden');
+                loadingState.classList.add('flex');
+                emptyState.classList.add('hidden');
+                errorState.classList.add('hidden');
+                driversGrid.classList.add('hidden');
+            }
+        }
+
+        function copyIP() {
+            const tempInput = document.createElement('input');
+            tempInput.value = '198.199.67.5:27016';
+            document.body.appendChild(tempInput);
+            tempInput.select();
+            document.execCommand('copy');
+            document.body.removeChild(tempInput);
+            showToast('IP copiada al portapapeles');
+        }
+
+        function showToast(msg) {
+            const toast = document.getElementById('toast');
+            document.getElementById('toastMsg').innerText = msg;
+            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
+            setTimeout(() => {
+                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
+            }, 3000);
+        }
+
+        window.onload = () => {
+            fetchData();
+            setInterval(fetchData, 30000);
+        };
+    </script>
+</body>
+</html>
