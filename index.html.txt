@@ -207,9 +207,9 @@
                 
                 <div class="p-3 border-t border-white/5 bg-black/20 text-center flex items-center justify-between px-6">
                     <p class="text-[10px] text-slate-500 flex items-center gap-2">
-                        <i class="fa-solid fa-satellite-dish"></i> Refresco automático cada 30 segundos
+                        <i class="fa-solid fa-satellite-dish"></i> Refresco automático cada 15 segundos
                     </p>
-                    <span class="text-[9px] text-slate-400 font-mono" id="endpointTag">Endpoint: /api/status</span>
+                    <span class="text-[9px] text-slate-400 font-mono" id="endpointTag">Dominio: https://atsconvoy593.vercel.app</span>
                 </div>
             </div>
         </div>
@@ -243,37 +243,50 @@
         const emptyState = document.getElementById('emptyState');
         const errorState = document.getElementById('errorState');
         const errorReason = document.getElementById('errorReason');
+        const endpointTag = document.getElementById('endpointTag');
 
         async function fetchData() {
             setLoadingState();
 
-            try {
-                const controller = new AbortController();
-                const timeoutId = setTimeout(() => controller.abort(), 8000);
+            // Rutas de consulta ordenadas para priorizar tu Vercel oficial y respaldos directos
+            const endpoints = [
+                '/api/status',
+                'https://atsconvoy593.vercel.app/api/status',
+                'https://api.allorigins.win/raw?url=' + encodeURIComponent('http://198.199.67.5/status')
+            ];
 
-                // En Vercel, la función serverless responde en esta ruta relativa
-                const res = await fetch('/api/status', { signal: controller.signal });
-                clearTimeout(timeoutId);
+            let successData = null;
+            let lastError = '';
 
-                if (!res.ok) {
-                    throw new Error(`Respuesta del proxy HTTP ${res.status}`);
+            for (const ep of endpoints) {
+                try {
+                    const controller = new AbortController();
+                    const timeoutId = setTimeout(() => controller.abort(), 6000);
+
+                    const res = await fetch(ep, { signal: controller.signal, cache: 'no-store' });
+                    clearTimeout(timeoutId);
+
+                    if (res.ok) {
+                        const data = await res.json();
+                        if (data && (data.serverRunning === true || data.serverName)) {
+                            successData = data;
+                            break;
+                        }
+                    }
+                } catch (err) {
+                    lastError = err.message || 'Error de red';
                 }
-
-                const data = await res.json();
-
-                if (data && (data.serverRunning === true || data.online === true)) {
-                    updateUI(data);
-                    showToast('Telemetría en vivo actualizada');
-                } else {
-                    showOfflineUI(data.error || 'El servidor reporta estar detenido');
-                }
-            } catch (err) {
-                showOfflineUI(err.message || 'Error al conectar con Vercel Serverless');
-            } finally {
-                setTimeout(() => {
-                    refreshBtn.querySelector('i').classList.remove('fa-spin');
-                }, 400);
             }
+
+            if (successData) {
+                updateUI(successData);
+            } else {
+                showOfflineUI(lastError || 'Sin respuesta del VPS');
+            }
+
+            setTimeout(() => {
+                refreshBtn.querySelector('i').classList.remove('fa-spin');
+            }, 400);
         }
 
         function updateUI(data) {
@@ -283,18 +296,19 @@
             globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-green/10 border border-ats-green/30 text-xs font-semibold";
             cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-green to-emerald-500";
 
-            uiServerName.innerText = data.serverName || "Servidor ATS";
-            uiGame.innerText = data.game || "ATS";
+            uiServerName.innerText = data.serverName || "[ES] ECUADOR SERVER +593";
+            uiGame.innerText = data.game || "American Truck Simulator";
             uiVersion.innerText = data.game_version || "1.58.x";
 
-            const playersArray = data.connectedPlayers || data.playerList || [];
+            // Extracción robusta de jugadores (soporta múltiples nombres de propiedades)
+            const playersArray = data.connectedPlayers || data.connected_players || data.players || data.playerList || data.player_list || [];
             const playersCount = playersArray.length;
             const maxSlots = data.slots || data.maxPlayers || 32;
             const percentage = maxSlots > 0 ? Math.round((playersCount / maxSlots) * 100) : 0;
 
             uiPlayersCount.innerText = playersCount;
             uiMaxPlayers.innerText = `/ ${maxSlots} Cond.`;
-            uiProgressBar.style.width = `${percentage}%`;
+            uiProgressBar.style.width = `${Math.max(percentage, 3)}%`;
             uiPercentage.innerText = `${percentage}% Ocupado`;
             uiListCount.innerText = playersCount;
 
@@ -308,9 +322,9 @@
             globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-red/10 border border-ats-red/30 text-xs font-semibold";
             cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-red to-red-700";
 
-            uiServerName.innerText = "Servidor Inaccesible";
-            uiGame.innerText = "---";
-            uiVersion.innerText = "---";
+            uiServerName.innerText = "[ES] ECUADOR SERVER +593";
+            uiGame.innerText = "ATS";
+            uiVersion.innerText = "1.58.x";
             uiPlayersCount.innerText = "0";
             uiProgressBar.style.width = "0%";
             uiPercentage.innerText = "0% Ocupado";
@@ -340,9 +354,9 @@
             emptyState.classList.add('hidden');
             driversGrid.classList.remove('hidden');
 
-            list.forEach(player => {
-                const name = typeof player === 'object' ? (player.username || player.name) : player;
-                const clientId = (typeof player === 'object' && player.client_id) ? `#${player.client_id}` : '';
+            list.forEach((player, index) => {
+                const name = typeof player === 'object' ? (player.username || player.name || player.nick || player.playerName || 'Conductor') : player;
+                const clientId = (typeof player === 'object' && (player.client_id || player.id || player.clientId)) ? `#${player.client_id || player.id || player.clientId}` : `#${index + 1}`;
 
                 const card = document.createElement('div');
                 card.className = "bg-white/5 hover:bg-white/10 border border-white/5 p-3 rounded-xl flex items-center justify-between transition-colors group";
@@ -350,7 +364,7 @@
                 card.innerHTML = `
                     <div class="flex items-center gap-3 overflow-hidden">
                         <div class="w-8 h-8 rounded bg-ats-amber/20 text-ats-amber flex items-center justify-center shrink-0 font-mono text-xs font-bold">
-                            ${clientId || '<i class="fa-solid fa-steering-wheel"></i>'}
+                            ${clientId}
                         </div>
                         <span class="font-medium text-sm text-slate-200 truncate" title="${name}">${name}</span>
                     </div>
@@ -392,7 +406,7 @@
 
         window.onload = () => {
             fetchData();
-            setInterval(fetchData, 30000);
+            setInterval(fetchData, 15000); // Refrescar cada 15 segundos en vivo
         };
     </script>
 </body>
