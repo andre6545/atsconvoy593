@@ -1,4 +1,5 @@
 export default async function handler(req, res) {
+  // Configuración de cabeceras CORS permisivas
   res.setHeader('Access-Control-Allow-Credentials', 'true');
   res.setHeader('Access-Control-Allow-Origin', '*');
   res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
@@ -17,7 +18,7 @@ export default async function handler(req, res) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de margen para tu VPS
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos de margen para tu VPS
 
     const apiResponse = await fetch(targetUrl, {
       signal: controller.signal,
@@ -34,7 +35,7 @@ export default async function handler(req, res) {
 
     const data = await apiResponse.json();
     
-    // Normalizar datos de jugadores para asegurar compatibilidad absoluta con cualquier formato de array
+    // Normalización robusta para garantizar que la lista de jugadores nunca llegue vacía si hay conexión
     if (!data.connectedPlayers && data.players) {
       data.connectedPlayers = data.players;
     } else if (!data.connectedPlayers) {
