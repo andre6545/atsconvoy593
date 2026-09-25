@@ -6,6 +6,7 @@ export default async function handler(req, res) {
     'Access-Control-Allow-Headers',
     'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
   );
+  res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate, max-age=0');
 
   if (req.method === 'OPTIONS') {
     res.status(200).end();
@@ -16,8 +17,7 @@ export default async function handler(req, res) {
 
   try {
     const controller = new AbortController();
-    // Timeout ajustado a 3.5s para responder de inmediato en Vercel Edge
-    const timeoutId = setTimeout(() => controller.abort(), 3500);
+    const timeoutId = setTimeout(() => controller.abort(), 10000); // 10 segundos de margen para tu VPS
 
     const apiResponse = await fetch(targetUrl, {
       signal: controller.signal,
@@ -33,17 +33,23 @@ export default async function handler(req, res) {
     }
 
     const data = await apiResponse.json();
+    
+    // Normalizar datos de jugadores para asegurar compatibilidad absoluta con cualquier formato de array
+    if (!data.connectedPlayers && data.players) {
+      data.connectedPlayers = data.players;
+    } else if (!data.connectedPlayers) {
+      data.connectedPlayers = [];
+    }
+
     res.status(200).json(data);
   } catch (error) {
-    // Si la IP está momentáneamente inaccesible desde Vercel, enviamos estructura limpia
-    res.status(200).json({
-      serverRunning: true,
+    res.status(502).json({
+      serverRunning: false,
       serverName: "[ES] ECUADOR SERVER +593",
       slots: 32,
       connectedPlayers: [{ username: "santiagooWTF", client_id: "67" }],
       game: "American Truck Simulator",
       game_version: "1.58.0.140s",
-      cached: true,
       error: error.message
     });
   }
