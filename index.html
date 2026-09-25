@@ -1,483 +1,175 @@
 <!DOCTYPE html>
-<html lang="es" class="dark">
+<html lang="es">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Server Telemetry - Vercel Edition</title>
-    
-    <!-- Tailwind CSS -->
+    <title>ATS Server Status - Monitor</title>
+    <!-- Tailwind CSS para un diseño moderno y responsive -->
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Icons -->
+    <!-- FontAwesome para iconos -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&family=Oswald:wght@500;700&family=JetBrains+Mono:wght@400;700&display=swap" rel="stylesheet">
-
-    <script>
-        tailwind.config = {
-            darkMode: 'class',
-            theme: {
-                extend: {
-                    fontFamily: {
-                        sans: ['Inter', 'sans-serif'],
-                        display: ['Oswald', 'sans-serif'],
-                        mono: ['JetBrains Mono', 'monospace'],
-                    },
-                    colors: {
-                        ats: {
-                            dark: '#0f172a',
-                            panel: '#1e293b',
-                            amber: '#f59e0b',
-                            amberDark: '#d97706',
-                            green: '#10b981',
-                            red: '#ef4444'
-                        }
-                    },
-                    animation: {
-                        'pulse-slow': 'pulse 3s cubic-bezier(0.4, 0, 0.6, 1) infinite',
-                    }
-                }
-            }
-        }
-    </script>
-
-    <style>
-        body {
-            background-color: #0f172a;
-            background-image: 
-                radial-gradient(at 0% 0%, hsla(217,100%,16%,1) 0px, transparent 50%),
-                radial-gradient(at 100% 100%, hsla(38,100%,20%,0.3) 0px, transparent 50%);
-            background-attachment: fixed;
-            color: #f8fafc;
-        }
-        
-        ::-webkit-scrollbar { width: 6px; }
-        ::-webkit-scrollbar-track { background: #0f172a; }
-        ::-webkit-scrollbar-thumb { background: #334155; border-radius: 4px; }
-        ::-webkit-scrollbar-thumb:hover { background: #475569; }
-
-        .glass-panel {
-            background: rgba(30, 41, 59, 0.7);
-            backdrop-filter: blur(12px);
-            border: 1px solid rgba(255, 255, 255, 0.05);
-            box-shadow: 0 10px 30px -10px rgba(0, 0, 0, 0.5);
-        }
-
-        .striped-bg {
-            background-image: repeating-linear-gradient(
-                45deg,
-                transparent,
-                transparent 10px,
-                rgba(0,0,0,0.2) 10px,
-                rgba(0,0,0,0.2) 20px
-            );
-        }
-    </style>
 </head>
-<body class="min-h-screen flex flex-col font-sans antialiased selection:bg-ats-amber selection:text-white">
+<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
 
     <!-- Header -->
-    <header class="border-b border-white/10 bg-ats-panel/50 backdrop-blur-md sticky top-0 z-50">
-        <div class="max-w-6xl mx-auto px-4 h-16 flex items-center justify-between">
-            <div class="flex items-center gap-3">
-                <div class="w-10 h-10 rounded-lg bg-gradient-to-br from-ats-amber to-amber-600 flex items-center justify-center text-white shadow-lg shadow-amber-500/20">
+    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 shadow-md">
+        <div class="max-w-5xl mx-auto flex justify-between items-center">
+            <div class="flex items-center space-x-3">
+                <div class="bg-amber-600 p-2.5 rounded-lg text-white shadow-lg">
                     <i class="fa-solid fa-truck-fast text-xl"></i>
                 </div>
                 <div>
-                    <h1 class="font-display text-xl font-bold tracking-wide uppercase text-white leading-tight">ATS <span class="text-ats-amber">Convoy</span></h1>
-                    <p class="text-[10px] text-slate-400 font-mono tracking-widest uppercase">Live Server Telemetry</p>
+                    <h1 class="text-xl font-bold tracking-wide">ATS Server Monitor</h1>
+                    <p class="text-xs text-slate-400">American Truck Simulator Dedicated Server</p>
                 </div>
             </div>
-            
-            <div class="flex items-center gap-4">
-                <button onclick="fetchData()" id="refreshBtn" class="text-slate-400 hover:text-white transition-colors bg-white/5 hover:bg-white/10 w-9 h-9 rounded-full flex items-center justify-center" title="Actualizar datos">
-                    <i class="fa-solid fa-rotate-right"></i>
-                </button>
-                <div id="globalStatus" class="flex items-center gap-2 px-3 py-1.5 rounded-full bg-slate-800 border border-slate-700 text-xs font-semibold">
-                    <span class="w-2 h-2 rounded-full bg-slate-500" id="statusDot"></span>
-                    <span id="statusText" class="text-slate-300">Conectando...</span>
-                </div>
+            <div class="flex items-center space-x-2">
+                <span id="status-indicator" class="h-3 w-3 rounded-full bg-yellow-500 animate-pulse"></span>
+                <span id="status-text" class="text-sm font-medium text-slate-300">Conectando...</span>
             </div>
         </div>
     </header>
 
     <!-- Main Content -->
-    <main class="flex-1 max-w-6xl mx-auto w-full p-4 py-8 grid grid-cols-1 lg:grid-cols-3 gap-6">
+    <main class="max-w-5xl mx-auto p-6 w-full flex-grow">
         
-        <!-- Left Column: Server Info -->
-        <div class="lg:col-span-1 flex flex-col gap-6">
-            
-            <!-- Server Status Card -->
-            <div class="glass-panel rounded-2xl overflow-hidden relative">
-                <div class="h-1 w-full bg-gradient-to-r from-ats-amber to-amber-600" id="cardAccent"></div>
-                
-                <div class="p-6">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                        <i class="fa-solid fa-server"></i> Info del Servidor
-                    </h2>
-                    
-                    <div class="space-y-5">
-                        <div>
-                            <p class="text-xs text-slate-500 mb-1">Nombre del Host</p>
-                            <p class="text-lg font-bold text-white font-display tracking-wide truncate" id="uiServerName">Cargando...</p>
-                        </div>
-
-                        <div class="grid grid-cols-2 gap-4">
-                            <div class="bg-black/20 p-3 rounded-xl border border-white/5">
-                                <p class="text-xs text-slate-500 mb-1"><i class="fa-solid fa-gamepad text-ats-amber/70 mr-1"></i> Juego</p>
-                                <p class="font-semibold text-white truncate text-xs" id="uiGame">ATS</p>
-                            </div>
-                            <div class="bg-black/20 p-3 rounded-xl border border-white/5">
-                                <p class="text-xs text-slate-500 mb-1"><i class="fa-solid fa-code-branch text-ats-amber/70 mr-1"></i> Versión</p>
-                                <p class="font-mono font-semibold text-white text-xs truncate" id="uiVersion">---</p>
-                            </div>
-                        </div>
-
-                        <!-- ID de Sesión del Servidor -->
-                        <div class="pt-4 border-t border-white/10">
-                            <p class="text-xs text-slate-500 mb-2 flex items-center gap-1">
-                                <i class="fa-solid fa-fingerprint text-ats-amber"></i> ID de Sesión del Servidor
-                            </p>
-                            <div class="flex items-center gap-2">
-                                <code id="uiSessionID" class="flex-1 bg-black/40 text-ats-amber font-mono text-xs px-3 py-2 rounded-lg border border-ats-amber/20 select-all truncate">---</code>
-                                <button onclick="copySessionID()" class="bg-ats-amber hover:bg-ats-amberDark text-white px-3 py-2 rounded-lg transition-colors flex items-center justify-center shadow-lg shadow-amber-500/20 shrink-0" title="Copiar ID de Sesión">
-                                    <i class="fa-regular fa-copy"></i>
-                                </button>
-                            </div>
-                        </div>
+        <!-- Grid de Información General -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
+            <!-- Estado de Conexión -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Estado de la API</p>
+                        <h3 id="api-state" class="text-2xl font-bold mt-1 text-amber-500">Comprobando</h3>
+                    </div>
+                    <div class="p-3 bg-slate-800 rounded-lg text-amber-400">
+                        <i class="fa-solid fa-server"></i>
                     </div>
                 </div>
             </div>
 
-            <!-- API Uptime & Logs Card -->
-            <div class="glass-panel rounded-2xl p-6">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-clock-rotate-left"></i> Estado y Uptime
-                </h2>
-
-                <div class="space-y-4">
-                    <!-- API Uptime -->
-                    <div class="bg-black/20 p-3.5 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">API Uptime</p>
-                            <p class="text-sm font-mono font-bold text-emerald-400 mt-0.5" id="uiApiUptime">Calculando...</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center">
-                            <i class="fa-solid fa-heart-pulse"></i>
-                        </div>
+            <!-- Jugadores / Datos -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Endpoint Principal</p>
+                        <h3 class="text-lg font-bold mt-1 text-slate-200 truncate max-w-[200px]" title="http://198.199.67.5/status">/status</h3>
                     </div>
-
-                    <!-- Logs del Servidor -->
-                    <div class="bg-black/20 p-3.5 rounded-xl border border-white/5 flex items-center justify-between">
-                        <div>
-                            <p class="text-[11px] text-slate-400 uppercase tracking-wider font-semibold">Logs del Servidor</p>
-                            <p class="text-xs font-mono font-medium text-slate-300 mt-0.5" id="uiLogStats">--- líneas registradas</p>
-                        </div>
-                        <div class="w-8 h-8 rounded-lg bg-ats-amber/10 text-ats-amber flex items-center justify-center">
-                            <i class="fa-solid fa-terminal"></i>
-                        </div>
+                    <div class="p-3 bg-slate-800 rounded-lg text-blue-400">
+                        <i class="fa-solid fa-network-wired"></i>
                     </div>
+                </div>
+                <div class="mt-3 text-xs text-slate-400">
+                    Host: <span class="text-slate-200 font-mono">198.199.67.5</span>
                 </div>
             </div>
 
-            <!-- Capacity Card -->
-            <div class="glass-panel rounded-2xl p-6">
-                <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider mb-4 flex items-center gap-2">
-                    <i class="fa-solid fa-users"></i> Capacidad
-                </h2>
-
-                <div class="flex items-end justify-between mb-2">
-                    <span class="text-3xl font-display font-bold text-white" id="uiPlayersCount">0</span>
-                    <span class="text-slate-400 font-medium mb-1" id="uiMaxPlayers">/ 32 Conductores</span>
+            <!-- Última Actualización -->
+            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
+                <div class="flex justify-between items-start">
+                    <div>
+                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Última Sincronización</p>
+                        <h3 id="last-update" class="text-xl font-bold mt-1 text-slate-200 font-mono">--:--:--</h3>
+                    </div>
+                    <div class="p-3 bg-slate-800 rounded-lg text-emerald-400">
+                        <i class="fa-solid fa-clock-rotate-left"></i>
+                    </div>
                 </div>
-
-                <div class="h-4 bg-black/40 rounded-full overflow-hidden border border-white/5 relative">
-                    <div id="uiProgressBar" class="h-full bg-ats-amber striped-bg transition-all duration-1000 ease-out" style="width: 0%;"></div>
+                <div class="mt-3 text-xs text-slate-400 flex items-center justify-between">
+                    <span>Auto-refresco (10s)</span>
+                    <button onclick="fetchServerStatus()" class="text-amber-400 hover:text-amber-300 underline focus:outline-none">Actualizar ahora</button>
                 </div>
-                <p class="text-right text-[10px] text-slate-500 mt-1" id="uiPercentage">0% Ocupado</p>
             </div>
-
         </div>
 
-        <!-- Right Column: Drivers List -->
-        <div class="lg:col-span-2">
-            <div class="glass-panel rounded-2xl h-full flex flex-col">
-                <div class="p-6 border-b border-white/5 flex items-center justify-between">
-                    <h2 class="text-sm font-bold text-slate-400 uppercase tracking-wider flex items-center gap-2">
-                        <i class="fa-solid fa-list"></i> Conductores en Ruta
-                    </h2>
-                    <span class="bg-ats-amber/20 text-ats-amber border border-ats-amber/30 px-2 py-0.5 rounded-full text-xs font-bold" id="uiListCount">0</span>
+        <!-- Visor de Datos JSON de la API -->
+        <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
+            <div class="bg-slate-800/60 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
+                <div class="flex items-center space-x-2">
+                    <i class="fa-solid fa-code text-slate-400"></i>
+                    <h2 class="font-semibold text-slate-200">Datos en Tiempo Real de la API (JSON)</h2>
+                </div>
+                <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-mono">GET /status</span>
+            </div>
+            
+            <div class="p-6">
+                <!-- Contenedor de Error si CORS o servidor caen -->
+                <div id="error-banner" class="hidden mb-4 p-4 bg-red-950/50 border border-red-800/60 rounded-lg text-red-200 text-sm flex items-start space-x-3">
+                    <i class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5 text-lg"></i>
+                    <div>
+                        <span class="font-bold block">No se pudo conectar directamente con la API.</span>
+                        <p class="text-red-300/90 mt-1">Esto suele pasar por restricciones de seguridad del navegador (CORS) o porque el servidor no responde peticiones externas de JavaScript plano. Si tu servidor lo permite, asegúrate de habilitar CORS.</p>
+                    </div>
                 </div>
 
-                <div class="flex-1 p-6 overflow-y-auto" id="driversContainer">
-                    <!-- Loading State -->
-                    <div class="flex flex-col items-center justify-center h-full text-slate-500 space-y-3 py-10" id="loadingState">
-                        <i class="fa-solid fa-circle-notch fa-spin text-3xl text-ats-amber"></i>
-                        <p class="text-sm">Obteniendo telemetría desde Vercel Serverless...</p>
-                    </div>
-
-                    <!-- Empty State -->
-                    <div class="hidden flex-col items-center justify-center h-full text-slate-500 space-y-3 py-10" id="emptyState">
-                        <div class="w-16 h-16 rounded-full bg-white/5 flex items-center justify-center mb-2">
-                            <i class="fa-solid fa-road text-2xl opacity-50"></i>
-                        </div>
-                        <p class="text-sm font-medium text-slate-400">Las carreteras están vacías.</p>
-                        <p class="text-xs">No hay conductores conectados en este momento.</p>
-                    </div>
-
-                    <!-- Error State -->
-                    <div class="hidden flex-col items-center justify-center h-full text-red-400 space-y-3 py-10" id="errorState">
-                        <div class="w-16 h-16 rounded-full bg-red-500/10 flex items-center justify-center mb-2">
-                            <i class="fa-solid fa-triangle-exclamation text-2xl"></i>
-                        </div>
-                        <p class="text-sm font-medium">Servidor Fuera de Línea</p>
-                        <p class="text-xs opacity-75 text-center max-w-[280px]" id="errorReason">No se pudo consultar el proxy de Vercel.</p>
-                    </div>
-
-                    <!-- Drivers Grid -->
-                    <div class="grid grid-cols-1 md:grid-cols-2 gap-3 hidden" id="driversGrid"></div>
-                </div>
-                
-                <div class="p-3 border-t border-white/5 bg-black/20 text-center flex items-center justify-between px-6">
-                    <p class="text-[10px] text-slate-500 flex items-center gap-2">
-                        <i class="fa-solid fa-satellite-dish"></i> Refresco automático cada 10 segundos
-                    </p>
-                    <span class="text-[9px] text-slate-400 font-mono" id="endpointTag">Dominio: https://atsconvoy593.vercel.app</span>
-                </div>
+                <!-- Bloque de Código JSON Bonito -->
+                <pre id="json-output" class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-sm font-mono text-emerald-400 border border-slate-800/80 max-h-[450px]">Cargando datos del servidor...</pre>
             </div>
         </div>
 
     </main>
 
-    <!-- Notification Toast -->
-    <div id="toast" class="fixed bottom-5 left-1/2 -translate-x-1/2 bg-slate-800 text-white px-4 py-2 rounded-lg shadow-xl border border-white/10 flex items-center gap-2 transition-all duration-300 opacity-0 translate-y-4 pointer-events-none z-50">
-        <i class="fa-solid fa-circle-check text-ats-green"></i>
-        <span class="text-sm font-medium" id="toastMsg">Mensaje</span>
-    </div>
+    <!-- Footer -->
+    <footer class="bg-slate-900 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-500">
+        <p>ATS Server Status Dashboard &bull; Creado para <span class="text-slate-400 font-mono">198.199.67.5</span></p>
+    </footer>
 
+    <!-- Lógica de JavaScript -->
     <script>
-        const uiServerName = document.getElementById('uiServerName');
-        const uiGame = document.getElementById('uiGame');
-        const uiVersion = document.getElementById('uiVersion');
-        const uiSessionID = document.getElementById('uiSessionID');
-        const uiApiUptime = document.getElementById('uiApiUptime');
-        const uiLogStats = document.getElementById('uiLogStats');
-        const uiPlayersCount = document.getElementById('uiPlayersCount');
-        const uiMaxPlayers = document.getElementById('uiMaxPlayers');
-        const uiProgressBar = document.getElementById('uiProgressBar');
-        const uiPercentage = document.getElementById('uiPercentage');
-        const uiListCount = document.getElementById('uiListCount');
-        
-        const statusDot = document.getElementById('statusDot');
-        const statusText = document.getElementById('statusText');
-        const globalStatus = document.getElementById('globalStatus');
-        const cardAccent = document.getElementById('cardAccent');
-        const refreshBtn = document.getElementById('refreshBtn');
+        const API_URL = 'http://198.199.67.5/status';
 
-        const driversGrid = document.getElementById('driversGrid');
-        const loadingState = document.getElementById('loadingState');
-        const emptyState = document.getElementById('emptyState');
-        const errorState = document.getElementById('errorState');
-        const errorReason = document.getElementById('errorReason');
+        async function fetchServerStatus() {
+            const jsonOutput = document.getElementById('json-output');
+            const statusIndicator = document.getElementById('status-indicator');
+            const statusText = document.getElementById('status-text');
+            const apiState = document.getElementById('api-state');
+            const lastUpdate = document.getElementById('last-update');
+            const errorBanner = document.getElementById('error-banner');
 
-        let currentUptimeMs = 0;
-        let uptimeInterval = null;
+            try {
+                // Petición a la API del servidor de ATS
+                const response = await fetch(API_URL, { 
+                    method: 'GET',
+                    mode: 'cors' // Intenta conexión CORS
+                });
 
-        async function fetchData() {
-            setLoadingState();
-
-            const endpoints = [
-                '/api/status',
-                'https://atsconvoy593.vercel.app/api/status'
-            ];
-
-            let successData = null;
-            let lastError = '';
-
-            for (const ep of endpoints) {
-                try {
-                    const controller = new AbortController();
-                    const timeoutId = setTimeout(() => controller.abort(), 9000);
-
-                    const res = await fetch(ep, { signal: controller.signal, cache: 'no-store' });
-                    clearTimeout(timeoutId);
-
-                    if (res.ok) {
-                        const data = await res.json();
-                        if (data && (data.serverRunning === true || data.serverName)) {
-                            successData = data;
-                            break;
-                        }
-                    }
-                } catch (err) {
-                    lastError = err.message || 'Error de red';
+                if (!response.ok) {
+                    throw new Error(`Error HTTP: ${response.status}`);
                 }
-            }
 
-            if (successData) {
-                updateUI(successData);
-            } else {
-                showOfflineUI(lastError || 'Sin respuesta del VPS');
-            }
+                const data = await response.json();
 
-            setTimeout(() => {
-                refreshBtn.querySelector('i').classList.remove('fa-spin');
-            }, 400);
-        }
-
-        function updateUI(data) {
-            statusDot.className = "w-2 h-2 rounded-full bg-ats-green animate-pulse-slow";
-            statusText.innerText = "Online";
-            statusText.className = "text-ats-green font-bold";
-            globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-green/10 border border-ats-green/30 text-xs font-semibold";
-            cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-green to-emerald-500";
-
-            uiServerName.innerText = data.serverName || "[ES] ECUADOR SERVER +593";
-            uiGame.innerText = data.game || "American Truck Simulator";
-            uiVersion.innerText = data.game_version || "1.58.x";
-
-            const sessionIdVal = data.sessionID || data.session_id || data.id || "85568392936670275";
-            uiSessionID.innerText = sessionIdVal;
-            uiSessionID.dataset.value = sessionIdVal;
-
-            currentUptimeMs = data.apiUptime || data.uptime || 43200000;
-            startUptimeTicker();
-
-            const logLines = data.totalLogLines || data.logLines || 1240;
-            const logExists = data.logFileExists !== false;
-            uiLogStats.innerText = logExists ? `${logLines} líneas registradas` : "Archivo inactivo";
-
-            const playersArray = data.connectedPlayers || data.connected_players || data.players || data.playerList || data.player_list || [];
-            const playersCount = playersArray.length;
-            const maxSlots = data.slots || data.maxPlayers || 32;
-            const percentage = maxSlots > 0 ? Math.round((playersCount / maxSlots) * 100) : 0;
-
-            uiPlayersCount.innerText = playersCount;
-            uiMaxPlayers.innerText = `/ ${maxSlots} Cond.`;
-            uiProgressBar.style.width = `${Math.max(percentage, 3)}%`;
-            uiPercentage.innerText = `${percentage}% Ocupado`;
-            uiListCount.innerText = playersCount;
-
-            renderDrivers(playersArray);
-        }
-
-        function startUptimeTicker() {
-            if (uptimeInterval) clearInterval(uptimeInterval);
-            
-            updateUptimeDisplay();
-            uptimeInterval = setInterval(() => {
-                currentUptimeMs += 1000;
-                updateUptimeDisplay();
-            }, 1000);
-        }
-
-        function updateUptimeDisplay() {
-            const totalSeconds = Math.floor(currentUptimeMs / 1000);
-            const hours = Math.floor(totalSeconds / 3600);
-            const minutes = Math.floor((totalSeconds % 3600) / 60);
-            const seconds = totalSeconds % 60;
-            uiApiUptime.innerText = `${hours}h ${minutes}m ${seconds}s`;
-        }
-
-        function showOfflineUI(reason) {
-            statusDot.className = "w-2 h-2 rounded-full bg-ats-red";
-            statusText.innerText = "Offline";
-            statusText.className = "text-ats-red font-bold";
-            globalStatus.className = "flex items-center gap-2 px-3 py-1.5 rounded-full bg-ats-red/10 border border-ats-red/30 text-xs font-semibold";
-            cardAccent.className = "h-1 w-full bg-gradient-to-r from-ats-red to-red-700";
-
-            uiServerName.innerText = "[ES] ECUADOR SERVER +593";
-            uiGame.innerText = "ATS";
-            uiVersion.innerText = "1.58.x";
-            uiSessionID.innerText = "85568392936670275";
-            uiSessionID.dataset.value = "85568392936670275";
-            uiApiUptime.innerText = "0h 0m 0s";
-            uiLogStats.innerText = "Desconectado";
-            uiPlayersCount.innerText = "0";
-            uiProgressBar.style.width = "0%";
-            uiPercentage.innerText = "0% Ocupado";
-            uiListCount.innerText = "0";
-
-            if (reason) errorReason.innerText = `Detalle: ${reason}`;
-
-            loadingState.classList.add('hidden');
-            emptyState.classList.add('hidden');
-            driversGrid.classList.add('hidden');
-            errorState.classList.remove('hidden');
-            errorState.classList.add('flex');
-        }
-
-        function renderDrivers(list) {
-            loadingState.classList.add('hidden');
-            errorState.classList.add('hidden');
-            driversGrid.innerHTML = '';
-
-            if (!list || list.length === 0) {
-                emptyState.classList.remove('hidden');
-                emptyState.classList.add('flex');
-                driversGrid.classList.add('hidden');
-                return;
-            }
-
-            emptyState.classList.add('hidden');
-            driversGrid.classList.remove('hidden');
-
-            list.forEach((player, index) => {
-                const name = typeof player === 'object' ? (player.username || player.name || player.nick || player.playerName || 'Conductor') : player;
-                const clientId = (typeof player === 'object' && (player.client_id || player.id || player.clientId)) ? `#${player.client_id || player.id || player.clientId}` : `#${index + 1}`;
-
-                const card = document.createElement('div');
-                card.className = "bg-white/5 hover:bg-white/10 border border-white/5 p-3 rounded-xl flex items-center justify-between transition-colors group";
+                // Si la respuesta es exitosa
+                jsonOutput.textContent = JSON.stringify(data, null, 2);
+                errorBanner.classList.add('hidden');
                 
-                card.innerHTML = `
-                    <div class="flex items-center gap-3 overflow-hidden">
-                        <div class="w-8 h-8 rounded bg-ats-amber/20 text-ats-amber flex items-center justify-center shrink-0 font-mono text-xs font-bold">
-                            ${clientId}
-                        </div>
-                        <span class="font-medium text-sm text-slate-200 truncate" title="${name}">${name}</span>
-                    </div>
-                    <span class="w-2 h-2 rounded-full bg-ats-green shrink-0 shadow-[0_0_8px_rgba(16,185,129,0.8)]" title="En Ruta"></span>
-                `;
-                driversGrid.appendChild(card);
-            });
-        }
+                // Actualizar indicadores visuales
+                statusIndicator.className = "h-3 w-3 rounded-full bg-emerald-500";
+                statusText.textContent = "Online";
+                apiState.textContent = "En Línea";
+                apiState.className = "text-2xl font-bold mt-1 text-emerald-500";
 
-        function setLoadingState() {
-            refreshBtn.querySelector('i').classList.add('fa-spin');
-            if (driversGrid.children.length === 0) {
-                loadingState.classList.remove('hidden');
-                loadingState.classList.add('flex');
-                emptyState.classList.add('hidden');
-                errorState.classList.add('hidden');
-                driversGrid.classList.add('hidden');
+                // Hora actual
+                const now = new Date();
+                lastUpdate.textContent = now.toLocaleTimeString();
+
+            } catch (error) {
+                console.error("Error al obtener el status:", error);
+                statusIndicator.className = "h-3 w-3 rounded-full bg-red-500";
+                statusText.textContent = "Sin conexión / CORS";
+                apiState.textContent = "Error de Red";
+                apiState.className = "text-2xl font-bold mt-1 text-red-500";
+                
+                jsonOutput.textContent = `// No se pudo cargar la respuesta.\n// Detalle técnico: ${error.message}\n\n// Nota: Si el servidor está activo pero no incluye cabeceras CORS permitidas, el navegador bloqueará la lectura directa por seguridad.`;
+                errorBanner.classList.remove('hidden');
             }
         }
 
-        function copySessionID() {
-            const val = uiSessionID.dataset.value || uiSessionID.innerText;
-            const tempInput = document.createElement('input');
-            tempInput.value = val;
-            document.body.appendChild(tempInput);
-            tempInput.select();
-            document.execCommand('copy');
-            document.body.removeChild(tempInput);
-            showToast('ID de sesión copiado al portapapeles');
-        }
+        // Ejecutar al cargar la página
+        fetchServerStatus();
 
-        function showToast(msg) {
-            const toast = document.getElementById('toast');
-            document.getElementById('toastMsg').innerText = msg;
-            toast.classList.remove('opacity-0', 'translate-y-4', 'pointer-events-none');
-            setTimeout(() => {
-                toast.classList.add('opacity-0', 'translate-y-4', 'pointer-events-none');
-            }, 3000);
-        }
-
-        window.onload = () => {
-            fetchData();
-            setInterval(fetchData, 10000);
-        };
+        // Actualizar automáticamente cada 10 segundos
+        setInterval(fetchServerStatus, 10000);
     </script>
 </body>
 </html>
