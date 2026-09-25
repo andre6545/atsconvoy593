@@ -18,7 +18,7 @@ export default async function handler(req, res) {
 
   try {
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos de margen para tu VPS
+    const timeoutId = setTimeout(() => controller.abort(), 12000); // 12 segundos de margen
 
     const apiResponse = await fetch(targetUrl, {
       signal: controller.signal,
@@ -35,7 +35,7 @@ export default async function handler(req, res) {
 
     const data = await apiResponse.json();
     
-    // Normalización robusta para garantizar que la lista de jugadores nunca llegue vacía si hay conexión
+    // Normalización robusta para jugadores conectados
     if (!data.connectedPlayers && data.players) {
       data.connectedPlayers = data.players;
     } else if (!data.connectedPlayers) {
@@ -51,6 +51,10 @@ export default async function handler(req, res) {
       connectedPlayers: [{ username: "santiagooWTF", client_id: "67" }],
       game: "American Truck Simulator",
       game_version: "1.58.0.140s",
+      sessionID: "85568392936670275",
+      apiUptime: 39600000, // 11 horas por defecto en respaldo
+      totalLogLines: 1240,
+      logFileExists: true,
       error: error.message
     });
   }
