@@ -3,11 +3,11 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Ecuador Server +593 | Telemetría & Convoyes</title>
+    <title>ATS Ecuador Server Panel</title>
     <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
         :root {
             --bg-dark: #070a11;
@@ -263,19 +263,6 @@
             word-break: break-all;
         }
 
-        /* Secciones Principales */
-        .main-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 968px) {
-            .main-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
         .panel-box {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
@@ -299,7 +286,7 @@
         /* Jugadores */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1rem;
         }
 
@@ -338,56 +325,6 @@
             font-size: 0.75rem;
             color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-        }
-
-        /* Tarjeta Convoy Info / Radio CB */
-        .cb-info {
-            display: flex;
-            flex-direction: column;
-            gap: 1.2rem;
-        }
-
-        .cb-item {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-            background: rgba(255,255,255,0.02);
-            padding: 1rem;
-            border-radius: 12px;
-            border-left: 4px solid var(--ec-yellow);
-        }
-
-        .cb-icon {
-            font-size: 1.5rem;
-            color: var(--ec-yellow);
-        }
-
-        .cb-text h5 {
-            font-size: 0.9rem;
-            font-weight: 700;
-        }
-
-        .cb-text p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        /* Media / Trailer Section */
-        .video-container {
-            position: relative;
-            padding-bottom: 56.25%;
-            height: 0;
-            overflow: hidden;
-            border-radius: 12px;
-            border: 1px solid var(--panel-border);
-        }
-
-        .video-container iframe {
-            position: absolute;
-            top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
         }
 
         .empty-state {
@@ -441,7 +378,6 @@
             
             <div class="hero-badges">
                 <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
-                <span class="badge"><i class="fa-solid fa-headset"></i> CB Radio Canal 19 (593)</span>
                 <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
                 <span class="badge"><i class="fa-solid fa-mountain"></i> Ecuador Truckers</span>
             </div>
@@ -465,7 +401,7 @@
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Confección / Jugadores</span>
+                    <span>Conexión / Jugadores</span>
                     <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 </div>
                 <div class="metric-value" id="valPlayers">0 / 0</div>
@@ -488,61 +424,14 @@
             </div>
         </div>
 
-        <!-- Secciones Principales -->
-        <div class="main-grid">
-            <!-- Columna Izquierda: Jugadores en Línea -->
-            <div class="panel-box">
-                <div class="panel-title">
-                    <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
-                    Conductores en Ruta (Tiempo Real)
-                </div>
-                <div class="players-container" id="playersList">
-                    <div class="empty-state">Consultando la lista de conductores...</div>
-                </div>
-            </div>
-
-            <!-- Columna Derecha: Información de Frecuencias & Reglas -->
-            <div class="panel-box">
-                <div class="panel-title">
-                    <i class="fa-solid fa-radio" style="color: var(--ec-yellow)"></i>
-                    Canal CB Radio & Frecuencia
-                </div>
-                <div class="cb-info">
-                    <div class="cb-item">
-                        <i class="fa-solid fa-walkie-talkie cb-icon"></i>
-                        <div class="cb-text">
-                            <h5>Canal CB Recomendado</h5>
-                            <p>Canal 19 / Frecuencia 593 (Ecuador)</p>
-                        </div>
-                    </div>
-
-                    <div class="cb-item" style="border-left-color: var(--ec-blue)">
-                        <i class="fa-solid fa-gauge-high cb-icon" style="color: var(--ec-blue)"></i>
-                        <div class="cb-text">
-                            <h5>Velocidad Máxima Sugerida</h5>
-                            <p>65 - 75 MPH en convoy coordinado</p>
-                        </div>
-                    </div>
-
-                    <div class="cb-item" style="border-left-color: var(--ec-red)">
-                        <i class="fa-solid fa-triangle-exclamation cb-icon" style="color: var(--ec-red)"></i>
-                        <div class="cb-text">
-                            <h5>Normas del Servidor</h5>
-                            <p>Respetar distancia de frenado y usar direccionales.</p>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </div>
-
-        <!-- Sección de Video / Trailer Oficial ATS -->
+        <!-- Sección Principal: Jugadores en Línea -->
         <div class="panel-box">
             <div class="panel-title">
-                <i class="fa-solid fa-film" style="color: var(--ec-red)"></i>
-                ATS Experience & Gameplay
+                <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
+                Conductores en Ruta (Tiempo Real)
             </div>
-            <div class="video-container">
-                <iframe src="https://www.youtube-nocookie.com/embed/xlTuJ8-kO80?autoplay=0&mute=1&controls=1" title="American Truck Simulator Trailer" allowfullscreen></iframe>
+            <div class="players-container" id="playersList">
+                <div class="empty-state">Consultando la lista de conductores...</div>
             </div>
         </div>
     </div>
@@ -551,7 +440,7 @@
         <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT SIN CAMBIOS NI MODIFICACIONES -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
