@@ -1,33 +1,3 @@
-const TRUCKY_API_URL = 'https://e.truckyapp.com/api/v1/vtc/49477/telemetry';
-const TRUCKY_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjo0OTQ3N30.kduk-J7AxFB-DJz0HraAe2QXlPKRtQlQVbMzC1o-kZU';
-
-async function fetchWithFallbacks(url) {
-    // Lista de proxies CORS públicos y seguros para respaldar la conexión en Vercel
-    const proxies = [
-        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
-        `https://corsproxy.io/?${encodeURIComponent(url)}`,
-        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
-    ];
-
-    for (let proxyUrl of proxies) {
-        try {
-            const response = await fetch(proxyUrl, {
-                headers: {
-                    'x-access-token': TRUCKY_TOKEN,
-                    'Accept': 'application/json'
-                }
-            });
-            if (response.ok) {
-                const data = await response.json();
-                return data;
-            }
-        } catch (e) {
-            console.warn(`Proxy fallido, intentando siguiente...`, e);
-        }
-    }
-    throw new Error("Todos los canales de proxy fallaron al conectar con Trucky.");
-}
-
 async function refreshData() {
     const refreshIcon = document.getElementById('refresh-icon');
     refreshIcon.classList.add('fa-spin');
@@ -38,9 +8,12 @@ async function refreshData() {
     const playersCountBadge = document.getElementById('players-count-badge');
 
     try {
-        const data = await fetchWithFallbacks(TRUCKY_API_URL);
+        // Llamada limpia y directa a la API Serverless interna de Vercel (Sin bloqueos CORS)
+        const response = await fetch('/api/telemetry');
+        if (!response.ok) throw new Error("Fallo en la respuesta del servidor interno.");
         
-        // Extraer la lista de conductores sin importar la estructura de la respuesta
+        const data = await response.json();
+        
         let drivers = [];
         if (Array.isArray(data)) {
             drivers = data;
@@ -140,7 +113,7 @@ async function refreshData() {
             playersContainer.innerHTML = `
                 <div class="col-span-full border border-dashed border-neutral-800 p-12 text-center text-neutral-500 text-xs">
                     <i class="fa-solid fa-satellite text-2xl text-red-600 mb-2"></i>
-                    <p>Conexión establecida, pero no hay unidades activas en ruta en este momento.</p>
+                    <p>Enlace exitoso con Vercel, pero no hay usuarios conectados transmitiendo telemetría en Trucky ahora mismo.</p>
                 </div>`;
         }
 
@@ -151,7 +124,7 @@ async function refreshData() {
         playersContainer.innerHTML = `
             <div class="col-span-full border border-dashed border-red-800 p-12 text-center text-red-400 text-xs">
                 <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
-                <p>No se pudo conectar con la API de Trucky. Comprueba tu token o estado de la VTC.</p>
+                <p>Error al invocar la función serverless de Vercel.</p>
             </div>`;
     } finally {
         refreshIcon.classList.remove('fa-spin');
