@@ -3,405 +3,451 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Server Hub | Panel de Estado y Rutas</title>
-    <!-- Google Fonts & FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <title>ATS Convoy Status & Live Telemetry</title>
+    <!-- Fonts, Icons & Leaflet CSS for Map -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+
     <style>
         :root {
-            --bg-color: #0b0f19;
-            --card-bg: #111827;
-            --card-border: #1f2937;
-            --accent: #3b82f6;
-            --accent-glow: rgba(59, 130, 246, 0.3);
-            --success: #10b981;
-            --danger: #ef4444;
-            --text-main: #f9fafb;
-            --text-muted: #9ca3af;
+            --bg-dark: #080c14;
+            --panel-bg: #0f172a;
+            --panel-border: #1e293b;
+            --accent-red: #ef4444;
+            --accent-gold: #f59e0b;
+            --accent-cyan: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --status-green: #10b981;
         }
 
         * {
             box-sizing: border-box;
             margin: 0;
             padding: 0;
-            font-family: 'Inter', sans-serif;
+            font-family: 'Outfit', sans-serif;
         }
 
         body {
-            background-color: var(--bg-color);
-            color: var(--text-main);
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
             min-height: 100vh;
             display: flex;
             flex-direction: column;
         }
 
+        /* Top Navigation Header */
         header {
-            background: rgba(17, 24, 39, 0.8);
-            backdrop-filter: blur(10px);
-            border-bottom: 1px solid var(--card-border);
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 2px solid rgba(239, 68, 68, 0.4);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(12px);
             position: sticky;
             top: 0;
-            z-index: 100;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            padding: 1rem 5%;
+            z-index: 1000;
         }
 
-        .logo {
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-            font-weight: 700;
-            font-size: 1.25rem;
-            color: var(--text-main);
-            text-decoration: none;
-        }
-
-        .logo i {
-            color: var(--accent);
-            font-size: 1.5rem;
-        }
-
-        .server-status-badge {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            padding: 0.35rem 0.85rem;
-            border-radius: 50px;
-            font-size: 0.85rem;
-            font-weight: 600;
-            background: rgba(239, 68, 68, 0.15);
-            color: var(--danger);
-            border: 1px solid rgba(239, 68, 68, 0.3);
-        }
-
-        .server-status-badge.online {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--success);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-        }
-
-        .pulse {
-            width: 8px;
-            height: 8px;
-            border-radius: 50%;
-            background-color: currentColor;
-            box-shadow: 0 0 8px currentColor;
-            animation: pulse 2s infinite;
-        }
-
-        @keyframes pulse {
-            0% { transform: scale(0.95); opacity: 0.8; }
-            70% { transform: scale(1.3); opacity: 0.4; }
-            100% { transform: scale(0.95); opacity: 0.8; }
-        }
-
-        main {
-            flex: 1;
-            max-width: 1200px;
-            width: 90%;
-            margin: 2rem auto;
-            display: grid;
-            gap: 2rem;
-        }
-
-        .hero-grid {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 1.5rem;
-        }
-
-        .card {
-            background-color: var(--card-bg);
-            border: 1px solid var(--card-border);
-            border-radius: 12px;
-            padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
-        }
-
-        .card-title {
-            font-size: 0.9rem;
-            color: var(--text-muted);
-            text-transform: uppercase;
-            letter-spacing: 0.05em;
-            margin-bottom: 0.5rem;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .card-value {
-            font-size: 1.5rem;
-            font-weight: 700;
-        }
-
-        .card-value span {
-            font-size: 1rem;
-            color: var(--text-muted);
-        }
-
-        .content-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media(max-width: 900px) {
-            .content-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .section-header {
-            font-size: 1.2rem;
-            font-weight: 600;
-            margin-bottom: 1rem;
-            display: flex;
-            align-items: center;
-            gap: 0.75rem;
-        }
-
-        .players-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.75rem;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 0.5rem;
-        }
-
-        .players-list::-webkit-scrollbar {
-            width: 6px;
-        }
-        .players-list::-webkit-scrollbar-thumb {
-            background: var(--card-border);
-            border-radius: 3px;
-        }
-
-        .player-item {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            background: rgba(255, 255, 255, 0.02);
-            border: 1px solid var(--card-border);
-            padding: 0.75rem 1rem;
-            border-radius: 8px;
-        }
-
-        .player-info {
+        .brand {
             display: flex;
             align-items: center;
             gap: 1rem;
         }
 
-        .player-avatar {
-            width: 42px;
-            height: 42px;
-            border-radius: 6px;
-            object-fit: cover;
-            border: 1px solid var(--card-border);
+        .brand-icon {
+            background: linear-gradient(135deg, var(--accent-red), var(--accent-gold));
+            width: 44px;
+            height: 44px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.4rem;
+            color: #fff;
+            box-shadow: 0 0 15px rgba(239, 68, 68, 0.4);
         }
 
-        .player-name {
-            font-weight: 600;
-            font-size: 0.95rem;
+        .brand-title h1 {
+            font-size: 1.25rem;
+            font-weight: 800;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, var(--text-secondary));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
         }
 
-        .player-status-sub {
+        .brand-title p {
             font-size: 0.75rem;
-            color: var(--text-muted);
+            color: var(--text-secondary);
         }
 
-        .no-players {
-            color: var(--text-muted);
-            text-align: center;
-            padding: 2rem;
-            font-style: italic;
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(16, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.3);
+            padding: 0.4rem 1rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: var(--status-green);
         }
 
-        .routes-panel {
-            background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
+        .status-pill.offline {
+            background: rgba(239, 68, 68, 0.1);
+            border-color: rgba(239, 68, 68, 0.3);
+            color: var(--accent-red);
         }
 
-        .route-item {
-            background: rgba(0, 0, 0, 0.2);
-            border-radius: 8px;
-            padding: 1rem;
-            margin-bottom: 1rem;
-            border-left: 4px solid var(--accent);
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: currentColor;
+            box-shadow: 0 0 10px currentColor;
         }
 
-        .route-locations {
+        /* Layout Grid */
+        .container {
+            max-width: 1400px;
+            width: 95%;
+            margin: 2rem auto;
+            display: grid;
+            gap: 1.5rem;
+        }
+
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .metric-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 14px;
+            padding: 1.25rem 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: transform 0.2s, border-color 0.2s;
+        }
+
+        .metric-card:hover {
+            transform: translateY(-2px);
+            border-color: rgba(255, 255, 255, 0.15);
+        }
+
+        .metric-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
+            margin-bottom: 0.75rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
             font-weight: 600;
-            font-size: 0.95rem;
-            margin-bottom: 0.5rem;
         }
 
-        .route-locations i {
-            color: var(--accent);
+        .metric-value {
+            font-size: 1.6rem;
+            font-weight: 700;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
         }
 
-        .route-details {
-            font-size: 0.8rem;
-            color: var(--text-muted);
+        /* Main Workspace Grid: Map & Player list */
+        .workspace-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 1024px) {
+            .workspace-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .panel-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 1.5rem;
             display: flex;
+            flex-direction: column;
+        }
+
+        .panel-title {
+            font-size: 1.1rem;
+            font-weight: 700;
+            margin-bottom: 1.2rem;
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+        }
+
+        /* Telemetry Map Styling */
+        #map {
+            width: 100%;
+            height: 420px;
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+            background: #000;
+            z-index: 1;
+        }
+
+        /* Players List Styling */
+        .players-container {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 420px;
+            overflow-y: auto;
+            padding-right: 0.4rem;
+        }
+
+        .players-container::-webkit-scrollbar {
+            width: 5px;
+        }
+        .players-container::-webkit-scrollbar-thumb {
+            background: var(--panel-border);
+            border-radius: 4px;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
             justify-content: space-between;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            border-radius: 10px;
+            padding: 0.8rem 1rem;
+            transition: background 0.2s;
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.06);
+        }
+
+        .player-left {
+            display: flex;
+            align-items: center;
+            gap: 0.9rem;
+        }
+
+        .player-avatar {
+            width: 44px;
+            height: 44px;
+            border-radius: 8px;
+            object-fit: cover;
+            border: 2px solid var(--panel-border);
+        }
+
+        .player-details h4 {
+            font-size: 0.95rem;
+            font-weight: 600;
+            color: var(--text-primary);
+        }
+
+        .player-details p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+            font-style: italic;
         }
 
         footer {
-            text-align: center;
-            padding: 2rem;
-            color: var(--text-muted);
-            font-size: 0.85rem;
-            border-top: 1px solid var(--card-border);
             margin-top: auto;
+            padding: 1.5rem;
+            text-align: center;
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            border-top: 1px solid var(--panel-border);
         }
     </style>
 </head>
 <body>
 
     <header>
-        <a href="#" class="logo">
-            <i class="fa-solid fa-truck-fast"></i>
-            <span>ATS Public Server</span>
-        </a>
-        <div id="statusBadge" class="server-status-badge">
-            <div class="pulse"></div>
-            <span id="statusText">Conectando...</span>
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-truck-monster"></i></div>
+            <div class="brand-title">
+                <h1>ATS Convoy Hub</h1>
+                <p>Servidor Público de Telemetría en Vivo</p>
+            </div>
+        </div>
+        <div id="serverStatusPill" class="status-pill">
+            <div class="indicator"></div>
+            <span id="statusText">Obteniendo estado...</span>
         </div>
     </header>
 
-    <main>
-        <div class="hero-grid">
-            <div class="card">
-                <div class="card-title"><i class="fa-solid fa-fingerprint"></i> Server ID</div>
-                <div class="card-value" id="serverId">Cargando...</div>
+    <div class="container">
+        <!-- Grid de Métricas Principales -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>ID del Servidor</span>
+                    <i class="fa-solid fa-server" style="color: var(--accent-gold)"></i>
+                </div>
+                <div class="metric-value" id="valServerId">--</div>
             </div>
-            <div class="card">
-                <div class="card-title"><i class="fa-solid fa-users"></i> Jugadores Conectados</div>
-                <div class="card-value" id="playerCount">0 <span>/ Máx</span></div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Jugadores Conectados</span>
+                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
+                </div>
+                <div class="metric-value" id="valPlayers">0 / 0</div>
             </div>
-            <div class="card">
-                <div class="card-title"><i class="fa-solid fa-gamepad"></i> Versión del Juego</div>
-                <div class="card-value" id="gameVersion">-</div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Versión de ATS</span>
+                    <i class="fa-solid fa-code-branch" style="color: var(--accent-red)"></i>
+                </div>
+                <div class="metric-value" id="valVersion">--</div>
             </div>
         </div>
 
-        <div class="content-grid">
-            <div class="card">
-                <div class="section-header">
-                    <i class="fa-brands fa-steam" style="color: var(--accent);"></i> Conductores en Línea
+        <!-- Panel Principal: Mapa Telemetría & Jugadores Steam -->
+        <div class="workspace-grid">
+            <!-- Columna Izquierda: Mapa de Telemetría -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <i class="fa-solid fa-map-location-dot" style="color: var(--accent-gold)"></i>
+                    Telemetría y Posicionamiento de Convoy
                 </div>
-                <div class="players-list" id="playersContainer">
-                    <div class="no-players">Sincronizando con Trucky VTC...</div>
-                </div>
+                <div id="map"></div>
             </div>
 
-            <div class="card routes-panel">
-                <div class="section-header">
-                    <i class="fa-solid fa-route" style="color: var(--success);"></i> Rutas Activas
+            <!-- Columna Derecha: Lista de Conductores con Steam -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
+                    Conductores Conectados
                 </div>
-                <div id="routesContainer">
-                    <div class="route-item">
-                        <div class="route-locations">
-                            <span>Los Ángeles</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                            <span>Las Vegas</span>
-                        </div>
-                        <div class="route-details">
-                            <span>Carga: Maquinaria Pesada</span>
-                            <span>450 mi</span>
-                        </div>
-                    </div>
-                    <div class="route-item">
-                        <div class="route-locations">
-                            <span>San Francisco</span>
-                            <i class="fa-solid fa-arrow-right"></i>
-                            <span>Seattle</span>
-                        </div>
-                        <div class="route-details">
-                            <span>Carga: Contenedor Refrigerado</span>
-                            <span>810 mi</span>
-                        </div>
-                    </div>
+                <div class="players-container" id="playersList">
+                    <div class="empty-state">Consultando la lista de conductores...</div>
                 </div>
             </div>
         </div>
-    </main>
+    </div>
 
     <footer>
-        <p>&copy; 2026 American Truck Simulator Public Server Hub. Panel sincronizado en tiempo real.</p>
+        Sincronización directa con API Servidor ATS (198.199.67.5). Sin datos emulados.
     </footer>
 
+    <!-- Leaflet JS Map Script -->
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        const API_URL = '/api/status';
+        // Inicialización de mapa
+        const map = L.map('map').setView([36.1699, -115.1398], 5); // Coordenadas estándar de Nevada / California (ATS)
+        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
+            maxZoom: 18,
+            attribution: '&copy; CartoDB & ATS Map'
+        }).addTo(map);
 
-        async function fetchServerData() {
+        let markersGroup = L.layerGroup().addTo(map);
+
+        async function updateStatus() {
             try {
-                const response = await fetch(API_URL);
+                const response = await fetch('/api/status');
                 const data = await response.json();
 
-                const badge = document.getElementById('statusBadge');
+                const statusPill = document.getElementById('serverStatusPill');
                 const statusText = document.getElementById('statusText');
 
-                if (response.ok && !data.error) {
-                    badge.classList.add('online');
-                    statusText.textContent = 'En Línea';
+                if (response.ok && (data.online !== false)) {
+                    statusPill.classList.remove('offline');
+                    statusText.textContent = 'Servidor en Línea';
 
-                    // Rellenar datos principales (Cambiando IP por Server ID)
-                    document.getElementById('serverId').textContent = data.id || data.session_id || 'ATS-PUBLIC-US';
-                    document.getElementById('playerCount').innerHTML = `${data.players ? data.players.length : (data.onlinePlayers || 0)} <span>/ ${data.maxPlayers || 8}</span>`;
-                    document.getElementById('gameVersion').textContent = data.version || '1.53.x';
+                    // Actualizar Métricas Reales desde la API
+                    document.getElementById('valServerId').textContent = data.id || data.serverId || data.server_id || data.session_id || 'Servidor Activo';
+                    
+                    const onlineCount = data.players ? (Array.isArray(data.players) ? data.players.length : data.players) : (data.onlinePlayers || 0);
+                    const maxSlots = data.maxPlayers || data.max_players || data.slots || 8;
+                    document.getElementById('valPlayers').textContent = `${onlineCount} / ${maxSlots}`;
+                    
+                    document.getElementById('valVersion').textContent = data.version || data.gameVersion || '1.53.x';
 
-                    // Jugadores con nombre y avatar de Steam
-                    const playersContainer = document.getElementById('playersContainer');
-                    const players = data.players || data.clients || [];
+                    // Renderizar Conductores / Steam Profiles
+                    const playersListContainer = document.getElementById('playersList');
+                    markersGroup.clearLayers();
 
-                    if (players.length > 0) {
-                        playersContainer.innerHTML = '';
-                        players.forEach(player => {
-                            const playerName = player.name || player.username || 'Conductor';
-                            const playerAvatar = player.avatar || player.steamAvatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-                            const playerPing = player.ping ? `${player.ping} ms` : 'Steam Active';
+                    const playerArray = Array.isArray(data.players) ? data.players : (data.playerList || []);
 
-                            const playerDiv = document.createElement('div');
-                            playerDiv.className = 'player-item';
-                            playerDiv.innerHTML = `
-                                <div class="player-info">
-                                    <img src="${playerAvatar}" alt="Avatar" class="player-avatar" onerror="this.src='https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'">
-                                    <div>
-                                        <div class="player-name">${playerName}</div>
-                                        <div class="player-status-sub">En Ruta • ${playerPing}</div>
+                    if (playerArray.length > 0) {
+                        playersListContainer.innerHTML = '';
+
+                        playerArray.forEach(p => {
+                            // Extraer ID/Steam Name o Avatar directo
+                            const pName = p.name || p.username || p.steamName || 'Conductor';
+                            const pSteamId = p.steamId || p.steamid || p.steam_id;
+                            
+                            // Si se incluye el avatar directo o usamos Steam Community CDN con su SteamID
+                            let avatarUrl = p.avatar || p.steamAvatar;
+                            if (!avatarUrl && pSteamId) {
+                                avatarUrl = `https://avatars.steamstatic.com/${pSteamId}_full.jpg`;
+                            } else if (!avatarUrl) {
+                                avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+                            }
+
+                            const pPing = p.ping ? `${p.ping} ms` : 'Conectado';
+
+                            const item = document.createElement('div');
+                            item.className = 'player-card';
+                            item.innerHTML = `
+                                <div class="player-left">
+                                    <img src="${avatarUrl}" class="player-avatar" onerror="this.src='https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'" alt="Steam Avatar">
+                                    <div class="player-details">
+                                        <h4>${pName}</h4>
+                                        <p>${pPing}</p>
                                     </div>
                                 </div>
-                                <i class="fa-solid fa-truck" style="color: var(--accent);"></i>
+                                <i class="fa-solid fa-truck-steering" style="color: var(--accent-gold)"></i>
                             `;
-                            playersContainer.appendChild(playerDiv);
+                            playersListContainer.appendChild(item);
+
+                            // Si la API del servidor provee coordenadas X/Y o Lat/Lng para telemetría
+                            if (p.lat && p.lng) {
+                                L.marker([p.lat, p.lng])
+                                 .bindPopup(`<b>${pName}</b><br>Velocidad: ${p.speed || 0} mph`)
+                                 .addTo(markersGroup);
+                            }
                         });
                     } else {
-                        playersContainer.innerHTML = '<div class="no-players">No hay conductores en ruta actualmente.</div>';
+                        playersListContainer.innerHTML = '<div class="empty-state">No hay jugadores conectados en este momento.</div>';
                     }
 
                 } else {
-                    throw new Error(data.error || 'Servidor offline');
+                    throw new Error(data.error || 'Servidor Offline');
                 }
 
-            } catch (error) {
-                console.error('Error:', error);
-                const badge = document.getElementById('statusBadge');
-                badge.classList.remove('online');
-                document.getElementById('statusText').textContent = 'Fuera de Línea';
-                document.getElementById('serverId').textContent = 'Sin Conexión';
-                document.getElementById('playersContainer').innerHTML = '<div class="no-players">El servidor no responde o está apagado.</div>';
+            } catch (err) {
+                const statusPill = document.getElementById('serverStatusPill');
+                statusPill.classList.add('offline');
+                document.getElementById('statusText').textContent = 'Fuera de Línea / Sin Señal';
+                document.getElementById('valServerId').textContent = 'N/D';
+                document.getElementById('valPlayers').textContent = '0 / 0';
+                document.getElementById('valVersion').textContent = '--';
+                document.getElementById('playersList').innerHTML = `<div class="empty-state">No se puede establecer comunicación con la API (198.199.67.5).</div>`;
             }
         }
 
-        fetchServerData();
-        setInterval(fetchServerData, 10000);
+        updateStatus();
+        setInterval(updateStatus, 10000);
     </script>
 </body>
 </html>
