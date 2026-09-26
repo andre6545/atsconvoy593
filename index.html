@@ -1,175 +1,45 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Server Status - Monitor</title>
-    <!-- Tailwind CSS para un diseño moderno y responsive -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome para iconos -->
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-</head>
-<body class="bg-slate-950 text-slate-100 min-h-screen flex flex-col justify-between font-sans">
+export default async function handler(req, res) {
+  res.setHeader('Access-Control-Allow-Origin', '*');
+  res.setHeader('Access-Control-Allow-Methods', 'GET');
+  res.setHeader('Cache-Control', 's-maxage=5, stale-while-revalidate');
 
-    <!-- Header -->
-    <header class="bg-slate-900 border-b border-slate-800 py-4 px-6 shadow-md">
-        <div class="max-w-5xl mx-auto flex justify-between items-center">
-            <div class="flex items-center space-x-3">
-                <div class="bg-amber-600 p-2.5 rounded-lg text-white shadow-lg">
-                    <i class="fa-solid fa-truck-fast text-xl"></i>
-                </div>
-                <div>
-                    <h1 class="text-xl font-bold tracking-wide">ATS Server Monitor</h1>
-                    <p class="text-xs text-slate-400">American Truck Simulator Dedicated Server</p>
-                </div>
-            </div>
-            <div class="flex items-center space-x-2">
-                <span id="status-indicator" class="h-3 w-3 rounded-full bg-yellow-500 animate-pulse"></span>
-                <span id="status-text" class="text-sm font-medium text-slate-300">Conectando...</span>
-            </div>
-        </div>
-    </header>
+  try {
+    const controller = new AbortController();
+    const timeoutId = setTimeout(() => controller.abort(), 5000);
 
-    <!-- Main Content -->
-    <main class="max-w-5xl mx-auto p-6 w-full flex-grow">
-        
-        <!-- Grid de Información General -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-6 mb-8">
-            <!-- Estado de Conexión -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Estado de la API</p>
-                        <h3 id="api-state" class="text-2xl font-bold mt-1 text-amber-500">Comprobando</h3>
-                    </div>
-                    <div class="p-3 bg-slate-800 rounded-lg text-amber-400">
-                        <i class="fa-solid fa-server"></i>
-                    </div>
-                </div>
-            </div>
+    const response = await fetch('http://198.199.67.5/status', {
+      headers: {
+        'User-Agent': 'Vercel-ATS-Dashboard'
+      },
+      signal: controller.signal
+    });
 
-            <!-- Jugadores / Datos -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Endpoint Principal</p>
-                        <h3 class="text-lg font-bold mt-1 text-slate-200 truncate max-w-[200px]" title="http://198.199.67.5/status">/status</h3>
-                    </div>
-                    <div class="p-3 bg-slate-800 rounded-lg text-blue-400">
-                        <i class="fa-solid fa-network-wired"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-400">
-                    Host: <span class="text-slate-200 font-mono">198.199.67.5</span>
-                </div>
-            </div>
+    clearTimeout(timeoutId);
 
-            <!-- Última Actualización -->
-            <div class="bg-slate-900/80 border border-slate-800 rounded-xl p-5 shadow-lg backdrop-blur-sm">
-                <div class="flex justify-between items-start">
-                    <div>
-                        <p class="text-xs font-semibold uppercase tracking-wider text-slate-400">Última Sincronización</p>
-                        <h3 id="last-update" class="text-xl font-bold mt-1 text-slate-200 font-mono">--:--:--</h3>
-                    </div>
-                    <div class="p-3 bg-slate-800 rounded-lg text-emerald-400">
-                        <i class="fa-solid fa-clock-rotate-left"></i>
-                    </div>
-                </div>
-                <div class="mt-3 text-xs text-slate-400 flex items-center justify-between">
-                    <span>Auto-refresco (10s)</span>
-                    <button onclick="fetchServerStatus()" class="text-amber-400 hover:text-amber-300 underline focus:outline-none">Actualizar ahora</button>
-                </div>
-            </div>
-        </div>
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
 
-        <!-- Visor de Datos JSON de la API -->
-        <div class="bg-slate-900 border border-slate-800 rounded-xl shadow-xl overflow-hidden">
-            <div class="bg-slate-800/60 px-6 py-4 border-b border-slate-800 flex justify-between items-center">
-                <div class="flex items-center space-x-2">
-                    <i class="fa-solid fa-code text-slate-400"></i>
-                    <h2 class="font-semibold text-slate-200">Datos en Tiempo Real de la API (JSON)</h2>
-                </div>
-                <span class="text-xs bg-slate-800 text-slate-300 px-2.5 py-1 rounded border border-slate-700 font-mono">GET /status</span>
-            </div>
-            
-            <div class="p-6">
-                <!-- Contenedor de Error si CORS o servidor caen -->
-                <div id="error-banner" class="hidden mb-4 p-4 bg-red-950/50 border border-red-800/60 rounded-lg text-red-200 text-sm flex items-start space-x-3">
-                    <i class="fa-solid fa-triangle-exclamation text-red-400 mt-0.5 text-lg"></i>
-                    <div>
-                        <span class="font-bold block">No se pudo conectar directamente con la API.</span>
-                        <p class="text-red-300/90 mt-1">Esto suele pasar por restricciones de seguridad del navegador (CORS) o porque el servidor no responde peticiones externas de JavaScript plano. Si tu servidor lo permite, asegúrate de habilitar CORS.</p>
-                    </div>
-                </div>
+    const data = await response.json();
+    return res.status(200).json(data);
 
-                <!-- Bloque de Código JSON Bonito -->
-                <pre id="json-output" class="bg-slate-950 p-4 rounded-lg overflow-x-auto text-sm font-mono text-emerald-400 border border-slate-800/80 max-h-[450px]">Cargando datos del servidor...</pre>
-            </div>
-        </div>
-
-    </main>
-
-    <!-- Footer -->
-    <footer class="bg-slate-900 border-t border-slate-800 py-4 px-6 text-center text-xs text-slate-500">
-        <p>ATS Server Status Dashboard &bull; Creado para <span class="text-slate-400 font-mono">198.199.67.5</span></p>
-    </footer>
-
-    <!-- Lógica de JavaScript -->
-    <script>
-        const API_URL = 'http://198.199.67.5/status';
-
-        async function fetchServerStatus() {
-            const jsonOutput = document.getElementById('json-output');
-            const statusIndicator = document.getElementById('status-indicator');
-            const statusText = document.getElementById('status-text');
-            const apiState = document.getElementById('api-state');
-            const lastUpdate = document.getElementById('last-update');
-            const errorBanner = document.getElementById('error-banner');
-
-            try {
-                // Petición a la API del servidor de ATS
-                const response = await fetch(API_URL, { 
-                    method: 'GET',
-                    mode: 'cors' // Intenta conexión CORS
-                });
-
-                if (!response.ok) {
-                    throw new Error(`Error HTTP: ${response.status}`);
-                }
-
-                const data = await response.json();
-
-                // Si la respuesta es exitosa
-                jsonOutput.textContent = JSON.stringify(data, null, 2);
-                errorBanner.classList.add('hidden');
-                
-                // Actualizar indicadores visuales
-                statusIndicator.className = "h-3 w-3 rounded-full bg-emerald-500";
-                statusText.textContent = "Online";
-                apiState.textContent = "En Línea";
-                apiState.className = "text-2xl font-bold mt-1 text-emerald-500";
-
-                // Hora actual
-                const now = new Date();
-                lastUpdate.textContent = now.toLocaleTimeString();
-
-            } catch (error) {
-                console.error("Error al obtener el status:", error);
-                statusIndicator.className = "h-3 w-3 rounded-full bg-red-500";
-                statusText.textContent = "Sin conexión / CORS";
-                apiState.textContent = "Error de Red";
-                apiState.className = "text-2xl font-bold mt-1 text-red-500";
-                
-                jsonOutput.textContent = `// No se pudo cargar la respuesta.\n// Detalle técnico: ${error.message}\n\n// Nota: Si el servidor está activo pero no incluye cabeceras CORS permitidas, el navegador bloqueará la lectura directa por seguridad.`;
-                errorBanner.classList.remove('hidden');
-            }
-        }
-
-        // Ejecutar al cargar la página
-        fetchServerStatus();
-
-        // Actualizar automáticamente cada 10 segundos
-        setInterval(fetchServerStatus, 10000);
-    </script>
-</body>
-</html>
+  } catch (error) {
+    console.error('Error detallado:', error.message);
+    
+    return res.status(200).json({
+      serverRunning: false,
+      serverName: "[ES] ECUADOR SERVER +593 (Sin Conexión)",
+      sessionID: "85568392936670275",
+      slots: 32,
+      connectedPlayers: [],
+      game: "American Truck Simulator",
+      game_version: "1.58.0.140s",
+      beta: "temporary_1_58",
+      apiUptime: 0,
+      logFileExists: false,
+      tailStarted: false,
+      totalLogLines: 0,
+      errorDetail: error.message
+    });
+  }
+}
