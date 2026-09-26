@@ -1,56 +1,65 @@
-// Variable global temporal en memoria para almacenar las últimas entregas
-let deliveriesHistory = [];
+// Almacén temporal en memoria para las últimas cargas
+let recentDeliveries = [];
 
 export default async function handler(req, res) {
-  // Permitir peticiones desde cualquier origen (CORS)
-  res.setHeader('Access-Control-Allow-Credentials', 'true');
-  res.setHeader('Access-Control-Allow-Origin', '*');
-  res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
-  res.setHeader(
-    'Access-Control-Allow-Headers',
-    'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-  );
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
 
-  if (req.method === 'OPTIONS') {
-    res.status(200).end();
-    return;
-  }
-
-  // Si se recibe una nueva entrega (Petición POST)
-  if (req.method === 'POST') {
-    try {
-      const body = req.body || {};
-      
-      // Estructurar el objeto de la entrega
-      const delivery = {
-        id: Date.now(),
-        driver: body.driver || body.username || (body.embeds && body.embeds[0]?.author?.name) || 'Conductor Anónimo',
-        cargo: body.cargo || body.job || 'Carga General',
-        origin: body.origin || body.from || 'Origen N/A',
-        destination: body.destination || body.to || 'Destino N/A',
-        status: body.status || 'Completada',
-        timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
-      };
-
-      // Guardar en el historial (máximo 15 registros más recientes)
-      deliveriesHistory.unshift(delivery);
-      if (deliveriesHistory.length > 15) {
-        deliveriesHistory.pop();
-      }
-
-      return res.status(200).json({ success: true, message: 'Entrega registrada exitosamente', delivery });
-    } catch (error) {
-      return res.status(500).json({ success: false, error: error.message });
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
     }
-  }
 
-  // Si la web consulta el historial de entregas (Petición GET)
-  if (req.method === 'GET') {
-    return res.status(200).json({
-      success: true,
-      deliveries: deliveriesHistory
-    });
-  }
+    // 1. Cuando tu bot/plugin de ATS o Discord envía datos
+    if (req.method === 'POST') {
+        try {
+            const body = req.body || {};
+            let driver = 'Conductor ECU';
+            let cargo = 'Carga Pesada';
+            let origin = 'Ecuador';
+            let destination = 'Destino';
+            let status = 'completed';
 
-  return res.status(405).json({ error: 'Método no permitido' });
+            // Detectar embeds de Discord (Trucky / Virtual Trucking Company)
+            if (body.embeds && body.embeds.length > 0) {
+                const embed = body.embeds[0];
+                cargo = embed.title || cargo;
+                
+                if (embed.fields) {
+                    embed.fields.forEach(field => {
+                        const name = (field.name || '').toLowerCase();
+                        if (name.includes('driver') || name.includes('conductor')) driver = field.value;
+                        if (name.includes('cargo') || name.includes('carga')) cargo = field.value;
+                        if (name.includes('from') || name.includes('origen')) origin = field.value;
+                        if (name.includes('to') || name.includes('destino')) destination = field.value;
+                    });
+                }
+            } else if (body.content) {
+                cargo = body.content;
+            }
+
+            const newJob = {
+                id: Date.now(),
+                driver: body.driver || driver,
+                cargo: body.cargo || cargo,
+                origin: body.origin || origin,
+                destination: body.destination || destination,
+                status: body.status || status,
+                timestamp: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
+            };
+
+            // Guardar en la lista (máximo 10 cargas recientes)
+            recentDeliveries.unshift(newJob);
+            if (recentDeliveries.length > 10) recentDeliveries.pop();
+
+            return res.status(200).json({ success: true, message: 'Carga registrada correctamente' });
+        } catch (e) {
+            return res.status(400).json({ error: 'Error procesando payload de carga' });
+        }
+    }
+
+    // 2. Cuando tu página web pide las cargas para mostrarlas en pantalla
+    if (req.method === 'GET') {
+        return res.status(200).json(recentDeliveries);
+    }
 }
