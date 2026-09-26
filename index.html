@@ -3,25 +3,26 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Server Status | ECUADOR SERVER 🇪🇨</title>
-    <!-- Google Fonts & FontAwesome -->
-    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600;700&display=swap" rel="stylesheet">
+    <title>ATS Ecuador Server +593 | Telemetría & Convoyes</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800;900&family=JetBrains+Mono:wght@400;600;800&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
     <style>
         :root {
-            --bg-dark: #050811;
-            --panel-bg: rgba(15, 23, 42, 0.75);
-            --panel-border: rgba(255, 255, 255, 0.08);
-            --panel-border-hover: rgba(245, 158, 11, 0.4);
-            --accent-yellow: #ffda1a;
-            --accent-blue: #0052b4;
-            --accent-red: #ef4444;
+            --bg-dark: #070a11;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            
+            /* Colores Bandera de Ecuador */
+            --ec-yellow: #ffda1a;
+            --ec-blue: #034ea2;
+            --ec-red: #ed1c24;
+
             --accent-cyan: #06b6d4;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --status-green: #10b981;
-            --glow-gold: rgba(245, 158, 11, 0.25);
         }
 
         * {
@@ -37,56 +38,46 @@
             min-height: 100vh;
             display: flex;
             flex-direction: column;
-            position: relative;
             overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
+                radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
         }
 
-        /* Hero Image & Video Background Overlay */
-        .bg-overlay {
+        /* Barra de Ecuador decorativa superior */
+        .ec-stripe {
+            height: 5px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--ec-yellow) 50%, var(--ec-blue) 50% 75%, var(--ec-red) 75%);
             position: fixed;
             top: 0;
-            left: 0;
-            width: 100%;
-            height: 100%;
-            z-index: -1;
-            background: 
-                linear-gradient(180deg, rgba(5, 8, 17, 0.85) 0%, rgba(5, 8, 17, 0.95) 100%),
-                url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?auto=format&fit=crop&w=1920&q=80') center/cover no-repeat;
-            filter: contrast(105%) brightness(90%);
+            z-index: 1001;
+            box-shadow: 0 0 12px rgba(255, 218, 26, 0.5);
         }
 
-        /* Banner Tricolor de Ecuador */
-        .ec-stripe {
-            height: 4px;
-            width: 100%;
-            background: linear-gradient(90deg, #ffda1a 50%, #0052b4 50% 75%, #ef4444 75%);
-            position: absolute;
-            top: 0;
-            left: 0;
-            box-shadow: 0 0 12px rgba(255, 218, 26, 0.6);
-        }
-
+        /* Header Navegación */
         header {
-            background: rgba(10, 15, 29, 0.85);
+            margin-top: 5px;
+            background: rgba(10, 15, 26, 0.9);
             border-bottom: 1px solid var(--panel-border);
-            padding: 1.2rem 2.5rem;
+            padding: 1rem 2rem;
             display: flex;
             justify-content: space-between;
             align-items: center;
-            backdrop-filter: blur(16px);
+            backdrop-filter: blur(15px);
             position: sticky;
-            top: 0;
+            top: 5px;
             z-index: 1000;
         }
 
         .brand {
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            gap: 1rem;
         }
 
         .brand-icon {
-            background: linear-gradient(135deg, #0052b4, #ef4444);
+            background: linear-gradient(135deg, var(--ec-yellow), var(--ec-red));
             width: 50px;
             height: 50px;
             border-radius: 12px;
@@ -94,66 +85,53 @@
             align-items: center;
             justify-content: center;
             font-size: 1.6rem;
-            color: #fff;
-            box-shadow: 0 0 20px rgba(0, 82, 180, 0.5);
-            border: 2px solid rgba(255, 218, 26, 0.6);
-            animation: floatIcon 4s ease-in-out infinite;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 218, 26, 0.4);
+            animation: pulse-glow 3s infinite alternate;
         }
 
-        @keyframes floatIcon {
-            0%, 100% { transform: translateY(0); }
-            50% { transform: translateY(-3px); }
-        }
-
-        .brand-title {
-            display: flex;
-            flex-direction: column;
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px rgba(255, 218, 26, 0.3); }
+            100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
         }
 
         .brand-title h1 {
-            font-size: 1.35rem;
+            font-size: 1.3rem;
             font-weight: 900;
-            letter-spacing: 0.8px;
+            letter-spacing: 0.5px;
             text-transform: uppercase;
-            background: linear-gradient(90deg, #ffffff 0%, #cbd5e1 100%);
+            background: linear-gradient(90deg, #fff, var(--ec-yellow));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-        }
-
-        .flag-badge {
-            font-size: 1rem;
-            filter: drop-shadow(0 0 4px rgba(0,0,0,0.5));
         }
 
         .brand-title p {
-            font-size: 0.82rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
-            font-weight: 500;
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
         }
 
         .status-pill {
             display: flex;
             align-items: center;
-            gap: 0.7rem;
-            background: rgba(16, 185, 129, 0.12);
+            gap: 0.6rem;
+            background: rgba(16, 185, 129, 0.15);
             border: 1px solid rgba(16, 185, 129, 0.4);
             padding: 0.5rem 1.2rem;
             border-radius: 30px;
-            font-size: 0.88rem;
+            font-size: 0.85rem;
             font-weight: 700;
             color: var(--status-green);
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-            backdrop-filter: blur(8px);
         }
 
         .status-pill.offline {
-            background: rgba(239, 68, 68, 0.12);
-            border-color: rgba(239, 68, 68, 0.4);
-            color: var(--accent-red);
-            box-shadow: 0 0 15px rgba(239, 68, 68, 0.2);
+            background: rgba(237, 28, 36, 0.15);
+            border-color: rgba(237, 28, 36, 0.4);
+            color: var(--ec-red);
+            box-shadow: 0 0 15px rgba(237, 28, 36, 0.2);
         }
 
         .indicator {
@@ -162,79 +140,91 @@
             border-radius: 50%;
             background-color: currentColor;
             box-shadow: 0 0 10px currentColor;
-            animation: pulseGlow 2s infinite;
+            animation: blink 1.5s infinite;
         }
 
-        @keyframes pulseGlow {
-            0%, 100% { opacity: 1; transform: scale(1); }
-            50% { opacity: 0.5; transform: scale(1.2); }
+        @keyframes blink {
+            50% { opacity: 0.4; }
         }
 
+        /* Hero Banner ATS ECUADOR */
+        .hero-banner {
+            position: relative;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
+                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            padding: 3rem 2rem;
+            border-bottom: 1px solid var(--panel-border);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero-content h2 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Camión Animado Corriendo */
+        .road-animation {
+            width: 100%;
+            height: 40px;
+            border-bottom: 2px dashed rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .moving-truck {
+            position: absolute;
+            bottom: 2px;
+            font-size: 1.8rem;
+            color: var(--ec-yellow);
+            animation: drive 12s linear infinite;
+            filter: drop-shadow(0 0 8px var(--ec-yellow));
+        }
+
+        @keyframes drive {
+            0% { left: -10%; }
+            100% { left: 110%; }
+        }
+
+        /* Container & Layout */
         .container {
-            max-width: 1280px;
-            width: 92%;
-            margin: 2.5rem auto;
+            max-width: 1300px;
+            width: 95%;
+            margin: 2rem auto;
             display: grid;
             gap: 2rem;
         }
 
-        /* Banner Decorativo ATS */
-        .hero-banner {
-            background: linear-gradient(135deg, rgba(15, 23, 42, 0.85) 0%, rgba(30, 41, 59, 0.6) 100%);
-            border: 1px solid var(--panel-border);
-            border-radius: 20px;
-            padding: 2rem 2.5rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(12px);
-            position: relative;
-            overflow: hidden;
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
-        }
-
-        .hero-banner::after {
-            content: '';
-            position: absolute;
-            right: -50px;
-            bottom: -50px;
-            width: 250px;
-            height: 250px;
-            background: radial-gradient(circle, var(--glow-gold) 0%, transparent 70%);
-            pointer-events: none;
-        }
-
-        .hero-content h2 {
-            font-size: 1.8rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            margin-bottom: 0.4rem;
-        }
-
-        .hero-content p {
-            color: var(--text-secondary);
-            font-size: 0.95rem;
-            max-width: 600px;
-        }
-
-        .hero-badge {
-            background: rgba(255, 218, 26, 0.1);
-            border: 1px solid rgba(255, 218, 26, 0.3);
-            color: var(--accent-yellow);
-            padding: 0.6rem 1.2rem;
-            border-radius: 12px;
-            font-weight: 700;
-            font-size: 0.9rem;
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-        }
-
-        /* Grid de Tarjetas / Métricas */
+        /* Grid Métricas */
         .metrics-row {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.5rem;
+            gap: 1.25rem;
         }
 
         .metric-card {
@@ -242,113 +232,162 @@
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 1.5rem;
-            backdrop-filter: blur(12px);
-            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
             position: relative;
             overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
         }
 
         .metric-card:hover {
-            transform: translateY(-4px);
-            border-color: var(--panel-border-hover);
-            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4), 0 0 15px var(--glow-gold);
+            transform: translateY(-5px);
+            border-color: var(--ec-yellow);
+            box-shadow: 0 10px 25px rgba(255, 218, 26, 0.15);
         }
 
         .metric-header {
             display: flex;
             justify-content: space-between;
             align-items: center;
-            margin-bottom: 1rem;
+            margin-bottom: 0.8rem;
             color: var(--text-secondary);
             font-size: 0.85rem;
             text-transform: uppercase;
             font-weight: 700;
-            letter-spacing: 0.5px;
-        }
-
-        .metric-icon {
-            width: 38px;
-            height: 38px;
-            border-radius: 10px;
-            background: rgba(255, 255, 255, 0.05);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.1rem;
         }
 
         .metric-value {
-            font-size: 1.45rem;
+            font-size: 1.4rem;
             font-weight: 800;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-primary);
             word-break: break-all;
         }
 
-        /* Panel Lista de Jugadores */
+        /* Secciones Principales */
+        .main-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 1.5rem;
+        }
+
+        @media (max-width: 968px) {
+            .main-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .panel-box {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
-            border-radius: 20px;
-            padding: 2rem;
-            backdrop-filter: blur(12px);
-            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            border-radius: 18px;
+            padding: 1.8rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .panel-title {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 800;
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.8rem;
-            border-bottom: 1px solid var(--panel-border);
-            padding-bottom: 1rem;
+            gap: 0.7rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 0.8rem;
         }
 
+        /* Jugadores */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(290px, 1fr));
-            gap: 1.2rem;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
         }
 
         .player-card {
             display: flex;
             align-items: center;
-            gap: 1.2rem;
+            gap: 1rem;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--panel-border);
-            border-radius: 14px;
-            padding: 1rem 1.2rem;
+            border-radius: 12px;
+            padding: 0.9rem 1.1rem;
             transition: all 0.2s ease;
         }
 
         .player-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-            border-color: rgba(255, 218, 26, 0.3);
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--ec-blue);
             transform: scale(1.02);
         }
 
         .player-avatar {
-            width: 52px;
-            height: 52px;
-            border-radius: 12px;
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
             object-fit: cover;
-            border: 2px solid rgba(255, 218, 26, 0.5);
-            box-shadow: 0 0 10px rgba(0, 0, 0, 0.5);
+            border: 2px solid var(--ec-yellow);
         }
 
         .player-details h4 {
-            font-size: 1.05rem;
+            font-size: 1rem;
             font-weight: 700;
             color: var(--text-primary);
         }
 
         .player-details p {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
-            margin-top: 2px;
+        }
+
+        /* Tarjeta Convoy Info / Radio CB */
+        .cb-info {
+            display: flex;
+            flex-direction: column;
+            gap: 1.2rem;
+        }
+
+        .cb-item {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255,255,255,0.02);
+            padding: 1rem;
+            border-radius: 12px;
+            border-left: 4px solid var(--ec-yellow);
+        }
+
+        .cb-icon {
+            font-size: 1.5rem;
+            color: var(--ec-yellow);
+        }
+
+        .cb-text h5 {
+            font-size: 0.9rem;
+            font-weight: 700;
+        }
+
+        .cb-text p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+        }
+
+        /* Media / Trailer Section */
+        .video-container {
+            position: relative;
+            padding-bottom: 56.25%;
+            height: 0;
+            overflow: hidden;
+            border-radius: 12px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .video-container iframe {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
         }
 
         .empty-state {
@@ -356,95 +395,86 @@
             padding: 3rem 1rem;
             color: var(--text-secondary);
             font-style: italic;
-            width: 100%;
             grid-column: 1 / -1;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .empty-state i {
-            font-size: 2.5rem;
-            opacity: 0.4;
         }
 
         footer {
-            margin-top: auto;
+            margin-top: 3rem;
             padding: 2rem;
             text-align: center;
             font-size: 0.85rem;
             color: var(--text-secondary);
+            background: rgba(5, 8, 15, 0.95);
             border-top: 1px solid var(--panel-border);
-            background: rgba(8, 12, 20, 0.9);
-            backdrop-filter: blur(10px);
         }
 
-        @media (max-width: 768px) {
-            header {
-                padding: 1rem;
-            }
-            .hero-banner {
-                flex-direction: column;
-                align-items: flex-start;
-                gap: 1rem;
-            }
+        footer strong {
+            color: var(--ec-yellow);
         }
     </style>
 </head>
 <body>
 
-    <div class="bg-overlay"></div>
+    <!-- Franja Ecuador -->
     <div class="ec-stripe"></div>
 
+    <!-- Header -->
     <header>
         <div class="brand">
-            <div class="brand-icon"><i class="fa-solid fa-truck-monster"></i></div>
+            <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
             <div class="brand-title">
-                <h1 id="serverNameHeader">American Truck Simulator <span class="flag-badge">🇪🇨</span></h1>
-                <p>Comunidad y Convoyes del Ecuador</p>
+                <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
+                <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
             </div>
         </div>
         <div id="serverStatusPill" class="status-pill">
             <div class="indicator"></div>
-            <span id="statusText">Conectando...</span>
+            <span id="statusText">Cargando...</span>
         </div>
     </header>
 
-    <div class="container">
-        <!-- Banner Decorativo -->
-        <div class="hero-banner">
-            <div class="hero-content">
-                <h2>Servidor Público de Convoyes</h2>
-                <p>Monitoreo e información en tiempo real de las rutas de American Truck Simulator.</p>
-            </div>
-            <div class="hero-badge">
-                <i class="fa-solid fa-map-location-dot"></i> ECUADOR +593
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
+            <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
+            
+            <div class="hero-badges">
+                <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
+                <span class="badge"><i class="fa-solid fa-headset"></i> CB Radio Canal 19 (593)</span>
+                <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
+                <span class="badge"><i class="fa-solid fa-mountain"></i> Ecuador Truckers</span>
             </div>
         </div>
 
-        <!-- Métricas Principales de la API -->
+        <div class="road-animation">
+            <i class="fa-solid fa-truck-moving moving-truck"></i>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Grid de Métricas Principales -->
         <div class="metrics-row">
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>ID de Sesión</span>
-                    <div class="metric-icon" style="color: var(--accent-yellow)"><i class="fa-solid fa-fingerprint"></i></div>
+                    <span>ID de Sesión (Server ID)</span>
+                    <i class="fa-solid fa-fingerprint" style="color: var(--ec-yellow)"></i>
                 </div>
                 <div class="metric-value" id="valSessionId">--</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Jugadores Conectados</span>
-                    <div class="metric-icon" style="color: var(--accent-cyan)"><i class="fa-solid fa-users"></i></div>
+                    <span>Confección / Jugadores</span>
+                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 </div>
                 <div class="metric-value" id="valPlayers">0 / 0</div>
             </div>
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Versión del Juego</span>
-                    <div class="metric-icon" style="color: var(--accent-red)"><i class="fa-solid fa-code-branch"></i></div>
+                    <span>Versión de ATS</span>
+                    <i class="fa-solid fa-code-branch" style="color: var(--ec-red)"></i>
                 </div>
                 <div class="metric-value" id="valVersion">--</div>
             </div>
@@ -452,31 +482,76 @@
             <div class="metric-card">
                 <div class="metric-header">
                     <span>Tiempo Activo (Uptime)</span>
-                    <div class="metric-icon" style="color: var(--status-green)"><i class="fa-solid fa-clock"></i></div>
+                    <i class="fa-solid fa-stopwatch" style="color: var(--status-green)"></i>
                 </div>
                 <div class="metric-value" id="valUptime">--</div>
             </div>
         </div>
 
-        <!-- Lista de Jugadores con Steam Avatar -->
+        <!-- Secciones Principales -->
+        <div class="main-grid">
+            <!-- Columna Izquierda: Jugadores en Línea -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
+                    Conductores en Ruta (Tiempo Real)
+                </div>
+                <div class="players-container" id="playersList">
+                    <div class="empty-state">Consultando la lista de conductores...</div>
+                </div>
+            </div>
+
+            <!-- Columna Derecha: Información de Frecuencias & Reglas -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <i class="fa-solid fa-radio" style="color: var(--ec-yellow)"></i>
+                    Canal CB Radio & Frecuencia
+                </div>
+                <div class="cb-info">
+                    <div class="cb-item">
+                        <i class="fa-solid fa-walkie-talkie cb-icon"></i>
+                        <div class="cb-text">
+                            <h5>Canal CB Recomendado</h5>
+                            <p>Canal 19 / Frecuencia 593 (Ecuador)</p>
+                        </div>
+                    </div>
+
+                    <div class="cb-item" style="border-left-color: var(--ec-blue)">
+                        <i class="fa-solid fa-gauge-high cb-icon" style="color: var(--ec-blue)"></i>
+                        <div class="cb-text">
+                            <h5>Velocidad Máxima Sugerida</h5>
+                            <p>65 - 75 MPH en convoy coordinado</p>
+                        </div>
+                    </div>
+
+                    <div class="cb-item" style="border-left-color: var(--ec-red)">
+                        <i class="fa-solid fa-triangle-exclamation cb-icon" style="color: var(--ec-red)"></i>
+                        <div class="cb-text">
+                            <h5>Normas del Servidor</h5>
+                            <p>Respetar distancia de frenado y usar direccionales.</p>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Sección de Video / Trailer Oficial ATS -->
         <div class="panel-box">
             <div class="panel-title">
-                <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
-                Conductores en Ruta
+                <i class="fa-solid fa-film" style="color: var(--ec-red)"></i>
+                ATS Experience & Gameplay
             </div>
-            <div class="players-container" id="playersList">
-                <div class="empty-state">
-                    <i class="fa-solid fa-spinner fa-spin"></i>
-                    <span>Sincronizando la lista de conductores con el servidor...</span>
-                </div>
+            <div class="video-container">
+                <iframe src="https://www.youtube-nocookie.com/embed/xlTuJ8-kO80?autoplay=0&mute=1&controls=1" title="American Truck Simulator Trailer" allowfullscreen></iframe>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>Panel Sincronizado en Tiempo Real | ATS Ecuador Server +593 © 2026</p>
+        <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
     </footer>
 
+    <!-- LÓGICA JAVASCRIPT SIN CAMBIOS NI MODIFICACIONES -->
     <script>
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
@@ -499,7 +574,7 @@
                     statusText.textContent = 'En Línea';
 
                     // Actualizar datos de la API real
-                    document.getElementById('serverNameHeader').innerHTML = `${data.serverName || 'American Truck Simulator'} <span class="flag-badge">🇪🇨</span>`;
+                    document.getElementById('serverNameHeader').textContent = data.serverName || 'American Truck Simulator';
                     document.getElementById('valSessionId').textContent = data.sessionID || 'N/D';
                     
                     const players = data.connectedPlayers || [];
@@ -518,6 +593,7 @@
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id ? `Client ID: ${p.client_id}` : 'En Convoy';
                             
+                            // Avatar de Steam por defecto
                             const avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
@@ -532,11 +608,7 @@
                             playersList.appendChild(item);
                         });
                     } else {
-                        playersList.innerHTML = `
-                            <div class="empty-state">
-                                <i class="fa-solid fa-truck-ramp-box"></i>
-                                <span>No hay conductores en ruta actualmente.</span>
-                            </div>`;
+                        playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta en este momento. 🚛</div>';
                     }
 
                 } else {
@@ -551,11 +623,7 @@
                 document.getElementById('valPlayers').textContent = '0 / 0';
                 document.getElementById('valVersion').textContent = '--';
                 document.getElementById('valUptime').textContent = '--';
-                document.getElementById('playersList').innerHTML = `
-                    <div class="empty-state">
-                        <i class="fa-solid fa-triangle-exclamation" style="color: var(--accent-red)"></i>
-                        <span>El servidor no responde o está offline.</span>
-                    </div>`;
+                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
             }
         }
 
