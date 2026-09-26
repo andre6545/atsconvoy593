@@ -1,4 +1,4 @@
-export default async function handler(req, res) {
+module.exports = async (req, res) => {
     const TRUCKY_API_URL = 'https://e.truckyapp.com/api/v1/vtc/49477/telemetry';
     const TRUCKY_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjo0OTQ3N30.kduk-J7AxFB-DJz0HraAe2QXlPKRtQlQVbMzC1o-kZU';
 
@@ -11,7 +11,7 @@ export default async function handler(req, res) {
         });
 
         if (!response.ok) {
-            return res.status(response.status).json({ error: 'Error al conectar con la API de Trucky' });
+            return res.status(response.status).json({ error: `Error en Trucky API: ${response.status}` });
         }
 
         const data = await response.json();
@@ -19,4 +19,4 @@ export default async function handler(req, res) {
     } catch (error) {
         return res.status(500).json({ error: error.message });
     }
-}
+};
