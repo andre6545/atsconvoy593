@@ -1,6 +1,3 @@
 {
-  "version": 2,
-  "rewrites": [
-    { "source": "/api/telemetry", "destination": "/api/telemetry.js" }
-  ]
+  "version": 2
 }
