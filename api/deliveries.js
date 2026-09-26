@@ -1,65 +1,101 @@
-// Almacén temporal en memoria para las últimas cargas
-let recentDeliveries = [];
+// api/deliveries.js
+
+let deliveries = [];
 
 export default async function handler(req, res) {
+    // Permitir CORS para consultas desde tu frontend
+    res.setHeader('Access-Control-Allow-Credentials', true);
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS,PATCH,DELETE,POST,PUT');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
 
     if (req.method === 'OPTIONS') {
-        return res.status(200).end();
+        res.status(200).end();
+        return;
     }
 
-    // 1. Cuando tu bot/plugin de ATS o Discord envía datos
     if (req.method === 'POST') {
         try {
             const body = req.body || {};
-            let driver = 'Conductor ECU';
-            let cargo = 'Carga Pesada';
-            let origin = 'Ecuador';
-            let destination = 'Destino';
-            let status = 'completed';
+            let newDelivery = {};
 
-            // Detectar embeds de Discord (Trucky / Virtual Trucking Company)
-            if (body.embeds && body.embeds.length > 0) {
+            // 1. Si es un Embed de Discord / Trucky / Bot
+            if (body.embeds && Array.isArray(body.embeds) && body.embeds.length > 0) {
                 const embed = body.embeds[0];
-                cargo = embed.title || cargo;
-                
-                if (embed.fields) {
+                newDelivery = {
+                    id: Date.now(),
+                    driver: embed.author?.name || embed.title || 'Conductor Desconocido',
+                    cargo: 'Carga General',
+                    origin: 'Origen N/A',
+                    destination: 'Destino N/A',
+                    status: 'Completado',
+                    description: embed.description || '',
+                    timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                };
+
+                // Extraer campos de Discord Fields si existen
+                if (embed.fields && Array.isArray(embed.fields)) {
                     embed.fields.forEach(field => {
                         const name = (field.name || '').toLowerCase();
-                        if (name.includes('driver') || name.includes('conductor')) driver = field.value;
-                        if (name.includes('cargo') || name.includes('carga')) cargo = field.value;
-                        if (name.includes('from') || name.includes('origen')) origin = field.value;
-                        if (name.includes('to') || name.includes('destino')) destination = field.value;
+                        const val = field.value || '';
+                        if (name.includes('conductor') || name.includes('driver')) newDelivery.driver = val;
+                        if (name.includes('carga') || name.includes('cargo')) newDelivery.cargo = val;
+                        if (name.includes('origen') || name.includes('from')) newDelivery.origin = val;
+                        if (name.includes('destino') || name.includes('to')) newDelivery.destination = val;
+                        if (name.includes('estado') || name.includes('status')) newDelivery.status = val;
                     });
                 }
-            } else if (body.content) {
-                cargo = body.content;
+            } 
+            // 2. Si es un mensaje directo en formato text/content (Prueba sencilla)
+            else if (body.content || body.message || typeof body === 'string') {
+                const text = body.content || body.message || body;
+                newDelivery = {
+                    id: Date.now(),
+                    driver: 'Sistema / Prueba',
+                    cargo: text,
+                    origin: 'Webhook',
+                    destination: 'Servidor',
+                    status: 'Enviado',
+                    timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                };
+            } 
+            // 3. Objeto JSON directo de ATS / VTC Hub
+            else {
+                newDelivery = {
+                    id: Date.now(),
+                    driver: body.driver || body.player_name || body.user || 'Conductor',
+                    cargo: body.cargo || body.freight || 'Carga Desconocida',
+                    origin: body.origin || body.source_city || 'Origen Desconocido',
+                    destination: body.destination || body.target_city || 'Destino Desconocido',
+                    status: body.status || 'Entregado',
+                    timestamp: new Date().toLocaleTimeString('es-ES', { hour: '2-digit', minute: '2-digit' })
+                };
             }
 
-            const newJob = {
-                id: Date.now(),
-                driver: body.driver || driver,
-                cargo: body.cargo || cargo,
-                origin: body.origin || origin,
-                destination: body.destination || destination,
-                status: body.status || status,
-                timestamp: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' })
-            };
+            // Guardar al inicio de la lista
+            deliveries.unshift(newDelivery);
 
-            // Guardar en la lista (máximo 10 cargas recientes)
-            recentDeliveries.unshift(newJob);
-            if (recentDeliveries.length > 10) recentDeliveries.pop();
+            // Mantener un límite de las últimas 25 entregas
+            if (deliveries.length > 25) {
+                deliveries = deliveries.slice(0, 25);
+            }
 
-            return res.status(200).json({ success: true, message: 'Carga registrada correctamente' });
-        } catch (e) {
-            return res.status(400).json({ error: 'Error procesando payload de carga' });
+            return res.status(200).json({ success: true, message: 'Entrega registrada exitosamente', delivery: newDelivery });
+        } catch (error) {
+            return res.status(500).json({ success: false, error: error.message });
         }
     }
 
-    // 2. Cuando tu página web pide las cargas para mostrarlas en pantalla
+    // Consulta GET desde index.html para mostrar la lista
     if (req.method === 'GET') {
-        return res.status(200).json(recentDeliveries);
+        return res.status(200).json({
+            success: true,
+            deliveries: deliveries
+        });
     }
+
+    res.status(455).json({ error: 'Método no soportado' });
 }
