@@ -1,6 +1,33 @@
 const TRUCKY_API_URL = 'https://e.truckyapp.com/api/v1/vtc/49477/telemetry';
 const TRUCKY_TOKEN = 'eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjo0OTQ3N30.kduk-J7AxFB-DJz0HraAe2QXlPKRtQlQVbMzC1o-kZU';
 
+async function fetchWithFallbacks(url) {
+    // Lista de proxies CORS públicos y seguros para respaldar la conexión en Vercel
+    const proxies = [
+        `https://api.allorigins.win/raw?url=${encodeURIComponent(url)}`,
+        `https://corsproxy.io/?${encodeURIComponent(url)}`,
+        `https://api.codetabs.com/v1/proxy?quest=${encodeURIComponent(url)}`
+    ];
+
+    for (let proxyUrl of proxies) {
+        try {
+            const response = await fetch(proxyUrl, {
+                headers: {
+                    'x-access-token': TRUCKY_TOKEN,
+                    'Accept': 'application/json'
+                }
+            });
+            if (response.ok) {
+                const data = await response.json();
+                return data;
+            }
+        } catch (e) {
+            console.warn(`Proxy fallido, intentando siguiente...`, e);
+        }
+    }
+    throw new Error("Todos los canales de proxy fallaron al conectar con Trucky.");
+}
+
 async function refreshData() {
     const refreshIcon = document.getElementById('refresh-icon');
     refreshIcon.classList.add('fa-spin');
@@ -11,21 +38,9 @@ async function refreshData() {
     const playersCountBadge = document.getElementById('players-count-badge');
 
     try {
-        // Usamos corsproxy.io para evitar restricciones del navegador y obtener el JSON directo
-        const proxyUrl = `https://corsproxy.io/?${encodeURIComponent(TRUCKY_API_URL)}`;
+        const data = await fetchWithFallbacks(TRUCKY_API_URL);
         
-        const response = await fetch(proxyUrl, {
-            headers: {
-                'x-access-token': TRUCKY_TOKEN,
-                'Accept': 'application/json'
-            }
-        });
-
-        if (!response.ok) throw new Error("Error al conectar con la API de Trucky.");
-        
-        const data = await response.json();
-        
-        // Extraer la lista de conductores sin importar cómo venga estructurada la respuesta
+        // Extraer la lista de conductores sin importar la estructura de la respuesta
         let drivers = [];
         if (Array.isArray(data)) {
             drivers = data;
@@ -40,7 +55,6 @@ async function refreshData() {
         if (drivers.length > 0) {
             playersContainer.className = "grid grid-cols-1 md:grid-cols-2 gap-4 max-h-[600px] overflow-y-auto pr-1";
             playersContainer.innerHTML = drivers.map(d => {
-                // Extracción exacta de los 6 puntos requeridos
                 const name = d.name || d.username || d.steamName || 'Operador VTC';
                 const truck = d.truck || d.vehicleName || d.truck_name || 'Kenworth W900';
                 
@@ -80,7 +94,6 @@ async function refreshData() {
                             </span>
                         </div>
 
-                        <!-- 1. Velocidad y 2. Marcha -->
                         <div class="grid grid-cols-2 gap-3">
                             <div class="bg-neutral-950 border border-neutral-900 p-3 flex items-center justify-between">
                                 <div>
@@ -96,14 +109,12 @@ async function refreshData() {
                                 </div>
                             </div>
 
-                            <!-- 5. Nombre de la Carga -->
                             <div class="bg-neutral-950 border border-neutral-900 p-3 flex flex-col justify-center">
                                 <span class="text-[9px] uppercase text-red-500">5. Carga / Trabajo</span>
                                 <span class="text-xs font-bold text-white truncate mt-1" title="${cargo}">${cargo}</span>
                             </div>
                         </div>
 
-                        <!-- 3. Tiempo en ruta y 4. Distancia -->
                         <div class="grid grid-cols-2 gap-2 text-xs">
                             <div class="flex justify-between bg-neutral-950 px-3 py-1.5 border border-neutral-900">
                                 <span class="text-neutral-500 text-[10px]">3. T. Ruta:</span>
@@ -115,7 +126,6 @@ async function refreshData() {
                             </div>
                         </div>
 
-                        <!-- 6. Ubicación / Ciudad -->
                         <div class="bg-neutral-950 border border-neutral-900 p-2.5 flex items-center space-x-3 text-xs">
                             <div class="text-red-500 shrink-0"><i class="fa-solid fa-location-crosshairs"></i></div>
                             <div class="truncate">
@@ -130,7 +140,7 @@ async function refreshData() {
             playersContainer.innerHTML = `
                 <div class="col-span-full border border-dashed border-neutral-800 p-12 text-center text-neutral-500 text-xs">
                     <i class="fa-solid fa-satellite text-2xl text-red-600 mb-2"></i>
-                    <p>No se encontraron unidades activas en este momento en Trucky.</p>
+                    <p>Conexión establecida, pero no hay unidades activas en ruta en este momento.</p>
                 </div>`;
         }
 
@@ -141,13 +151,12 @@ async function refreshData() {
         playersContainer.innerHTML = `
             <div class="col-span-full border border-dashed border-red-800 p-12 text-center text-red-400 text-xs">
                 <i class="fa-solid fa-triangle-exclamation text-2xl mb-2"></i>
-                <p>No se pudo conectar con la API de Trucky. Comprueba tu conexión o token.</p>
+                <p>No se pudo conectar con la API de Trucky. Comprueba tu token o estado de la VTC.</p>
             </div>`;
     } finally {
         refreshIcon.classList.remove('fa-spin');
     }
 }
 
-// Carga inicial y bucle automático cada 5 segundos
 refreshData();
 setInterval(refreshData, 5000);
