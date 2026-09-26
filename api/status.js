@@ -1,38 +1,53 @@
 export default async function handler(req, res) {
+    // Configurar cabeceras CORS
     res.setHeader('Access-Control-Allow-Origin', '*');
-    res.setHeader('Access-Control-Allow-Methods', 'GET');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') {
+        return res.status(200).end();
+    }
 
     try {
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000); // Timeout de 6 segundos
+
         const response = await fetch('http://198.199.67.5/status', {
+            method: 'GET',
             headers: {
-                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64)'
+                'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) VercelProxy/1.0',
+                'Accept': 'application/json'
             },
-            signal: AbortSignal.timeout(5000) // Timeout de 5 segundos para que no se quede colgado
+            signal: controller.signal
         });
 
+        clearTimeout(timeoutId);
+
         if (!response.ok) {
-            return res.status(response.status).json({ 
-                error: `El servidor físico respondió con el código HTTP: ${response.status}` 
+            return res.status(response.status).json({
+                error: `El servidor respondió con código HTTP: ${response.status}`,
+                online: false
             });
         }
 
         const textData = await response.text();
         
-        // Intentar convertir a JSON de forma segura
         try {
             const jsonData = JSON.parse(textData);
             return res.status(200).json(jsonData);
-        } catch (parseError) {
-            return res.status(500).json({ 
-                error: 'El servidor respondió, pero no envió un JSON válido.', 
-                rawResponse: textData.substring(0, 200) // Muestra los primeros caracteres para ver qué devuelve
+        } catch (jsonError) {
+            return res.status(500).json({
+                error: 'El servidor respondió pero el formato no es JSON válido.',
+                raw: textData.substring(0, 150),
+                online: false
             });
         }
 
     } catch (error) {
-        return res.status(500).json({ 
-            error: 'Fallo total de red hacia el servidor físico.', 
-            details: error.message 
+        return res.status(500).json({
+            error: 'No se pudo establecer conexión con el servidor ATS (198.199.67.5).',
+            details: error.message,
+            online: false
         });
     }
 }
