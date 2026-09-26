@@ -3,14 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ECUADOR VTC +593 | HUD TELEMETRY</title>
-    <!-- Tailwind CSS -->
+    <title>ECUADOR VTC +593 | TRUCKY DIRECT API</title>
     <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-    <!-- Google Fonts -->
     <link href="https://fonts.googleapis.com/css2?family=Share+Tech+Mono&family=Oxanium:wght@600;800&display=swap" rel="stylesheet">
-    <!-- Estilos personalizados -->
     <link rel="stylesheet" href="style.css">
 </head>
 <body class="bg-black text-white min-h-screen flex flex-col justify-between selection:bg-red-600 relative overflow-x-hidden">
@@ -18,53 +14,54 @@
     <div class="absolute inset-0 pointer-events-none scanlines z-50"></div>
 
     <header class="w-full bg-neutral-950 border-b border-red-600/40 px-6 py-4 relative z-40">
-        <div class="max-w-7xl mx-auto flex flex-col md:flex-row justify-between items-center gap-4">
+        <div class="max-w-7xl mx-auto flex justify-between items-center">
             <div class="flex items-center space-x-4">
                 <div class="bg-black border-2 border-red-600 px-4 py-2 text-red-500 font-oxanium font-extrabold text-lg">🇪🇨 +593</div>
                 <div>
-                    <h1 class="font-oxanium text-xl font-bold tracking-wider text-white">ECUADOR <span class="text-red-600">COMMAND HUB</span></h1>
-                    <p class="text-xs text-neutral-400 font-mono">VTC ID: 49477 &bull; TRUCKY LIVE TELEMETRY</p>
+                    <h1 class="font-oxanium text-xl font-bold tracking-wider text-white">ECUADOR <span class="text-red-600">DIRECT HUD</span></h1>
+                    <p class="text-xs text-neutral-400 font-mono">VTC ID: 49477 &bull; API ENDPOINT VIEW</p>
                 </div>
             </div>
             <div class="flex items-center space-x-3">
-                <div class="bg-black border border-neutral-800 px-4 py-2 flex items-center space-x-3">
-                    <div id="global-dot" class="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-ping"></div>
-                    <span id="global-status-text" class="text-xs font-mono font-bold text-neutral-300">CONECTANDO...</span>
-                </div>
+                <div id="global-dot" class="w-2.5 h-2.5 bg-yellow-500 rounded-full animate-ping"></div>
+                <span id="global-status-text" class="text-xs font-mono font-bold text-neutral-300">CARGANDO...</span>
                 <button onclick="refreshData()" class="bg-red-600 hover:bg-red-700 text-white px-5 py-2 text-xs font-oxanium font-bold tracking-widest transition border border-red-500 flex items-center space-x-2">
                     <i id="refresh-icon" class="fa-solid fa-arrows-rotate"></i>
-                    <span>SINCRONIZAR</span>
+                    <span>ACTUALIZAR</span>
                 </button>
             </div>
         </div>
     </header>
 
     <main class="max-w-7xl mx-auto px-6 py-8 w-full flex-grow space-y-6 z-10 font-mono">
-        <div class="bg-neutral-950 border border-neutral-800 p-6 sm:p-8 space-y-6">
-            <div class="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 border-b border-neutral-900 pb-4">
-                <div>
-                    <h3 class="font-oxanium text-lg font-bold tracking-wider text-white flex items-center gap-3">
-                        <span class="w-3 h-3 bg-red-600 inline-block animate-ping"></span> 
-                        OPERADORES ACTIVOS EN RUTA (TRUCKY API)
-                    </h3>
-                    <p class="text-xs text-neutral-400 mt-0.5">Telemetría exacta de velocidad, marchas, tiempos, distancia, carga y ubicación.</p>
-                </div>
-                <div id="players-count-badge" class="bg-black border border-neutral-800 px-4 py-1.5 text-xs text-red-500 font-bold">
-                    0 UNIDADES ACTIVAS
-                </div>
+        <!-- Lista de Jugadores y Perfiles de Steam -->
+        <div class="bg-neutral-950 border border-neutral-800 p-6 space-y-6">
+            <div class="flex justify-between items-center border-b border-neutral-900 pb-4">
+                <h3 class="font-oxanium text-lg font-bold text-white flex items-center gap-3">
+                    <span class="w-3 h-3 bg-red-600 inline-block animate-pulse"></span> 
+                    JUGADORES CONECTADOS Y PERFILES DE STEAM
+                </h3>
+                <span id="players-count-badge" class="bg-black border border-neutral-800 px-3 py-1 text-xs text-red-500 font-bold">0 USUARIOS</span>
             </div>
-
-            <div id="players-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
-                <div class="col-span-full border border-dashed border-neutral-800 p-12 text-center text-neutral-500 text-xs">
-                    <i class="fa-solid fa-satellite text-2xl text-red-600 mb-2 animate-bounce"></i>
-                    <p>Sincronizando con los servidores de Trucky...</p>
+            <div id="players-list-container" class="grid grid-cols-1 md:grid-cols-2 gap-4">
+                <div class="col-span-full border border-dashed border-neutral-800 p-8 text-center text-neutral-500 text-xs">
+                    <i class="fa-solid fa-spinner fa-spin text-xl text-red-600 mb-2"></i>
+                    <p>Obteniendo datos de la API...</p>
                 </div>
             </div>
         </div>
+
+        <!-- Visor Crudo del Endpoint de la API -->
+        <div class="bg-neutral-950 border border-neutral-800 p-6 space-y-4">
+            <h3 class="font-oxanium text-sm font-bold text-neutral-400 uppercase tracking-widest">
+                <i class="fa-solid fa-code text-red-600 mr-2"></i> Información Completa del Endpoint (JSON)
+            </h3>
+            <pre id="raw-json-view" class="bg-black border border-neutral-900 p-4 text-[11px] text-green-500 overflow-x-auto max-h-60 rounded">Esperando respuesta del servidor...</pre>
+        </div>
     </main>
 
-    <footer class="w-full bg-neutral-950 border-t border-neutral-900 py-6 px-6 text-center text-xs text-neutral-500 font-mono">
-        ECUADOR VTC +593 &bull; CLIENTE DE TELEMETRÍA JAVASCRIPT
+    <footer class="w-full bg-neutral-950 border-t border-neutral-900 py-4 px-6 text-center text-xs text-neutral-500 font-mono">
+        ECUADOR VTC +593 &bull; TRUCKY DIRECT DATA
     </footer>
 
     <script src="script.js"></script>
