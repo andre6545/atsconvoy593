@@ -3,11 +3,10 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS Convoy Status & Live Telemetry</title>
-    <!-- Fonts, Icons & Leaflet CSS for Map -->
+    <title>ATS Server Status | ECUADOR SERVER</title>
+    <!-- Google Fonts & FontAwesome -->
     <link href="https://fonts.googleapis.com/css2?family=Outfit:wght@300;400;600;700;800&family=JetBrains+Mono:wght@400;600&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
 
     <style>
         :root {
@@ -37,7 +36,6 @@
             flex-direction: column;
         }
 
-        /* Top Navigation Header */
         header {
             background: rgba(15, 23, 42, 0.95);
             border-bottom: 2px solid rgba(239, 68, 68, 0.4);
@@ -71,17 +69,15 @@
         }
 
         .brand-title h1 {
-            font-size: 1.25rem;
+            font-size: 1.2rem;
             font-weight: 800;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            background: linear-gradient(90deg, #fff, var(--text-secondary));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
+            color: #fff;
         }
 
         .brand-title p {
-            font-size: 0.75rem;
+            font-size: 0.8rem;
             color: var(--text-secondary);
         }
 
@@ -112,9 +108,8 @@
             box-shadow: 0 0 10px currentColor;
         }
 
-        /* Layout Grid */
         .container {
-            max-width: 1400px;
+            max-width: 1200px;
             width: 95%;
             margin: 2rem auto;
             display: grid;
@@ -123,7 +118,7 @@
 
         .metrics-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
             gap: 1.25rem;
         }
 
@@ -132,14 +127,6 @@
             border: 1px solid var(--panel-border);
             border-radius: 14px;
             padding: 1.25rem 1.5rem;
-            position: relative;
-            overflow: hidden;
-            transition: transform 0.2s, border-color 0.2s;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-2px);
-            border-color: rgba(255, 255, 255, 0.15);
         }
 
         .metric-header {
@@ -154,23 +141,11 @@
         }
 
         .metric-value {
-            font-size: 1.6rem;
+            font-size: 1.3rem;
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-primary);
-        }
-
-        /* Main Workspace Grid: Map & Player list */
-        .workspace-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 1.5rem;
-        }
-
-        @media (max-width: 1024px) {
-            .workspace-grid {
-                grid-template-columns: 1fr;
-            }
+            word-break: break-all;
         }
 
         .panel-box {
@@ -178,8 +153,6 @@
             border: 1px solid var(--panel-border);
             border-radius: 16px;
             padding: 1.5rem;
-            display: flex;
-            flex-direction: column;
         }
 
         .panel-title {
@@ -191,65 +164,32 @@
             gap: 0.6rem;
         }
 
-        /* Telemetry Map Styling */
-        #map {
-            width: 100%;
-            height: 420px;
-            border-radius: 12px;
-            border: 1px solid var(--panel-border);
-            background: #000;
-            z-index: 1;
-        }
-
-        /* Players List Styling */
         .players-container {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            max-height: 420px;
-            overflow-y: auto;
-            padding-right: 0.4rem;
-        }
-
-        .players-container::-webkit-scrollbar {
-            width: 5px;
-        }
-        .players-container::-webkit-scrollbar-thumb {
-            background: var(--panel-border);
-            border-radius: 4px;
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
         }
 
         .player-card {
             display: flex;
             align-items: center;
-            justify-content: space-between;
+            gap: 1rem;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--panel-border);
             border-radius: 10px;
             padding: 0.8rem 1rem;
-            transition: background 0.2s;
-        }
-
-        .player-card:hover {
-            background: rgba(255, 255, 255, 0.06);
-        }
-
-        .player-left {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
         }
 
         .player-avatar {
-            width: 44px;
-            height: 44px;
+            width: 48px;
+            height: 48px;
             border-radius: 8px;
             object-fit: cover;
             border: 2px solid var(--panel-border);
         }
 
         .player-details h4 {
-            font-size: 0.95rem;
+            font-size: 1rem;
             font-weight: 600;
             color: var(--text-primary);
         }
@@ -262,9 +202,11 @@
 
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2.5rem 1rem;
             color: var(--text-secondary);
             font-style: italic;
+            width: 100%;
+            grid-column: 1 / -1;
         }
 
         footer {
@@ -283,25 +225,25 @@
         <div class="brand">
             <div class="brand-icon"><i class="fa-solid fa-truck-monster"></i></div>
             <div class="brand-title">
-                <h1>ATS Convoy Hub</h1>
-                <p>Servidor Público de Telemetría en Vivo</p>
+                <h1 id="serverNameHeader">American Truck Simulator</h1>
+                <p>Estado del Servidor Dedicado</p>
             </div>
         </div>
         <div id="serverStatusPill" class="status-pill">
             <div class="indicator"></div>
-            <span id="statusText">Obteniendo estado...</span>
+            <span id="statusText">Cargando...</span>
         </div>
     </header>
 
     <div class="container">
-        <!-- Grid de Métricas Principales -->
+        <!-- Métricas Principales de la API -->
         <div class="metrics-row">
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>ID del Servidor</span>
-                    <i class="fa-solid fa-server" style="color: var(--accent-gold)"></i>
+                    <span>ID de Sesión (Server ID)</span>
+                    <i class="fa-solid fa-fingerprint" style="color: var(--accent-gold)"></i>
                 </div>
-                <div class="metric-value" id="valServerId">--</div>
+                <div class="metric-value" id="valSessionId">--</div>
             </div>
 
             <div class="metric-card">
@@ -314,52 +256,45 @@
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Versión de ATS</span>
+                    <span>Versión del Juego</span>
                     <i class="fa-solid fa-code-branch" style="color: var(--accent-red)"></i>
                 </div>
                 <div class="metric-value" id="valVersion">--</div>
             </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Tiempo Activo (Uptime)</span>
+                    <i class="fa-solid fa-clock" style="color: var(--status-green)"></i>
+                </div>
+                <div class="metric-value" id="valUptime">--</div>
+            </div>
         </div>
 
-        <!-- Panel Principal: Mapa Telemetría & Jugadores Steam -->
-        <div class="workspace-grid">
-            <!-- Columna Izquierda: Mapa de Telemetría -->
-            <div class="panel-box">
-                <div class="panel-title">
-                    <i class="fa-solid fa-map-location-dot" style="color: var(--accent-gold)"></i>
-                    Telemetría y Posicionamiento de Convoy
-                </div>
-                <div id="map"></div>
+        <!-- Lista de Jugadores con Steam Avatar -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
+                Jugadores en Línea
             </div>
-
-            <!-- Columna Derecha: Lista de Conductores con Steam -->
-            <div class="panel-box">
-                <div class="panel-title">
-                    <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
-                    Conductores Conectados
-                </div>
-                <div class="players-container" id="playersList">
-                    <div class="empty-state">Consultando la lista de conductores...</div>
-                </div>
+            <div class="players-container" id="playersList">
+                <div class="empty-state">Consultando la lista de conductores...</div>
             </div>
         </div>
     </div>
 
     <footer>
-        Sincronización directa con API Servidor ATS (198.199.67.5). Sin datos emulados.
+        Sincronizado directamente con la API en tiempo real.
     </footer>
 
-    <!-- Leaflet JS Map Script -->
-    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <script>
-        // Inicialización de mapa
-        const map = L.map('map').setView([36.1699, -115.1398], 5); // Coordenadas estándar de Nevada / California (ATS)
-        L.tileLayer('https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', {
-            maxZoom: 18,
-            attribution: '&copy; CartoDB & ATS Map'
-        }).addTo(map);
-
-        let markersGroup = L.layerGroup().addTo(map);
+        function formatUptime(seconds) {
+            if (!seconds || isNaN(seconds)) return '--';
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            if (hrs > 0) return `${hrs}h ${mins}m`;
+            return `${mins}m`;
+        }
 
         async function updateStatus() {
             try {
@@ -369,80 +304,61 @@
                 const statusPill = document.getElementById('serverStatusPill');
                 const statusText = document.getElementById('statusText');
 
-                if (response.ok && (data.online !== false)) {
+                if (response.ok && data.serverRunning) {
                     statusPill.classList.remove('offline');
-                    statusText.textContent = 'Servidor en Línea';
+                    statusText.textContent = 'En Línea';
 
-                    // Actualizar Métricas Reales desde la API
-                    document.getElementById('valServerId').textContent = data.id || data.serverId || data.server_id || data.session_id || 'Servidor Activo';
+                    // Actualizar datos de la API real
+                    document.getElementById('serverNameHeader').textContent = data.serverName || 'American Truck Simulator';
+                    document.getElementById('valSessionId').textContent = data.sessionID || 'N/D';
                     
-                    const onlineCount = data.players ? (Array.isArray(data.players) ? data.players.length : data.players) : (data.onlinePlayers || 0);
-                    const maxSlots = data.maxPlayers || data.max_players || data.slots || 8;
-                    document.getElementById('valPlayers').textContent = `${onlineCount} / ${maxSlots}`;
+                    const players = data.connectedPlayers || [];
+                    const slots = data.slots || 32;
+                    document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
                     
-                    document.getElementById('valVersion').textContent = data.version || data.gameVersion || '1.53.x';
+                    document.getElementById('valVersion').textContent = data.game_version || '--';
+                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
 
-                    // Renderizar Conductores / Steam Profiles
-                    const playersListContainer = document.getElementById('playersList');
-                    markersGroup.clearLayers();
+                    // Renderizar Lista de Jugadores
+                    const playersList = document.getElementById('playersList');
 
-                    const playerArray = Array.isArray(data.players) ? data.players : (data.playerList || []);
-
-                    if (playerArray.length > 0) {
-                        playersListContainer.innerHTML = '';
-
-                        playerArray.forEach(p => {
-                            // Extraer ID/Steam Name o Avatar directo
-                            const pName = p.name || p.username || p.steamName || 'Conductor';
-                            const pSteamId = p.steamId || p.steamid || p.steam_id;
+                    if (players.length > 0) {
+                        playersList.innerHTML = '';
+                        players.forEach(p => {
+                            const username = p.username || 'Conductor';
+                            const clientId = p.client_id ? `Client ID: ${p.client_id}` : 'En Convoy';
                             
-                            // Si se incluye el avatar directo o usamos Steam Community CDN con su SteamID
-                            let avatarUrl = p.avatar || p.steamAvatar;
-                            if (!avatarUrl && pSteamId) {
-                                avatarUrl = `https://avatars.steamstatic.com/${pSteamId}_full.jpg`;
-                            } else if (!avatarUrl) {
-                                avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-                            }
-
-                            const pPing = p.ping ? `${p.ping} ms` : 'Conectado';
+                            // Avatar de Steam por defecto o personalizado
+                            const avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
                             item.className = 'player-card';
                             item.innerHTML = `
-                                <div class="player-left">
-                                    <img src="${avatarUrl}" class="player-avatar" onerror="this.src='https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'" alt="Steam Avatar">
-                                    <div class="player-details">
-                                        <h4>${pName}</h4>
-                                        <p>${pPing}</p>
-                                    </div>
+                                <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
+                                <div class="player-details">
+                                    <h4>${username}</h4>
+                                    <p>${clientId}</p>
                                 </div>
-                                <i class="fa-solid fa-truck-steering" style="color: var(--accent-gold)"></i>
                             `;
-                            playersListContainer.appendChild(item);
-
-                            // Si la API del servidor provee coordenadas X/Y o Lat/Lng para telemetría
-                            if (p.lat && p.lng) {
-                                L.marker([p.lat, p.lng])
-                                 .bindPopup(`<b>${pName}</b><br>Velocidad: ${p.speed || 0} mph`)
-                                 .addTo(markersGroup);
-                            }
+                            playersList.appendChild(item);
                         });
                     } else {
-                        playersListContainer.innerHTML = '<div class="empty-state">No hay jugadores conectados en este momento.</div>';
+                        playersList.innerHTML = '<div class="empty-state">No hay jugadores conectados en este momento.</div>';
                     }
 
                 } else {
-                    throw new Error(data.error || 'Servidor Offline');
+                    throw new Error(data.error || 'Servidor detenido');
                 }
 
             } catch (err) {
                 const statusPill = document.getElementById('serverStatusPill');
                 statusPill.classList.add('offline');
-                document.getElementById('statusText').textContent = 'Fuera de Línea / Sin Señal';
-                document.getElementById('valServerId').textContent = 'N/D';
+                document.getElementById('statusText').textContent = 'Fuera de Línea';
+                document.getElementById('valSessionId').textContent = 'Sin Conexión';
                 document.getElementById('valPlayers').textContent = '0 / 0';
                 document.getElementById('valVersion').textContent = '--';
-                document.getElementById('playersList').innerHTML = `<div class="empty-state">No se puede establecer comunicación con la API (198.199.67.5).</div>`;
+                document.getElementById('valUptime').textContent = '--';
+                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
             }
         }
 
