@@ -35,7 +35,6 @@
             flex-direction: column;
         }
 
-        /* Navbar estilo Gaming Profesional */
         header {
             background: rgba(17, 24, 39, 0.8);
             backdrop-filter: blur(10px);
@@ -98,7 +97,6 @@
             100% { transform: scale(0.95); opacity: 0.8; }
         }
 
-        /* Contenedor Principal */
         main {
             flex: 1;
             max-width: 1200px;
@@ -108,7 +106,6 @@
             gap: 2rem;
         }
 
-        /* Hero / Panel de Control Principal */
         .hero-grid {
             display: grid;
             grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
@@ -120,7 +117,7 @@
             border: 1px solid var(--card-border);
             border-radius: 12px;
             padding: 1.5rem;
-            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
         }
 
         .card-title {
@@ -144,7 +141,6 @@
             color: var(--text-muted);
         }
 
-        /* Sección de Jugadores y Telemetría */
         .content-grid {
             display: grid;
             grid-template-columns: 2fr 1fr;
@@ -166,7 +162,6 @@
             gap: 0.75rem;
         }
 
-        /* Lista de Jugadores Estilo Steam */
         .players-list {
             display: flex;
             flex-direction: column;
@@ -192,11 +187,6 @@
             border: 1px solid var(--card-border);
             padding: 0.75rem 1rem;
             border-radius: 8px;
-            transition: background 0.2s;
-        }
-
-        .player-item:hover {
-            background: rgba(255, 255, 255, 0.05);
         }
 
         .player-info {
@@ -230,7 +220,6 @@
             font-style: italic;
         }
 
-        /* Panel de Rutas / Telemetria Activa */
         .routes-panel {
             background: linear-gradient(135deg, #111827 0%, #1f2937 100%);
         }
@@ -282,12 +271,11 @@
         </a>
         <div id="statusBadge" class="server-status-badge">
             <div class="pulse"></div>
-            <span id="statusText">Comprobando...</span>
+            <span id="statusText">Conectando...</span>
         </div>
     </header>
 
     <main>
-        <!-- Tarjetas Superiores (IDs en lugar de IP, Jugadores, Versión) -->
         <div class="hero-grid">
             <div class="card">
                 <div class="card-title"><i class="fa-solid fa-fingerprint"></i> Server ID</div>
@@ -303,19 +291,16 @@
             </div>
         </div>
 
-        <!-- Panel Central Dividido -->
         <div class="content-grid">
-            <!-- Jugadores Conectados con Steam -->
             <div class="card">
                 <div class="section-header">
-                    <i class="fa-brands fa-steam" style="color: var(--accent);"></i> Jugadores en Línea
+                    <i class="fa-brands fa-steam" style="color: var(--accent);"></i> Conductores en Línea
                 </div>
                 <div class="players-list" id="playersContainer">
-                    <div class="no-players">Cargando lista de conductores...</div>
+                    <div class="no-players">Sincronizando con Trucky VTC...</div>
                 </div>
             </div>
 
-            <!-- Panel de Rutas y Telemetría -->
             <div class="card routes-panel">
                 <div class="section-header">
                     <i class="fa-solid fa-route" style="color: var(--success);"></i> Rutas Activas
@@ -349,75 +334,72 @@
     </main>
 
     <footer>
-        <p>&copy; 2026 American Truck Simulator Public Server Hub. Todos los datos sincronizados mediante API en tiempo real.</p>
+        <p>&copy; 2026 American Truck Simulator Public Server Hub. Panel sincronizado en tiempo real.</p>
     </footer>
 
     <script>
-        // Apuntamos al endpoint interno serverless de Vercel (evita bloqueos CORS y HTTP/HTTPS)
         const API_URL = '/api/status';
 
         async function fetchServerData() {
             try {
                 const response = await fetch(API_URL);
-                if (!response.ok) throw new Error('Error al conectar con la API');
-                
                 const data = await response.json();
 
-                // Estado General del Servidor
-                const isOnline = data.online || data.status === 'online' || true;
                 const badge = document.getElementById('statusBadge');
                 const statusText = document.getElementById('statusText');
-                
-                if (isOnline) {
+
+                if (response.ok && !data.error) {
                     badge.classList.add('online');
                     statusText.textContent = 'En Línea';
-                } else {
-                    badge.classList.remove('online');
-                    statusText.textContent = 'Fuera de Línea';
-                }
 
-                // Mostrar Server ID (Reemplazando dirección IP)
-                document.getElementById('serverId').textContent = data.id || data.session_id || 'ATS-PUBLIC-US';
-                document.getElementById('playerCount').innerHTML = `${data.players ? data.players.length : (data.onlinePlayers || 0)} <span>/ ${data.maxPlayers || 8}</span>`;
-                document.getElementById('gameVersion').textContent = data.version || '1.53.x';
+                    // Rellenar datos principales (Cambiando IP por Server ID)
+                    document.getElementById('serverId').textContent = data.id || data.session_id || 'ATS-PUBLIC-US';
+                    document.getElementById('playerCount').innerHTML = `${data.players ? data.players.length : (data.onlinePlayers || 0)} <span>/ ${data.maxPlayers || 8}</span>`;
+                    document.getElementById('gameVersion').textContent = data.version || '1.53.x';
 
-                // Renderizar Jugadores con Avatar y Nombre de Steam (Trucky API compatible)
-                const playersContainer = document.getElementById('playersContainer');
-                const players = data.players || data.clients || [];
+                    // Jugadores con nombre y avatar de Steam
+                    const playersContainer = document.getElementById('playersContainer');
+                    const players = data.players || data.clients || [];
 
-                if (players.length > 0) {
-                    playersContainer.innerHTML = '';
-                    players.forEach(player => {
-                        const playerName = player.name || player.username || 'Conductor Anónimo';
-                        const playerAvatar = player.avatar || player.steamAvatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-                        const playerPing = player.ping ? `${player.ping} ms` : 'Steam Connected';
+                    if (players.length > 0) {
+                        playersContainer.innerHTML = '';
+                        players.forEach(player => {
+                            const playerName = player.name || player.username || 'Conductor';
+                            const playerAvatar = player.avatar || player.steamAvatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+                            const playerPing = player.ping ? `${player.ping} ms` : 'Steam Active';
 
-                        const playerDiv = document.createElement('div');
-                        playerDiv.className = 'player-item';
-                        playerDiv.innerHTML = `
-                            <div class="player-info">
-                                <img src="${playerAvatar}" alt="Avatar" class="player-avatar" onerror="this.src='https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'">
-                                <div>
-                                    <div class="player-name">${playerName}</div>
-                                    <div class="player-status-sub">En Ruta • ${playerPing}</div>
+                            const playerDiv = document.createElement('div');
+                            playerDiv.className = 'player-item';
+                            playerDiv.innerHTML = `
+                                <div class="player-info">
+                                    <img src="${playerAvatar}" alt="Avatar" class="player-avatar" onerror="this.src='https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'">
+                                    <div>
+                                        <div class="player-name">${playerName}</div>
+                                        <div class="player-status-sub">En Ruta • ${playerPing}</div>
+                                    </div>
                                 </div>
-                            </div>
-                            <i class="fa-solid fa-truck" style="color: var(--accent);"></i>
-                        `;
-                        playersContainer.appendChild(playerDiv);
-                    });
+                                <i class="fa-solid fa-truck" style="color: var(--accent);"></i>
+                            `;
+                            playersContainer.appendChild(playerDiv);
+                        });
+                    } else {
+                        playersContainer.innerHTML = '<div class="no-players">No hay conductores en ruta actualmente.</div>';
+                    }
+
                 } else {
-                    playersContainer.innerHTML = '<div class="no-players">No hay conductores conectados en este momento.</div>';
+                    throw new Error(data.error || 'Servidor offline');
                 }
 
             } catch (error) {
-                console.error('Error fetching API:', error);
-                document.getElementById('statusText').textContent = 'Error de Conexión';
-                document.getElementById('serverId').textContent = 'N/D';
+                console.error('Error:', error);
+                const badge = document.getElementById('statusBadge');
+                badge.classList.remove('online');
+                document.getElementById('statusText').textContent = 'Fuera de Línea';
+                document.getElementById('serverId').textContent = 'Sin Conexión';
+                document.getElementById('playersContainer').innerHTML = '<div class="no-players">El servidor no responde o está apagado.</div>';
             }
         }
 
-        // Cargar al iniciar y actualizar cada 10 segundos
         fetchServerData();
         setInterval(fetchServerData, 10000);
     </script>
