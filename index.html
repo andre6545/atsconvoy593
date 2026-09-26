@@ -1,73 +1,196 @@
-// Función dedicada exclusivamente a consultar y actualizar las cargas entregadas
-        async function fetchDeliveries() {
-            const container = document.getElementById('deliveries-container');
-            if (!container) return;
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>American Truck Simulator - Estado del Servidor</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- FontAwesome Font Icons -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        body {
+            font-family: 'Inter', sans-serif;
+            background-color: #0d1117;
+            color: #c9d1d9;
+        }
+        .custom-scrollbar::-webkit-scrollbar {
+            width: 6px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-track {
+            background: #161b22;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb {
+            background: #30363d;
+            border-radius: 3px;
+        }
+        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
+            background: #484f58;
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col justify-between custom-scrollbar selection:bg-amber-500 selection:text-black">
+
+    <!-- Header / Navbar -->
+    <header class="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-50">
+        <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between mx-auto">
+            <div class="flex items-center space-x-3">
+                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-gray-950 font-black text-xl shadow-lg shadow-amber-500/20">
+                    <i class="fas fa-truck"></i>
+                </div>
+                <div>
+                    <h1 class="text-lg font-bold text-white tracking-wide leading-tight">ATS MultiPlayer</h1>
+                    <p class="text-xs text-gray-400">Servidor Convoy - Estado en Tiempo Real</p>
+                </div>
+            </div>
+
+            <div class="flex items-center space-x-3">
+                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+                    <span class="w-2 h-2 mr-2 bg-emerald-500 rounded-full animate-ping"></span>
+                    <span id="status-indicator">En Línea</span>
+                </span>
+            </div>
+        </div>
+    </header>
+
+    <!-- Main Content Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
+        
+        <!-- Banner informativo / Uptime -->
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
+            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Jugadores Conectados</p>
+                    <h3 class="text-2xl font-black text-white mt-1" id="online-count">0 / 0</h3>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl border border-blue-500/20">
+                    <i class="fas fa-users"></i>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Uptime del Servidor</p>
+                    <h3 class="text-2xl font-black text-white mt-1" id="server-uptime">--:--</h3>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl border border-purple-500/20">
+                    <i class="fas fa-clock"></i>
+                </div>
+            </div>
+
+            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
+                <div>
+                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Estado de Conexión</p>
+                    <h3 class="text-2xl font-black text-emerald-400 mt-1" id="ping-value">Estable</h3>
+                </div>
+                <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl border border-emerald-500/20">
+                    <i class="fas fa-signal"></i>
+                </div>
+            </div>
+        </div>
+
+        <!-- Seccion Principal: Conductores Activos -->
+        <section class="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
+            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
+                <div class="flex items-center space-x-3">
+                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
+                        <i class="fas fa-id-card"></i>
+                    </div>
+                    <div>
+                        <h2 class="text-lg font-bold text-white">Conductores en Tiempo Real</h2>
+                        <p class="text-xs text-gray-400">Lista de jugadores conectados actualmente en el servidor convoy</p>
+                    </div>
+                </div>
+                <button onclick="fetchServerData()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold transition-all border border-gray-700 flex items-center space-x-2">
+                    <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                    <span>Actualizar</span>
+                </button>
+            </div>
+
+            <!-- Grilla de Jugadores -->
+            <div id="players-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
+                <!-- Se poblará dinámicamente con JS -->
+                <div class="col-span-full text-center py-12 text-gray-500 bg-gray-950/40 rounded-xl border border-gray-800">
+                    <i class="fas fa-spinner fa-spin text-2xl text-amber-500 mb-3"></i>
+                    <p class="text-sm">Cargando lista de conductores...</p>
+                </div>
+            </div>
+        </section>
+
+    </main>
+
+    <!-- Footer -->
+    <footer class="border-t border-gray-800 bg-gray-950/60 py-6 text-center text-xs text-gray-500">
+        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p>&copy; 2026 American Truck Simulator Convoy Server. Todos los derechos reservados.</p>
+            <div class="flex items-center space-x-4">
+                <span class="inline-flex items-center text-gray-400">
+                    <i class="fas fa-server mr-1.5 text-amber-500"></i> Estado Servidor: <strong class="text-gray-200 ml-1">Activo</strong>
+                </span>
+            </div>
+        </div>
+    </footer>
+
+    <!-- Script de Integración con Backend / Vercel Serverless Proxy -->
+    <script>
+        async function fetchServerData() {
+            const refreshIcon = document.getElementById('refresh-icon');
+            if (refreshIcon) refreshIcon.classList.add('fa-spin');
 
             try {
-                // Consulta al endpoint API de Vercel
-                const response = await fetch('/api/deliveries');
-                
-                if (!response.ok) {
-                    throw new Error('No se pudo conectar con el endpoint de cargas');
-                }
+                const response = await fetch('/api/status');
+                if (!response.ok) throw new Error('Error al conectar con la API');
 
                 const data = await response.json();
-                const deliveries = data.deliveries || [];
-
-                if (deliveries.length === 0) {
-                    container.innerHTML = `
-                        <div class="col-span-full text-center py-8 text-gray-500 bg-gray-900/50 rounded-xl border border-gray-800">
-                            <i class="fas fa-inbox text-3xl mb-2 text-gray-600"></i>
-                            <p class="text-sm font-medium">Esperando nuevos registros o mensajes de prueba...</p>
-                            <p class="text-xs text-gray-600 mt-1">Los datos se actualizarán automáticamente cuando se envíe una carga o mensaje.</p>
-                        </div>
-                    `;
-                    return;
+                
+                // Actualizar Contadores Generales
+                document.getElementById('online-count').textContent = `${data.playersOnline || 0} / ${data.maxPlayers || 32}`;
+                document.getElementById('server-uptime').textContent = data.uptime || '99.9%';
+                
+                const statusIndicator = document.getElementById('status-indicator');
+                if (data.online) {
+                    statusIndicator.textContent = 'En Línea';
+                    statusIndicator.parentElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+                } else {
+                    statusIndicator.textContent = 'Fuera de Línea';
+                    statusIndicator.parentElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20';
                 }
 
-                // Renderizar cada registro
-                container.innerHTML = deliveries.map(item => `
-                    <div class="bg-gray-900/80 border border-gray-800 hover:border-amber-500/50 transition-all duration-200 rounded-xl p-4 flex flex-col justify-between shadow-lg relative overflow-hidden group">
-                        <div class="absolute top-0 left-0 w-1 h-full ${item.status && item.status.toLowerCase().includes('complet') ? 'bg-emerald-500' : 'bg-amber-500'}"></div>
-                        
-                        <div class="flex items-center justify-between mb-3 pl-2">
-                            <div class="flex items-center space-x-2">
-                                <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500 font-bold text-xs">
-                                    <i class="fas fa-truck-moving"></i>
-                                </div>
-                                <div>
-                                    <h4 class="text-sm font-bold text-white leading-tight">${escapeHtml(item.driver)}</h4>
-                                    <span class="text-[10px] text-gray-400"><i class="far fa-clock mr-1"></i>${escapeHtml(item.timestamp || 'Ahora')}</span>
-                                </div>
-                            </div>
-                            <span class="px-2 py-0.5 rounded text-[10px] font-semibold tracking-wide ${item.status && item.status.toLowerCase().includes('complet') ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/20' : 'bg-amber-500/10 text-amber-400 border border-amber-500/20'}">
-                                ${escapeHtml(item.status || 'En Tránsito')}
-                            </span>
+                // Renderizar Jugadores Conectados
+                const playersContainer = document.getElementById('players-container');
+                const players = data.players || [];
+
+                if (players.length === 0) {
+                    playersContainer.innerHTML = `
+                        <div class="col-span-full text-center py-12 text-gray-500 bg-gray-950/40 rounded-xl border border-gray-800">
+                            <i class="fas fa-truck-pickup text-3xl mb-3 text-gray-600"></i>
+                            <p class="text-sm font-medium">No hay conductores conectados en este momento</p>
+                            <p class="text-xs text-gray-600 mt-1">Sé el primero en entrar al servidor convoy.</p>
                         </div>
-
-                        ${item.description ? `
-                            <p class="text-xs text-gray-300 pl-2 mb-2 bg-gray-950/40 p-2 rounded border border-gray-800/80 font-mono">${escapeHtml(item.description)}</p>
-                        ` : ''}
-
-                        <div class="grid grid-cols-2 gap-2 text-xs bg-gray-950/60 p-2.5 rounded-lg border border-gray-800/50 pl-3">
-                            <div>
-                                <span class="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Carga / Detalle</span>
-                                <span class="text-gray-200 font-medium truncate block">${escapeHtml(item.cargo)}</span>
-                            </div>
-                            <div>
-                                <span class="text-[10px] text-gray-500 uppercase tracking-wider block font-semibold">Ruta</span>
-                                <span class="text-gray-200 font-medium truncate block">${escapeHtml(item.origin)} ➔ ${escapeHtml(item.destination)}</span>
+                    `;
+                } else {
+                    playersContainer.innerHTML = players.map(player => `
+                        <div class="bg-gray-950/60 border border-gray-800 hover:border-amber-500/40 transition-all rounded-xl p-4 flex items-center space-x-3 shadow-lg">
+                            <img src="${player.avatar || 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'}" 
+                                 alt="${escapeHtml(player.name)}" 
+                                 class="w-10 h-10 rounded-lg border border-gray-700 object-cover">
+                            <div class="overflow-hidden">
+                                <h4 class="text-sm font-bold text-white truncate">${escapeHtml(player.name)}</h4>
+                                <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-block mt-0.5">Conectado</span>
                             </div>
                         </div>
-                    </div>
-                `).join('');
+                    `).join('');
+                }
 
             } catch (error) {
-                console.error('Error fetching deliveries:', error);
+                console.error('Error cargando estado del servidor:', error);
+                document.getElementById('status-indicator').textContent = 'Error de Conexión';
+            } finally {
+                if (refreshIcon) refreshIcon.classList.remove('fa-spin');
             }
         }
 
-        // Helper para evitar inyección de código
         function escapeHtml(str) {
             if (!str) return '';
             return String(str)
@@ -78,8 +201,11 @@
                 .replace(/'/g, "&#039;");
         }
 
-        // Ejecutar al cargar la página y refrescar cada 5 segundos
+        // Cargar datos al iniciar y refrescar cada 10 segundos
         document.addEventListener('DOMContentLoaded', () => {
-            fetchDeliveries();
-            setInterval(fetchDeliveries, 5000);
+            fetchServerData();
+            setInterval(fetchServerData, 10000);
         });
+    </script>
+</body>
+</html>
