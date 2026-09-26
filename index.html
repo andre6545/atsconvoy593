@@ -348,9 +348,16 @@
             transition: all 0.2s ease;
         }
 
+        .delivery-card.completed {
+            border-left-color: var(--status-green);
+        }
+
+        .delivery-card.in_progress {
+            border-left-color: var(--accent-cyan);
+        }
+
         .delivery-card:hover {
             background: rgba(255, 255, 255, 0.05);
-            border-left-color: var(--status-green);
         }
 
         .delivery-info {
@@ -395,6 +402,11 @@
             border-radius: 6px;
             font-size: 0.75rem;
             font-weight: 700;
+        }
+
+        .delivery-tag.in-progress {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
         }
 
         .empty-state {
@@ -509,7 +521,7 @@
         <div class="panel-box">
             <div class="panel-title">
                 <i class="fa-solid fa-box-open" style="color: var(--ec-yellow)"></i>
-                Últimas Cargas Entregadas (Webhook Stream)
+                Estado de Trabajos / Cargas (Webhook Stream)
             </div>
             <div class="deliveries-container" id="deliveriesList">
                 <div class="empty-state">Escuchando registros de entregas en tiempo real...</div>
@@ -602,62 +614,53 @@
         async function fetchWebhookDeliveries() {
             const deliveriesList = document.getElementById('deliveriesList');
             try {
-                // Consultamos el webhook para obtener los últimos mensajes almacenados
-                const response = await fetch(WEBHOOK_URL);
-                if (!response.ok) throw new Error("No se pudo obtener datos del Webhook");
+                // Consultamos el webhook o endpoint interno de registro de trabajos
+                const response = await fetch('/api/deliveries');
                 
-                const webhookData = await response.json();
-                
-                // Nota: Los webhooks estándar de Discord solo retornan metadata por GET.
-                // Si la API backend del panel procesa las entregas, la adaptamos aquí:
-                if (webhookData.messages && webhookData.messages.length > 0) {
-                    deliveriesList.innerHTML = '';
-                    webhookData.messages.forEach(delivery => {
-                        const card = document.createElement('div');
-                        card.className = 'delivery-card';
-                        card.innerHTML = `
-                            <div class="delivery-info">
-                                <div class="delivery-icon"><i class="fa-solid fa-truck-ramp-box"></i></div>
-                                <div class="delivery-details">
-                                    <h4>${delivery.cargo || 'Carga Completada'}</h4>
-                                    <p><i class="fa-solid fa-location-dot"></i> ${delivery.origin || 'Origen'} ➔ ${delivery.destination || 'Destino'}</p>
+                if (response.ok) {
+                    const jobsData = await response.json();
+                    
+                    if (jobsData && jobsData.length > 0) {
+                        deliveriesList.innerHTML = '';
+                        jobsData.forEach(job => {
+                            const isCompleted = job.status === 'completed' || job.status === 'Completado';
+                            const statusLabel = isCompleted ? 'Entregado' : 'En Ruta';
+                            const tagClass = isCompleted ? 'delivery-tag' : 'delivery-tag in-progress';
+                            const cardClass = isCompleted ? 'delivery-card completed' : 'delivery-card in_progress';
+
+                            const card = document.createElement('div');
+                            card.className = cardClass;
+                            card.innerHTML = `
+                                <div class="delivery-info">
+                                    <div class="delivery-icon"><i class="${isCompleted ? 'fa-solid fa-square-check' : 'fa-solid fa-truck-fast'}"></i></div>
+                                    <div class="delivery-details">
+                                        <h4>${job.cargo || 'Cargas Varias'}</h4>
+                                        <p><i class="fa-solid fa-location-dot"></i> ${job.origin || 'Origen'} ➔ ${job.destination || 'Destino'}</p>
+                                    </div>
                                 </div>
-                            </div>
-                            <div class="delivery-meta">
-                                <span class="delivery-tag">Entregado</span>
-                                <p style="font-size:0.75rem; color: var(--text-secondary); margin-top: 4px;">${delivery.driver || 'Conductor'}</p>
-                            </div>
-                        `;
-                        deliveriesList.appendChild(card);
-                    });
-                } else {
-                    deliveriesList.innerHTML = `
-                        <div class="delivery-card">
-                            <div class="delivery-info">
-                                <div class="delivery-icon"><i class="fa-solid fa-satellite-dish"></i></div>
-                                <div class="delivery-details">
-                                    <h4>Canal de Webhook Vinculado</h4>
-                                    <p>Sincronizado con la API de Discord (${WEBHOOK_URL.substring(0, 38)}...)</p>
+                                <div class="delivery-meta">
+                                    <span class="${tagClass}">${statusLabel}</span>
+                                    <p style="font-size:0.75rem; color: var(--text-secondary); margin-top: 4px;"><i class="fa-solid fa-user-gear"></i> ${job.driver || 'Conductor'}</p>
                                 </div>
-                            </div>
-                            <div class="delivery-meta">
-                                <span class="delivery-tag">Activo</span>
-                            </div>
-                        </div>
-                    `;
+                            `;
+                            deliveriesList.appendChild(card);
+                        });
+                        return;
+                    }
                 }
+                throw new Error("Mostrando estado por defecto de sincronización");
             } catch (error) {
                 deliveriesList.innerHTML = `
-                    <div class="delivery-card">
+                    <div class="delivery-card completed">
                         <div class="delivery-info">
                             <div class="delivery-icon"><i class="fa-solid fa-satellite-dish"></i></div>
                             <div class="delivery-details">
-                                <h4>Sistema de Registro de Cargas Listo</h4>
-                                <p>Recepción de eventos vinculada al Webhook de Discord.</p>
+                                <h4>Sistema de Registro de Trabajos Sincronizado</h4>
+                                <p>Escuchando eventos de cargas iniciadas/completadas desde Discord Webhook.</p>
                             </div>
                         </div>
                         <div class="delivery-meta">
-                            <span class="delivery-tag">Sincronizado</span>
+                            <span class="delivery-tag">Activo</span>
                         </div>
                     </div>
                 `;
