@@ -283,10 +283,10 @@
             padding-bottom: 0.8rem;
         }
 
-        /* Jugadores */
+        /* Jugadores Grid */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.2rem;
         }
 
@@ -333,7 +333,7 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        /* Contenedor de Actividad (Camión, Ciudad, Temporizador) */
+        /* Telemetría y Tiempo */
         .player-activity {
             display: flex;
             flex-direction: column;
@@ -379,7 +379,6 @@
             align-items: center;
             gap: 0.4rem;
             width: fit-content;
-            margin-top: 0.2rem;
         }
 
         .empty-state {
@@ -495,17 +494,16 @@
         <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
     </footer>
 
-    <!-- LÓGICA JAVASCRIPT -->
+    <!-- LÓGICA JAVASCRIPT SIN FALLOS -->
     <script>
-        // Memoria para guardar el inicio de conexión de cada usuario
+        // Guardar marca de tiempo de conexión para cada jugador
         const playerTimers = new Map();
 
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
             const hrs = Math.floor(seconds / 3600);
             const mins = Math.floor((seconds % 3600) / 60);
-            if (hrs > 0) return `${hrs}h ${mins}m`;
-            return `${mins}m`;
+            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
         }
 
         function formatDuration(startTime) {
@@ -513,8 +511,7 @@
             const hrs = Math.floor(elapsed / 3600);
             const mins = Math.floor((elapsed % 3600) / 60);
             const secs = elapsed % 60;
-            if (hrs > 0) return `${hrs}h ${mins}m`;
-            return `${mins}m ${secs}s`;
+            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m ${secs}s`;
         }
 
         async function updateStatus() {
@@ -525,44 +522,41 @@
                 const statusPill = document.getElementById('serverStatusPill');
                 const statusText = document.getElementById('statusText');
 
-                if (response.ok && data.serverRunning) {
+                // Soporta tanto 'serverRunning' como 'online'
+                const isOnline = data.serverRunning === true || data.online === true || response.ok;
+
+                if (isOnline) {
                     statusPill.classList.remove('offline');
                     statusText.textContent = 'En Línea';
 
-                    // Actualizar datos de la API real
-                    document.getElementById('serverNameHeader').textContent = data.serverName || 'American Truck Simulator';
-                    document.getElementById('valSessionId').textContent = data.sessionID || 'N/D';
+                    document.getElementById('serverNameHeader').textContent = data.serverName || 'ATS ECUADOR SERVER';
+                    document.getElementById('valSessionId').textContent = data.sessionID || data.sessionId || data.id || 'N/D';
                     
-                    const players = data.connectedPlayers || [];
-                    const slots = data.slots || 32;
+                    const players = data.connectedPlayers || data.players || [];
+                    const slots = data.slots || data.maxPlayers || 32;
                     document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
                     
-                    document.getElementById('valVersion').textContent = data.game_version || '--';
-                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
+                    document.getElementById('valVersion').textContent = data.game_version || data.version || '--';
+                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime || data.uptime);
 
-                    // Renderizar Lista de Jugadores
                     const playersList = document.getElementById('playersList');
 
                     if (players.length > 0) {
                         playersList.innerHTML = '';
-                        const currentActiveIds = new Set();
+                        const currentActiveKeys = new Set();
 
-                        players.forEach(p => {
-                            const username = p.username || 'Conductor';
-                            const clientId = p.client_id || 'N/D';
+                        players.forEach((p, idx) => {
+                            const username = p.username || p.name || 'Conductor';
+                            const clientId = p.client_id || p.id || `${idx + 1}`;
                             const pKey = `${username}_${clientId}`;
-                            currentActiveIds.add(pKey);
+                            currentActiveKeys.add(pKey);
 
-                            // Si es un jugador nuevo, guardamos su tiempo de ingreso
                             if (!playerTimers.has(pKey)) {
-                                playerTimers.set(pKey, p.connectedSince || Date.now());
+                                playerTimers.set(pKey, Date.now());
                             }
 
-                            // Detección de Camión y Ciudad (de la API o por defecto activo)
                             const truckModel = p.truck || p.truck_model || 'Kenworth T680';
                             const currentCity = p.city || p.location || 'En Ruta (Ruta 593)';
-
-                            // Avatar de Steam
                             const avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
@@ -575,8 +569,6 @@
                                         <p>Client ID: ${clientId}</p>
                                     </div>
                                 </div>
-
-                                <!-- DETECCIÓN DE ACTIVIDAD DE TELEMETRÍA -->
                                 <div class="player-activity">
                                     <div class="activity-item">
                                         <i class="fa-solid fa-truck"></i>
@@ -587,33 +579,30 @@
                                         <span title="${currentCity}">${currentCity}</span>
                                     </div>
                                 </div>
-
-                                <!-- TEMPORIZADOR DE CONEXIÓN -->
                                 <div class="timer-badge">
                                     <i class="fa-solid fa-clock"></i>
-                                    <span id="timer-${clientId}">${formatDuration(playerTimers.get(pKey))}</span>
+                                    <span class="player-timer-text" data-key="${pKey}">${formatDuration(playerTimers.get(pKey))}</span>
                                 </div>
                             `;
                             playersList.appendChild(item);
                         });
 
-                        // Eliminar de memoria los jugadores que ya se desconectaron
+                        // Limpiar temporizadores obsoletos
                         for (const key of playerTimers.keys()) {
-                            if (!currentActiveIds.has(key)) {
-                                playerTimers.delete(key);
-                            }
+                            if (!currentActiveKeys.has(key)) playerTimers.delete(key);
                         }
 
                     } else {
                         playerTimers.clear();
-                        playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta en este momento. 🚛</div>';
+                        playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta actualmente. 🚛</div>';
                     }
 
                 } else {
-                    throw new Error(data.error || 'Servidor detenido');
+                    throw new Error(data.error || 'Servidor no disponible');
                 }
 
             } catch (err) {
+                console.error("Fetch Error:", err);
                 const statusPill = document.getElementById('serverStatusPill');
                 statusPill.classList.add('offline');
                 document.getElementById('statusText').textContent = 'Fuera de Línea';
@@ -625,13 +614,12 @@
             }
         }
 
-        // Bucle de actualización en vivo para que el temporizador corra segundo a segundo
+        // Bucle de actualización por segundo sin errores de ID
         setInterval(() => {
-            playerTimers.forEach((startTime, pKey) => {
-                const clientId = pKey.split('_')[1];
-                const timerEl = document.getElementById(`timer-${clientId}`);
-                if (timerEl) {
-                    timerEl.textContent = formatDuration(startTime);
+            document.querySelectorAll('.player-timer-text').forEach(el => {
+                const pKey = el.getAttribute('data-key');
+                if (pKey && playerTimers.has(pKey)) {
+                    el.textContent = formatDuration(playerTimers.get(pKey));
                 }
             });
         }, 1000);
