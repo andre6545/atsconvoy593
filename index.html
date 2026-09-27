@@ -3,8 +3,9 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Monitor en tiempo real del servidor dedicado de American Truck Simulator - ATS Ecuador Server">
     <title>ATS ECUADOR SERVER (+593)</title>
-    <!-- Fonts & Icons -->
+
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -13,27 +14,19 @@
             --bg-dark: #070a11;
             --panel-bg: rgba(15, 23, 42, 0.85);
             --panel-border: rgba(255, 255, 255, 0.1);
-            
-            /* Colores Bandera de Ecuador */
             --ec-yellow: #ffda1a;
             --ec-blue: #034ea2;
             --ec-red: #ed1c24;
-
-            /* Acento Neón Activo */
             --accent-glow: var(--ec-yellow);
             --accent-cyan: #06b6d4;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --status-green: #10b981;
+            --status-warning: #f59e0b;
         }
 
-        /* Temas Neón Personalizados */
-        body.theme-cyan {
-            --accent-glow: #06b6d4;
-        }
-        body.theme-green {
-            --accent-glow: #10b981;
-        }
+        body.theme-cyan { --accent-glow: #06b6d4; }
+        body.theme-green { --accent-glow: #10b981; }
 
         * {
             box-sizing: border-box;
@@ -49,10 +42,9 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            background-image: 
+            background-image:
                 radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
                 radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
-            transition: --accent-glow 0.3s ease;
         }
 
         .ec-stripe {
@@ -73,6 +65,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 1rem;
             backdrop-filter: blur(15px);
             position: sticky;
             top: 5px;
@@ -83,9 +76,11 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            min-width: 0;
         }
 
         .brand-icon {
+            flex: 0 0 auto;
             background: linear-gradient(135deg, var(--accent-glow), var(--ec-red));
             width: 50px;
             height: 50px;
@@ -104,6 +99,10 @@
             100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
         }
 
+        .brand-title {
+            min-width: 0;
+        }
+
         .brand-title h1 {
             font-size: 1.3rem;
             font-weight: 900;
@@ -112,6 +111,9 @@
             background: linear-gradient(90deg, #fff, var(--accent-glow));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
         }
 
         .brand-title p {
@@ -123,6 +125,7 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex: 0 0 auto;
         }
 
         .theme-selector {
@@ -143,8 +146,10 @@
             border: 2px solid transparent;
         }
 
-        .theme-dot:hover {
-            transform: scale(1.2);
+        .theme-dot:hover { transform: scale(1.2); }
+        .theme-dot:focus-visible {
+            outline: 2px solid var(--text-primary);
+            outline-offset: 3px;
         }
 
         .theme-dot.yellow { background: var(--ec-yellow); }
@@ -163,6 +168,7 @@
             font-weight: 700;
             color: var(--status-green);
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+            white-space: nowrap;
         }
 
         .status-pill.offline {
@@ -170,6 +176,13 @@
             border-color: rgba(237, 28, 36, 0.4);
             color: var(--ec-red);
             box-shadow: 0 0 15px rgba(237, 28, 36, 0.2);
+        }
+
+        .status-pill.warning {
+            background: rgba(245, 158, 11, 0.15);
+            border-color: rgba(245, 158, 11, 0.4);
+            color: var(--status-warning);
+            box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
         }
 
         .indicator {
@@ -185,8 +198,9 @@
 
         .hero-banner {
             position: relative;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
-                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            background:
+                linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
+                url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
             padding: 3rem 2rem;
             border-bottom: 1px solid var(--panel-border);
             text-align: center;
@@ -278,6 +292,7 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
+            gap: 0.75rem;
             margin-bottom: 0.8rem;
             color: var(--text-secondary);
             font-size: 0.85rem;
@@ -290,6 +305,7 @@
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
+            min-width: 0;
         }
 
         .metric-value {
@@ -300,9 +316,11 @@
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
+            min-width: 0;
         }
 
         .copy-btn {
+            flex: 0 0 auto;
             background: rgba(255, 218, 26, 0.15);
             border: 1px solid rgba(255, 218, 26, 0.3);
             color: var(--accent-glow);
@@ -320,6 +338,11 @@
             background: var(--accent-glow);
             color: #000;
             box-shadow: 0 0 10px var(--accent-glow);
+        }
+
+        .copy-btn:focus-visible {
+            outline: 2px solid var(--text-primary);
+            outline-offset: 2px;
         }
 
         .panel-box {
@@ -355,6 +378,7 @@
             display: flex;
             align-items: center;
             justify-content: space-between;
+            gap: 1rem;
             transition: all 0.2s ease;
         }
 
@@ -368,20 +392,30 @@
             display: flex;
             align-items: center;
             gap: 1rem;
+            min-width: 0;
         }
 
         .player-avatar {
             width: 48px;
             height: 48px;
+            flex: 0 0 auto;
             border-radius: 10px;
             object-fit: cover;
             border: 2px solid var(--accent-glow);
+        }
+
+        .player-details {
+            min-width: 0;
         }
 
         .player-details h4 {
             font-size: 1rem;
             font-weight: 700;
             color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+            max-width: 220px;
         }
 
         .player-details p {
@@ -391,6 +425,7 @@
         }
 
         .player-status-badge {
+            flex: 0 0 auto;
             background: rgba(16, 185, 129, 0.15);
             color: var(--status-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
@@ -454,15 +489,47 @@
         }
 
         footer strong { color: var(--accent-glow); }
+
+        @media (max-width: 760px) {
+            header {
+                flex-direction: column;
+                align-items: stretch;
+            }
+
+            .header-actions {
+                justify-content: space-between;
+            }
+
+            .hero-content h2 {
+                font-size: 1.6rem;
+            }
+
+            .player-card {
+                align-items: flex-start;
+            }
+        }
+
+        @media (prefers-reduced-motion: reduce) {
+            *,
+            *::before,
+            *::after {
+                animation-duration: 0.01ms !important;
+                animation-iteration-count: 1 !important;
+                transition-duration: 0.01ms !important;
+                scroll-behavior: auto !important;
+            }
+        }
     </style>
 </head>
-<body>
 
-    <div class="ec-stripe"></div>
+<body>
+    <div class="ec-stripe" aria-hidden="true"></div>
 
     <header>
         <div class="brand">
-            <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
+            <div class="brand-icon" aria-hidden="true">
+                <i class="fa-solid fa-truck-front"></i>
+            </div>
             <div class="brand-title">
                 <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
                 <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
@@ -470,15 +537,15 @@
         </div>
 
         <div class="header-actions">
-            <div class="theme-selector" title="Cambiar color neón">
-                <div class="theme-dot yellow" onclick="setTheme('')"></div>
-                <div class="theme-dot cyan" onclick="setTheme('theme-cyan')"></div>
-                <div class="theme-dot green" onclick="setTheme('theme-green')"></div>
+            <div class="theme-selector" title="Cambiar color neón" aria-label="Cambiar color neón">
+                <button class="theme-dot yellow" type="button" data-theme="" aria-label="Tema amarillo"></button>
+                <button class="theme-dot cyan" type="button" data-theme="theme-cyan" aria-label="Tema cian"></button>
+                <button class="theme-dot green" type="button" data-theme="theme-green" aria-label="Tema verde"></button>
             </div>
 
-            <div id="serverStatusPill" class="status-pill">
+            <div id="serverStatusPill" class="status-pill warning" role="status" aria-live="polite">
                 <div class="indicator"></div>
-                <span id="statusText">Cargando...</span>
+                <span id="statusText">Conectando...</span>
             </div>
         </div>
     </header>
@@ -487,7 +554,7 @@
         <div class="hero-content">
             <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
             <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
-            
+
             <div class="hero-badges">
                 <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
                 <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
@@ -495,12 +562,12 @@
             </div>
         </div>
 
-        <div class="road-animation">
+        <div class="road-animation" aria-hidden="true">
             <i class="fa-solid fa-truck-moving moving-truck"></i>
         </div>
     </section>
 
-    <div class="container">
+    <main class="container">
         <div class="metrics-row">
             <div class="metric-card">
                 <div class="metric-header">
@@ -509,7 +576,7 @@
                 </div>
                 <div class="metric-value-box">
                     <div class="metric-value" id="valSessionId">--</div>
-                    <button class="copy-btn" id="btnCopySession" title="Copiar Server ID" onclick="copySessionId()">
+                    <button class="copy-btn" id="btnCopySession" type="button" title="Copiar Server ID" aria-label="Copiar Server ID">
                         <i class="fa-regular fa-copy"></i>
                     </button>
                 </div>
@@ -546,20 +613,18 @@
             </div>
         </div>
 
-        <!-- Panel de Conductores Conectados -->
-        <div class="panel-box">
-            <div class="panel-title">
+        <section class="panel-box" aria-labelledby="playersTitle">
+            <div class="panel-title" id="playersTitle">
                 <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 Conductores Conectados
             </div>
             <div class="players-container" id="playersList">
                 <div class="empty-state">Consultando lista de conductores...</div>
             </div>
-        </div>
-    </div>
+        </section>
+    </main>
 
-    <!-- Notificación Toast -->
-    <div id="toastNotification" class="toast">
+    <div id="toastNotification" class="toast" role="status" aria-live="polite">
         <i class="fa-solid fa-circle-check"></i>
         <span id="toastText">¡Server ID copiado al portapapeles!</span>
     </div>
@@ -569,161 +634,328 @@
     </footer>
 
     <script>
-        let rawSessionId = '';
+        'use strict';
 
-        // Selector de Tema Neón
+        const UPDATE_INTERVAL_MS = 10000;
+        const FETCH_TIMEOUT_MS = 8000;
+        const FALLBACK_AVATAR = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+
+        let rawSessionId = '';
+        let updateInProgress = false;
+        let toastTimer = null;
+
+        const $ = (selector) => document.querySelector(selector);
+
         function setTheme(themeName) {
-            document.body.className = themeName;
+            document.body.classList.remove('theme-cyan', 'theme-green');
+
+            if (themeName === 'theme-cyan' || themeName === 'theme-green') {
+                document.body.classList.add(themeName);
+            }
+
             localStorage.setItem('ats_theme', themeName);
         }
 
-        const savedTheme = localStorage.getItem('ats_theme');
-        if (savedTheme) setTheme(savedTheme);
+        document.querySelectorAll('.theme-dot').forEach((button) => {
+            button.addEventListener('click', () => setTheme(button.dataset.theme || ''));
+        });
 
-        // Sonido Neumático de Camión
+        const savedTheme = localStorage.getItem('ats_theme');
+        if (savedTheme === 'theme-cyan' || savedTheme === 'theme-green') {
+            setTheme(savedTheme);
+        }
+
+        let audioContext = null;
+
         function playAirBrakeSound() {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
-                const ctx = new AudioCtx();
 
-                const bufferSize = ctx.sampleRate * 0.25;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                audioContext ??= new AudioCtx();
+
+                if (audioContext.state === 'suspended') {
+                    audioContext.resume().catch(() => {});
+                }
+
+                const duration = 0.25;
+                const bufferSize = Math.floor(audioContext.sampleRate * duration);
+                const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
                 const data = buffer.getChannelData(0);
 
                 for (let i = 0; i < bufferSize; i++) {
                     data[i] = Math.random() * 2 - 1;
                 }
 
-                const noise = ctx.createBufferSource();
+                const noise = audioContext.createBufferSource();
                 noise.buffer = buffer;
 
-                const filter = ctx.createBiquadFilter();
+                const filter = audioContext.createBiquadFilter();
                 filter.type = 'bandpass';
                 filter.frequency.value = 1200;
                 filter.Q.value = 1.5;
 
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+                const gain = audioContext.createGain();
+                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
 
                 noise.connect(filter);
                 filter.connect(gain);
-                gain.connect(ctx.destination);
-
+                gain.connect(audioContext.destination);
                 noise.start();
-            } catch (e) {}
+            } catch {
+                // El sonido es opcional; no debe afectar al monitor.
+            }
         }
 
         function showToast(message) {
-            const toast = document.getElementById('toastNotification');
-            const toastText = document.getElementById('toastText');
+            const toast = $('#toastNotification');
+            const toastText = $('#toastText');
+
             toastText.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => {
+
+            clearTimeout(toastTimer);
+            toastTimer = setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
 
-        function copySessionId() {
-            if (!rawSessionId || rawSessionId === '--' || rawSessionId === 'N/D' || rawSessionId === 'Sin Conexión') {
+        async function copySessionId() {
+            if (!rawSessionId || ['--', 'N/D', 'Sin Conexión'].includes(rawSessionId)) {
                 showToast('No hay una sesión activa para copiar');
                 return;
             }
 
-            navigator.clipboard.writeText(rawSessionId).then(() => {
+            try {
+                await navigator.clipboard.writeText(rawSessionId);
                 playAirBrakeSound();
                 showToast('¡Server ID copiado al portapapeles!');
-            }).catch(() => {
-                showToast('Error al copiar el ID');
-            });
+            } catch {
+                showToast('No se pudo copiar el Server ID');
+            }
         }
 
+        $('#btnCopySession').addEventListener('click', copySessionId);
+
         function formatUptime(seconds) {
-            if (!seconds || isNaN(seconds)) return '--';
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
+            const totalSeconds = Number(seconds);
+
+            if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
+                return '--';
+            }
+
+            const days = Math.floor(totalSeconds / 86400);
+            const hours = Math.floor((totalSeconds % 86400) / 3600);
+            const mins = Math.floor((totalSeconds % 3600) / 60);
+
+            if (days > 0) return `${days}d ${hours}h ${mins}m`;
+            if (hours > 0) return `${hours}h ${mins}m`;
+            return `${mins}m`;
+        }
+
+        function setStatus(state, text) {
+            const pill = $('#serverStatusPill');
+            const statusText = $('#statusText');
+
+            pill.classList.remove('offline', 'warning');
+
+            if (state === 'offline') {
+                pill.classList.add('offline');
+            } else if (state === 'warning') {
+                pill.classList.add('warning');
+            }
+
+            statusText.textContent = text;
+        }
+
+        function clearServerData() {
+            rawSessionId = '';
+            $('#valSessionId').textContent = '--';
+            $('#valPlayers').textContent = '0 / 0';
+            $('#valVersion').textContent = '--';
+            $('#valUptime').textContent = '--';
+            $('#playersList').replaceChildren(
+                createEmptyState('No hay datos del servidor disponibles.')
+            );
+            document.title = '🟠 Monitor | ATS ECUADOR SERVER';
+        }
+
+        function createEmptyState(message) {
+            const element = document.createElement('div');
+            element.className = 'empty-state';
+            element.textContent = message;
+            return element;
+        }
+
+        function createPlayerCard(player) {
+            const item = document.createElement('div');
+            item.className = 'player-card';
+
+            const playerHeader = document.createElement('div');
+            playerHeader.className = 'player-header';
+
+            const avatar = document.createElement('img');
+            avatar.className = 'player-avatar';
+            avatar.alt = 'Avatar del conductor';
+            avatar.loading = 'lazy';
+            avatar.referrerPolicy = 'no-referrer';
+            avatar.src = player.avatar || FALLBACK_AVATAR;
+            avatar.addEventListener('error', () => {
+                if (avatar.src !== FALLBACK_AVATAR) {
+                    avatar.src = FALLBACK_AVATAR;
+                }
+            }, { once: true });
+
+            const details = document.createElement('div');
+            details.className = 'player-details';
+
+            const username = document.createElement('h4');
+            username.textContent = player.username || 'Conductor';
+
+            const clientId = document.createElement('p');
+            clientId.textContent = `Client ID: ${player.client_id ?? 'N/D'}`;
+
+            details.append(username, clientId);
+            playerHeader.append(avatar, details);
+
+            const statusBadge = document.createElement('div');
+            statusBadge.className = 'player-status-badge';
+
+            const statusIcon = document.createElement('i');
+            statusIcon.className = 'fa-solid fa-steering-wheel';
+
+            statusBadge.append(statusIcon, document.createTextNode(' En Ruta'));
+
+            item.append(playerHeader, statusBadge);
+            return item;
+        }
+
+        function renderPlayers(players) {
+            const playersList = $('#playersList');
+            const fragment = document.createDocumentFragment();
+
+            if (!Array.isArray(players) || players.length === 0) {
+                playersList.replaceChildren(
+                    createEmptyState('No hay conductores en el servidor en este momento. 🚛')
+                );
+                return;
+            }
+
+            players.forEach((player) => {
+                fragment.appendChild(createPlayerCard(player));
+            });
+
+            playersList.replaceChildren(fragment);
+        }
+
+        async function fetchStatus() {
+            const controller = new AbortController();
+            const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
+
+            try {
+                const response = await fetch('/api/status', {
+                    method: 'GET',
+                    headers: { 'Accept': 'application/json' },
+                    cache: 'no-store',
+                    signal: controller.signal
+                });
+
+                let data;
+                try {
+                    data = await response.json();
+                } catch {
+                    throw new Error('La API devolvió una respuesta no válida.');
+                }
+
+                if (!response.ok) {
+                    const error = new Error(data.error || 'La API no está disponible.');
+                    error.apiStatus = data.status || 'api_error';
+                    error.httpStatus = response.status;
+                    throw error;
+                }
+
+                return data;
+            } finally {
+                clearTimeout(timeoutId);
+            }
         }
 
         async function updateStatus() {
+            if (updateInProgress) return;
+            updateInProgress = true;
+
             try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
+                const data = await fetchStatus();
 
-                const statusPill = document.getElementById('serverStatusPill');
-                const statusText = document.getElementById('statusText');
-
-                if (response.ok && data.serverRunning) {
-                    statusPill.classList.remove('offline');
-                    statusText.textContent = 'En Línea';
-
-                    document.getElementById('serverNameHeader').textContent = data.serverName || 'ATS ECUADOR SERVER';
-                    
-                    rawSessionId = data.sessionID || 'N/D';
-                    document.getElementById('valSessionId').textContent = rawSessionId;
-                    
-                    const players = data.connectedPlayers || [];
-                    const slots = data.slots || 32;
-                    document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
-                    
-                    document.getElementById('valVersion').textContent = data.game_version || '--';
-                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
-
-                    document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
-
-                    const playersList = document.getElementById('playersList');
-
-                    if (players.length > 0) {
-                        playersList.innerHTML = '';
-
-                        players.forEach((p, idx) => {
-                            const username = p.username || 'Conductor';
-                            const clientId = p.client_id || `${idx + 1}`;
-                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-
-                            const item = document.createElement('div');
-                            item.className = 'player-card';
-                            item.innerHTML = `
-                                <div class="player-header">
-                                    <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
-                                    <div class="player-details">
-                                        <h4>${username}</h4>
-                                        <p>Client ID: ${clientId}</p>
-                                    </div>
-                                </div>
-                                <div class="player-status-badge">
-                                    <i class="fa-solid fa-steering-wheel"></i> En Ruta
-                                </div>
-                            `;
-                            playersList.appendChild(item);
-                        });
-
-                    } else {
-                        playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
-                    }
-
-                } else {
-                    throw new Error(data.error || 'Servidor detenido');
+                if (data.status === 'offline' || data.serverRunning === false) {
+                    setStatus('offline', 'Servidor ATS Fuera de Línea');
+                    clearServerData();
+                    $('#playersList').replaceChildren(
+                        createEmptyState('El servidor ATS está detenido o no está disponible.')
+                    );
+                    return;
                 }
 
+                if (data.status === 'api_error') {
+                    setStatus('warning', 'API con problemas');
+                    clearServerData();
+                    $('#playersList').replaceChildren(
+                        createEmptyState('La API no pudo consultar correctamente el servidor ATS.')
+                    );
+                    return;
+                }
+
+                if (data.status !== 'online') {
+                    setStatus('warning', 'Estado desconocido');
+                    clearServerData();
+                    return;
+                }
+
+                setStatus('online', 'En Línea');
+
+                $('#serverNameHeader').textContent =
+                    data.serverName || 'ATS ECUADOR SERVER';
+
+                rawSessionId = data.sessionID || 'N/D';
+                $('#valSessionId').textContent = rawSessionId;
+
+                const players = Array.isArray(data.connectedPlayers)
+                    ? data.connectedPlayers
+                    : [];
+
+                const slots = Number.isFinite(Number(data.slots))
+                    ? Number(data.slots)
+                    : 32;
+
+                $('#valPlayers').textContent = `${players.length} / ${slots}`;
+                $('#valVersion').textContent = data.game_version || '--';
+                $('#valUptime').textContent = formatUptime(data.apiUptime);
+
+                document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
+
+                renderPlayers(players);
             } catch (err) {
-                const statusPill = document.getElementById('serverStatusPill');
-                statusPill.classList.add('offline');
-                document.getElementById('statusText').textContent = 'Fuera de Línea';
-                rawSessionId = 'Sin Conexión';
-                document.getElementById('valSessionId').textContent = rawSessionId;
-                document.getElementById('valPlayers').textContent = '0 / 0';
-                document.getElementById('valVersion').textContent = '--';
-                document.getElementById('valUptime').textContent = '--';
-                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
-                
-                document.title = `🔴 Fuera de Línea | ATS ECUADOR SERVER`;
+                if (err.name === 'AbortError') {
+                    setStatus('warning', 'Tiempo de espera agotado');
+                    clearServerData();
+                    $('#playersList').replaceChildren(
+                        createEmptyState('La API tardó demasiado en responder.')
+                    );
+                } else {
+                    setStatus('warning', 'API no disponible');
+                    clearServerData();
+                    $('#playersList').replaceChildren(
+                        createEmptyState('No se pudo consultar el monitor del servidor.')
+                    );
+                }
+            } finally {
+                updateInProgress = false;
             }
         }
 
         updateStatus();
-        setInterval(updateStatus, 10000);
+        setInterval(updateStatus, UPDATE_INTERVAL_MS);
     </script>
 </body>
 </html>
