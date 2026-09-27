@@ -5,7 +5,6 @@ import { sendDiscordWebhook } from './lib/discord.js';
 export default async function handler(req, res) {
     const ATS_STATUS_URL = process.env.ATS_STATUS_URL;
 
-    // Guardrail: Verificar si la variable de entorno está configurada
     if (!ATS_STATUS_URL) {
         return res.status(500).json({ 
             serverRunning: false, 
@@ -15,11 +14,11 @@ export default async function handler(req, res) {
 
     const startTime = Date.now();
     let isOnline = false;
-    let latency = null;
+    let latency = 0;
     let errorMessage = null;
+    let atsData = {};
 
     try {
-        // Timeout de 5 segundos para no colgar la Serverless Function si el servidor ATS no responde
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 5000);
 
@@ -30,6 +29,13 @@ export default async function handler(req, res) {
 
         if (response.ok) {
             isOnline = true;
+            // Intentamos parsear la respuesta completa que envía el backend/API del servidor ATS
+            try {
+                atsData = await response.json();
+            } catch (jsonErr) {
+                // Si la respuesta no era JSON pero respondió OK
+                atsData = {};
+            }
         } else {
             errorMessage = `HTTP Status ${response.status}`;
         }
@@ -40,21 +46,23 @@ export default async function handler(req, res) {
             : err.message;
     }
 
-    // 1. Evaluamos el estado para detectar si ocurrió un evento (OFFLINE, RECOVERED, TIMEOUT, HIGH_LATENCY)
+    // 1. Evaluación del estado para Discord (asíncrono, no bloqueante)
     const event = evaluateAtsState(isOnline, latency, errorMessage);
-    
-    // 2. Si hay un evento válido, lo enviamos a Discord de forma asíncrona (sin 'await' para no demorar la respuesta al frontend)
     if (event) {
         sendDiscordWebhook(event).catch(err => {
-            console.error('[DISCORD_ASYNC_ERROR] Error en envío en segundo plano:', err);
+            console.error('[DISCORD_ASYNC_ERROR]', err);
         });
     }
 
-    // 3. Respuesta estándar al frontend (mantiene exactamente la misma estructura que tu app espera)
-    return res.status(200).json({
+    // 2. Unificamos la respuesta: mantenemos las propiedades que lee el frontend
+    // combinando los datos originales devueltos por la API de ATS con los del proxy
+    const finalResponse = {
+        ...atsData, // Reenvía id, players, version, uptime, etc.
         serverRunning: isOnline,
-        latency: latency || 0,
+        latency: latency,
         error: errorMessage,
         timestamp: new Date().toISOString()
-    });
+    };
+
+    return res.status(200).json(finalResponse);
 }
