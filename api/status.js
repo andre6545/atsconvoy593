@@ -1,217 +1,85 @@
+// api/status.js
+const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
+const ATS_STATUS_URL = process.env.ATS_STATUS_URL;
+
 export default async function handler(req, res) {
-    // Si frontend y API están en el mismo dominio, CORS no es necesario.
-    // Se mantiene para permitir consultas desde un dominio autorizado.
-    const allowedOrigin = process.env.ALLOWED_ORIGIN;
+    // Manejo de CORS
+    res.setHeader('Access-Control-Allow-Credentials', true);
+    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
+    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
+    res.setHeader(
+        'Access-Control-Allow-Headers',
+        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
+    );
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
 
-    if (allowedOrigin) {
-        res.setHeader('Access-Control-Allow-Origin', allowedOrigin);
-        res.setHeader('Vary', 'Origin');
-    }
-
-    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Accept');
-    res.setHeader('Cache-Control', 'no-store, max-age=0');
-
-    // Preflight CORS
     if (req.method === 'OPTIONS') {
-        return res.status(204).end();
+        res.status(200).end();
+        return;
     }
 
-    // Solo permitimos GET
     if (req.method !== 'GET') {
-        return res.status(405).json({
-            status: 'api_error',
-            error: 'Método no permitido'
+        return res.status(405).json({ error: 'Método no permitido' });
+    }
+
+    if (!ATS_STATUS_URL) {
+        return res.status(500).json({ 
+            serverRunning: false, 
+            error: 'Configuración incompleta: ATS_STATUS_URL no definida' 
         });
     }
 
-    // Puedes definir esta URL como variable de entorno:
-    // ATS_STATUS_URL=http://198.199.67.5/status
-    const ATS_STATUS_URL =
-        process.env.ATS_STATUS_URL || 'http://198.199.67.5/status';
-
-    const timeoutMs = 6000;
     const controller = new AbortController();
-
-    const timeoutId = setTimeout(() => {
-        controller.abort();
-    }, timeoutMs);
+    const timeoutId = setTimeout(() => controller.abort(), 8000);
+    const startTime = Date.now();
 
     try {
-        const atsRes = await fetch(ATS_STATUS_URL, {
-            method: 'GET',
+        const response = await fetch(ATS_STATUS_URL, {
+            signal: controller.signal,
             headers: {
-                'User-Agent': 'ATSHubProxy/2.0',
+                'User-Agent': 'ATS-Monitor-Server/2.0',
                 'Accept': 'application/json'
             },
-            signal: controller.signal,
             cache: 'no-store'
         });
 
-        // El endpoint ATS respondió, pero con error HTTP.
-        if (!atsRes.ok) {
-            return res.status(200).json({
-                status: 'offline',
-                serverRunning: false,
-                error: 'Servidor ATS no disponible',
-                connectedPlayers: []
-            });
-        }
+        clearTimeout(timeoutId);
+        const responseTime = Date.now() - startTime;
 
-        let atsData;
-
-        // Intentamos interpretar la respuesta como JSON.
-        try {
-            atsData = await atsRes.json();
-        } catch {
+        if (!response.ok) {
             return res.status(502).json({
-                status: 'api_error',
                 serverRunning: false,
-                error: 'El servidor ATS devolvió una respuesta no válida',
-                connectedPlayers: []
+                httpCode: response.status,
+                responseTime,
+                error: `El servidor remoto respondió con estado ${response.status}`
             });
         }
 
-        // Validación básica de la respuesta.
-        if (!atsData || typeof atsData !== 'object') {
-            return res.status(502).json({
-                status: 'api_error',
-                serverRunning: false,
-                error: 'Respuesta inválida del servidor ATS',
-                connectedPlayers: []
-            });
-        }
+        const data = await response.json();
 
-        /*
-         * Compatibilidad con diferentes nombres de propiedad:
-         *
-         * connectedPlayers
-         * players
-         */
-        const rawPlayers = Array.isArray(atsData.connectedPlayers)
-            ? atsData.connectedPlayers
-            : Array.isArray(atsData.players)
-                ? atsData.players
-                : [];
-
-        /*
-         * Normalizamos los jugadores para que el frontend
-         * siempre reciba la misma estructura.
-         */
-        const players = rawPlayers.map((p, idx) => {
-            const player = p && typeof p === 'object' ? p : {};
-
-            return {
-                client_id:
-                    player.client_id ??
-                    player.id ??
-                    String(idx + 1),
-
-                username:
-                    player.username ??
-                    player.name ??
-                    'Conductor',
-
-                /*
-                 * Actualmente el endpoint ATS no proporciona
-                 * necesariamente un avatar individual.
-                 *
-                 * Se utiliza un avatar genérico hasta disponer
-                 * de SteamID/avatar real.
-                 */
-                avatar:
-                    'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
-            };
-        });
-
-        /*
-         * Si el servidor ATS proporciona explícitamente
-         * serverRunning, respetamos ese valor.
-         *
-         * Si no lo proporciona, asumimos que la respuesta
-         * válida del endpoint significa que el servidor está
-         * disponible.
-         */
-        const serverRunning =
-            typeof atsData.serverRunning === 'boolean'
-                ? atsData.serverRunning
-                : true;
-
-        const slots =
-            atsData.slots ??
-            atsData.maxPlayers ??
-            32;
-
-        const apiUptime =
-            atsData.apiUptime ??
-            atsData.uptime ??
-            0;
-
-        /*
-         * Respuesta normalizada para el frontend.
-         */
+        // Mantenemos intactos los campos requeridos por el frontend existente
         return res.status(200).json({
-            status: serverRunning ? 'online' : 'offline',
-
-            serverRunning,
-
-            serverName:
-                atsData.serverName ??
-                '[ES] ECUADOR SERVER +593',
-
-            sessionID:
-                atsData.sessionID ??
-                atsData.sessionId ??
-                'N/D',
-
-            slots,
-
-            game_version:
-                atsData.game_version ??
-                atsData.version ??
-                '1.58.x',
-
-            apiUptime,
-
-            connectedPlayers: players
+            serverRunning: data.serverRunning ?? true,
+            serverName: data.serverName || data.name || 'ATS ECUADOR SERVER',
+            sessionID: data.sessionID || data.id || 'N/D',
+            connectedPlayers: Array.isArray(data.connectedPlayers) ? data.connectedPlayers : (Array.isArray(data.players) ? data.players : []),
+            slots: data.slots || data.maxPlayers || 32,
+            game_version: data.game_version || data.version || '1.51.x',
+            apiUptime: data.apiUptime || data.uptime || 0,
+            responseTime: responseTime,
+            timestamp: new Date().toISOString()
         });
 
     } catch (err) {
-
-        const isTimeout = err?.name === 'AbortError';
-
-        /*
-         * El mensaje detallado solamente queda en los logs
-         * del servidor y no se expone al navegador.
-         */
-        console.error('[ATS STATUS]', {
-            type: isTimeout
-                ? 'timeout'
-                : 'request_error',
-
-            message: err?.message
-        });
-
-        /*
-         * 504 = el servidor ATS tardó demasiado.
-         * 502 = la API no pudo comunicarse correctamente
-         *       con el servidor ATS.
-         */
-        return res.status(isTimeout ? 504 : 502).json({
-            status: 'api_error',
-
-            serverRunning: false,
-
-            error: isTimeout
-                ? 'Tiempo de espera agotado al consultar el servidor ATS'
-                : 'No se pudo contactar con el servidor ATS',
-
-            connectedPlayers: []
-        });
-
-    } finally {
-
-        // Siempre limpiamos el timeout, incluso si fetch() falla.
         clearTimeout(timeoutId);
+        const responseTime = Date.now() - startTime;
+
+        const isTimeout = err.name === 'AbortError';
+        return res.status(504).json({
+            serverRunning: false,
+            isTimeout,
+            responseTime,
+            error: isTimeout ? 'Tiempo de espera agotado al conectar con ATS' : 'Error de red o conexión rechazada'
+        });
     }
 }
