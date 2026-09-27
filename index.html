@@ -3,9 +3,13 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <meta name="description" content="Monitor en tiempo real del servidor dedicado de American Truck Simulator - ATS Ecuador Server">
     <title>ATS ECUADOR SERVER (+593)</title>
+    
+    <!-- PWA -->
+    <link rel="manifest" href="/manifest.json">
+    <meta name="theme-color" content="#070a11">
 
+    <!-- Fonts & Icons -->
     <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
 
@@ -14,15 +18,28 @@
             --bg-dark: #070a11;
             --panel-bg: rgba(15, 23, 42, 0.85);
             --panel-border: rgba(255, 255, 255, 0.1);
+            
+            /* Colores Bandera de Ecuador */
             --ec-yellow: #ffda1a;
             --ec-blue: #034ea2;
             --ec-red: #ed1c24;
+
+            /* Acento Neón Activo */
             --accent-glow: var(--ec-yellow);
             --accent-cyan: #06b6d4;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --status-green: #10b981;
-            --status-warning: #f59e0b;
+            --status-orange: #f59e0b;
+        }
+
+        /* Soporte Tema Claro / Oscuro */
+        body.theme-light {
+            --bg-dark: #f1f5f9;
+            --panel-bg: rgba(255, 255, 255, 0.9);
+            --panel-border: rgba(0, 0, 0, 0.1);
+            --text-primary: #0f172a;
+            --text-secondary: #475569;
         }
 
         body.theme-cyan { --accent-glow: #06b6d4; }
@@ -42,9 +59,10 @@
             display: flex;
             flex-direction: column;
             overflow-x: hidden;
-            background-image:
+            background-image: 
                 radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
                 radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
+            transition: background-color 0.3s ease, color 0.3s ease;
         }
 
         .ec-stripe {
@@ -65,7 +83,6 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 1rem;
             backdrop-filter: blur(15px);
             position: sticky;
             top: 5px;
@@ -76,11 +93,9 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            min-width: 0;
         }
 
         .brand-icon {
-            flex: 0 0 auto;
             background: linear-gradient(135deg, var(--accent-glow), var(--ec-red));
             width: 50px;
             height: 50px;
@@ -99,21 +114,14 @@
             100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
         }
 
-        .brand-title {
-            min-width: 0;
-        }
-
         .brand-title h1 {
             font-size: 1.3rem;
             font-weight: 900;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            background: linear-gradient(90deg, #fff, var(--accent-glow));
+            background: linear-gradient(90deg, var(--text-primary), var(--accent-glow));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
         }
 
         .brand-title p {
@@ -125,7 +133,6 @@
             display: flex;
             align-items: center;
             gap: 1rem;
-            flex: 0 0 auto;
         }
 
         .theme-selector {
@@ -147,14 +154,17 @@
         }
 
         .theme-dot:hover { transform: scale(1.2); }
-        .theme-dot:focus-visible {
-            outline: 2px solid var(--text-primary);
-            outline-offset: 3px;
-        }
-
         .theme-dot.yellow { background: var(--ec-yellow); }
         .theme-dot.cyan { background: var(--accent-cyan); }
         .theme-dot.green { background: var(--status-green); }
+        .theme-dot.toggle-mode { 
+            background: transparent; 
+            color: var(--text-primary); 
+            display: flex; 
+            align-items: center; 
+            justify-content: center; 
+            font-size: 0.75rem; 
+        }
 
         .status-pill {
             display: flex;
@@ -168,7 +178,6 @@
             font-weight: 700;
             color: var(--status-green);
             box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-            white-space: nowrap;
         }
 
         .status-pill.offline {
@@ -181,7 +190,7 @@
         .status-pill.warning {
             background: rgba(245, 158, 11, 0.15);
             border-color: rgba(245, 158, 11, 0.4);
-            color: var(--status-warning);
+            color: var(--status-orange);
             box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
         }
 
@@ -198,17 +207,16 @@
 
         .hero-banner {
             position: relative;
-            background:
-                linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
-                url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
-            padding: 3rem 2rem;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
+                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            padding: 2.5rem 2rem;
             border-bottom: 1px solid var(--panel-border);
             text-align: center;
             overflow: hidden;
         }
 
         .hero-content h2 {
-            font-size: 2.2rem;
+            font-size: 2rem;
             font-weight: 900;
             text-transform: uppercase;
             text-shadow: 0 0 20px rgba(0,0,0,0.8);
@@ -238,17 +246,17 @@
 
         .road-animation {
             width: 100%;
-            height: 40px;
+            height: 35px;
             border-bottom: 2px dashed rgba(255,255,255,0.2);
             position: relative;
             overflow: hidden;
-            margin-top: 1.5rem;
+            margin-top: 1rem;
         }
 
         .moving-truck {
             position: absolute;
             bottom: 2px;
-            font-size: 1.8rem;
+            font-size: 1.6rem;
             color: var(--accent-glow);
             animation: drive 12s linear infinite;
             filter: drop-shadow(0 0 8px var(--accent-glow));
@@ -262,15 +270,15 @@
         .container {
             max-width: 1300px;
             width: 95%;
-            margin: 2rem auto;
+            margin: 1.5rem auto;
             display: grid;
-            gap: 2rem;
+            gap: 1.5rem;
             flex: 1;
         }
 
         .metrics-row {
             display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
             gap: 1.25rem;
         }
 
@@ -278,13 +286,13 @@
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 16px;
-            padding: 1.5rem;
+            padding: 1.25rem;
             backdrop-filter: blur(10px);
             transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         .metric-card:hover {
-            transform: translateY(-5px);
+            transform: translateY(-3px);
             border-color: var(--accent-glow);
         }
 
@@ -292,10 +300,9 @@
             display: flex;
             justify-content: space-between;
             align-items: center;
-            gap: 0.75rem;
-            margin-bottom: 0.8rem;
+            margin-bottom: 0.6rem;
             color: var(--text-secondary);
-            font-size: 0.85rem;
+            font-size: 0.8rem;
             text-transform: uppercase;
             font-weight: 700;
         }
@@ -305,22 +312,19 @@
             align-items: center;
             justify-content: space-between;
             gap: 0.5rem;
-            min-width: 0;
         }
 
         .metric-value {
-            font-size: 1.4rem;
+            font-size: 1.3rem;
             font-weight: 800;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-primary);
             overflow: hidden;
             text-overflow: ellipsis;
             white-space: nowrap;
-            min-width: 0;
         }
 
         .copy-btn {
-            flex: 0 0 auto;
             background: rgba(255, 218, 26, 0.15);
             border: 1px solid rgba(255, 218, 26, 0.3);
             color: var(--accent-glow);
@@ -340,82 +344,102 @@
             box-shadow: 0 0 10px var(--accent-glow);
         }
 
-        .copy-btn:focus-visible {
-            outline: 2px solid var(--text-primary);
-            outline-offset: 2px;
-        }
-
+        /* Paneles Modulares */
         .panel-box {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 18px;
-            padding: 1.8rem;
+            padding: 1.5rem;
             backdrop-filter: blur(10px);
         }
 
         .panel-title {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 800;
-            margin-bottom: 1.5rem;
+            margin-bottom: 1.2rem;
             display: flex;
             align-items: center;
-            gap: 0.7rem;
+            justify-content: space-between;
             border-bottom: 1px solid rgba(255,255,255,0.08);
             padding-bottom: 0.8rem;
         }
 
+        .panel-title-text {
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+        }
+
+        .grid-two-columns {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+            gap: 1.5rem;
+        }
+
+        /* Gráfico y Latencia */
+        .chart-container {
+            width: 100%;
+            height: 180px;
+            position: relative;
+        }
+
+        canvas {
+            width: 100% !important;
+            height: 100% !important;
+        }
+
+        .latency-badge {
+            font-size: 0.75rem;
+            padding: 0.2rem 0.6rem;
+            border-radius: 12px;
+            font-weight: bold;
+        }
+        .latency-normal { background: rgba(16, 185, 129, 0.2); color: #10b981; }
+        .latency-warning { background: rgba(245, 158, 11, 0.2); color: #f59e0b; }
+        .latency-critical { background: rgba(237, 28, 36, 0.2); color: #ed1c24; }
+
+        /* Lista de Jugadores */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.2rem;
+            grid-template-columns: repeat(auto-fill, minmax(260px, 1fr));
+            gap: 1rem;
         }
 
         .player-card {
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--panel-border);
             border-radius: 14px;
-            padding: 1.2rem;
+            padding: 1rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
-            gap: 1rem;
             transition: all 0.2s ease;
         }
 
         .player-card:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--ec-blue);
-            transform: scale(1.02);
+            transform: scale(1.01);
         }
 
         .player-header {
             display: flex;
             align-items: center;
-            gap: 1rem;
-            min-width: 0;
+            gap: 0.8rem;
         }
 
         .player-avatar {
-            width: 48px;
-            height: 48px;
-            flex: 0 0 auto;
+            width: 42px;
+            height: 42px;
             border-radius: 10px;
             object-fit: cover;
             border: 2px solid var(--accent-glow);
         }
 
-        .player-details {
-            min-width: 0;
-        }
-
         .player-details h4 {
-            font-size: 1rem;
+            font-size: 0.95rem;
             font-weight: 700;
             color: var(--text-primary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-            max-width: 220px;
         }
 
         .player-details p {
@@ -425,25 +449,48 @@
         }
 
         .player-status-badge {
-            flex: 0 0 auto;
             background: rgba(16, 185, 129, 0.15);
             color: var(--status-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.3rem 0.7rem;
+            padding: 0.25rem 0.6rem;
             border-radius: 8px;
-            font-size: 0.8rem;
+            font-size: 0.75rem;
             font-weight: 700;
             display: flex;
             align-items: center;
-            gap: 0.4rem;
+            gap: 0.3rem;
         }
 
         .empty-state {
             text-align: center;
-            padding: 3rem 1rem;
+            padding: 2rem 1rem;
             color: var(--text-secondary);
             font-style: italic;
             grid-column: 1 / -1;
+        }
+
+        /* Incidentes */
+        .incident-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.6rem;
+            max-height: 200px;
+            overflow-y: auto;
+        }
+
+        .incident-item {
+            background: rgba(255,255,255,0.02);
+            border-left: 4px solid var(--ec-red);
+            padding: 0.6rem 1rem;
+            border-radius: 4px;
+            font-size: 0.85rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .incident-item.resolved {
+            border-left-color: var(--status-green);
         }
 
         .toast {
@@ -468,68 +515,68 @@
             z-index: 2000;
         }
 
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast i {
-            color: var(--accent-glow);
-            font-size: 1.1rem;
-        }
+        .toast.show { opacity: 1; transform: translateY(0); }
+        .toast i { color: var(--accent-glow); font-size: 1.1rem; }
 
         footer {
-            margin-top: 3rem;
-            padding: 2rem;
+            margin-top: 2rem;
+            padding: 1.5rem;
             text-align: center;
             font-size: 0.85rem;
             color: var(--text-secondary);
             background: rgba(5, 8, 15, 0.95);
             border-top: 1px solid var(--panel-border);
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
         }
 
         footer strong { color: var(--accent-glow); }
 
-        @media (max-width: 760px) {
-            header {
-                flex-direction: column;
-                align-items: stretch;
-            }
-
-            .header-actions {
-                justify-content: space-between;
-            }
-
-            .hero-content h2 {
-                font-size: 1.6rem;
-            }
-
-            .player-card {
-                align-items: flex-start;
-            }
+        .footer-links button {
+            background: none;
+            border: none;
+            color: var(--accent-cyan);
+            cursor: pointer;
+            text-decoration: underline;
+            font-size: 0.85rem;
         }
 
-        @media (prefers-reduced-motion: reduce) {
-            *,
-            *::before,
-            *::after {
-                animation-duration: 0.01ms !important;
-                animation-iteration-count: 1 !important;
-                transition-duration: 0.01ms !important;
-                scroll-behavior: auto !important;
-            }
+        /* Modal Diagnóstico */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.8);
+            z-index: 3000;
+            align-items: center;
+            justify-content: center;
+        }
+        .modal-content {
+            background: var(--bg-dark);
+            border: 1px solid var(--panel-border);
+            padding: 2rem;
+            border-radius: 16px;
+            max-width: 500px;
+            width: 90%;
+        }
+        .diag-row {
+            display: flex;
+            justify-content: space-between;
+            padding: 0.5rem 0;
+            border-bottom: 1px solid rgba(255,255,255,0.05);
         }
     </style>
 </head>
-
 <body>
-    <div class="ec-stripe" aria-hidden="true"></div>
+
+    <div class="ec-stripe"></div>
 
     <header>
         <div class="brand">
-            <div class="brand-icon" aria-hidden="true">
-                <i class="fa-solid fa-truck-front"></i>
-            </div>
+            <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
             <div class="brand-title">
                 <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
                 <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
@@ -537,15 +584,18 @@
         </div>
 
         <div class="header-actions">
-            <div class="theme-selector" title="Cambiar color neón" aria-label="Cambiar color neón">
-                <button class="theme-dot yellow" type="button" data-theme="" aria-label="Tema amarillo"></button>
-                <button class="theme-dot cyan" type="button" data-theme="theme-cyan" aria-label="Tema cian"></button>
-                <button class="theme-dot green" type="button" data-theme="theme-green" aria-label="Tema verde"></button>
+            <div class="theme-selector" title="Configurar apariencia">
+                <div class="theme-dot yellow" onclick="setTheme('')" aria-label="Tema Amarillo"></div>
+                <div class="theme-dot cyan" onclick="setTheme('theme-cyan')" aria-label="Tema Cian"></div>
+                <div class="theme-dot green" onclick="setTheme('theme-green')" aria-label="Tema Verde"></div>
+                <div class="theme-dot toggle-mode" onclick="toggleLightDark()" title="Modo claro/oscuro">
+                    <i class="fa-solid fa-moon"></i>
+                </div>
             </div>
 
-            <div id="serverStatusPill" class="status-pill warning" role="status" aria-live="polite">
+            <div id="serverStatusPill" class="status-pill">
                 <div class="indicator"></div>
-                <span id="statusText">Conectando...</span>
+                <span id="statusText">Cargando...</span>
             </div>
         </div>
     </header>
@@ -554,7 +604,7 @@
         <div class="hero-content">
             <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
             <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
-
+            
             <div class="hero-badges">
                 <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
                 <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
@@ -562,12 +612,13 @@
             </div>
         </div>
 
-        <div class="road-animation" aria-hidden="true">
+        <div class="road-animation">
             <i class="fa-solid fa-truck-moving moving-truck"></i>
         </div>
     </section>
 
-    <main class="container">
+    <div class="container">
+        <!-- Métricas Existentes + Nuevas Inyectadas -->
         <div class="metrics-row">
             <div class="metric-card">
                 <div class="metric-header">
@@ -576,7 +627,7 @@
                 </div>
                 <div class="metric-value-box">
                     <div class="metric-value" id="valSessionId">--</div>
-                    <button class="copy-btn" id="btnCopySession" type="button" title="Copiar Server ID" aria-label="Copiar Server ID">
+                    <button class="copy-btn" id="btnCopySession" title="Copiar Server ID" onclick="copySessionId()">
                         <i class="fa-regular fa-copy"></i>
                     </button>
                 </div>
@@ -611,351 +662,435 @@
                     <div class="metric-value" id="valUptime">--</div>
                 </div>
             </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Latencia Actual</span>
+                    <i class="fa-solid fa-bolt" style="color: var(--accent-cyan)"></i>
+                </div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valLatency">-- ms</div>
+                    <span id="badgeLatency" class="latency-badge latency-normal">NORMAL</span>
+                </div>
+            </div>
+
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Disponibilidad (24h)</span>
+                    <i class="fa-solid fa-chart-line" style="color: var(--status-green)"></i>
+                </div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valUptimePct">100%</div>
+                </div>
+            </div>
         </div>
 
-        <section class="panel-box" aria-labelledby="playersTitle">
-            <div class="panel-title" id="playersTitle">
-                <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
-                Conductores Conectados
+        <!-- Gráfico y Métrica de Sincronización -->
+        <div class="grid-two-columns">
+            <div class="panel-box">
+                <div class="panel-title">
+                    <div class="panel-title-text">
+                        <i class="fa-solid fa-chart-area" style="color: var(--accent-cyan)"></i>
+                        Latencia e Historial (Tiempo Real)
+                    </div>
+                </div>
+                <div class="chart-container">
+                    <canvas id="latencyCanvas"></canvas>
+                </div>
+            </div>
+
+            <div class="panel-box">
+                <div class="panel-title">
+                    <div class="panel-title-text">
+                        <i class="fa-solid fa-clock-rotate-left" style="color: var(--accent-glow)"></i>
+                        Estado de Sincronización
+                    </div>
+                </div>
+                <div style="display: flex; flex-direction: column; gap: 0.8rem; font-size: 0.9rem;">
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary)">Última comprobación:</span>
+                        <strong id="lblLastCheck">--</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary)">Próxima comprobación:</span>
+                        <strong id="lblNextCheck">-- s</strong>
+                    </div>
+                    <div style="display: flex; justify-content: space-between;">
+                        <span style="color: var(--text-secondary)">Latencia Min/Prom/Max:</span>
+                        <strong id="lblMinMaxLat">-- / -- / -- ms</strong>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Registro de Incidentes -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <div class="panel-title-text">
+                    <i class="fa-solid fa-triangle-exclamation" style="color: var(--ec-red)"></i>
+                    Registro de Incidentes Recientes
+                </div>
+            </div>
+            <div class="incident-list" id="incidentList">
+                <div style="color: var(--text-secondary); text-align: center; font-size: 0.85rem;">No se han registrado incidentes recientes.</div>
+            </div>
+        </div>
+
+        <!-- Panel de Conductores Conectados -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <div class="panel-title-text">
+                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
+                    Conductores Conectados
+                </div>
             </div>
             <div class="players-container" id="playersList">
                 <div class="empty-state">Consultando lista de conductores...</div>
             </div>
-        </section>
-    </main>
+        </div>
+    </div>
 
-    <div id="toastNotification" class="toast" role="status" aria-live="polite">
+    <!-- Modal de Diagnóstico -->
+    <div id="diagnosticModal" class="modal">
+        <div class="modal-content">
+            <h3 style="margin-bottom: 1rem; color: var(--accent-glow);">🛠️ Diagnóstico del Sistema</h3>
+            <div id="diagResults">
+                <p>Ejecutando pruebas...</p>
+            </div>
+            <button onclick="closeDiagnostics()" class="copy-btn" style="width: 100%; margin-top: 1rem; padding: 0.6rem;">Cerrar</button>
+        </div>
+    </div>
+
+    <!-- Notificación Toast -->
+    <div id="toastNotification" class="toast">
         <i class="fa-solid fa-circle-check"></i>
         <span id="toastText">¡Server ID copiado al portapapeles!</span>
     </div>
 
     <footer>
         <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
+        <div class="footer-links">
+            <button onclick="openDiagnostics()">Ejecutar Diagnóstico (/diagnostic)</button>
+        </div>
     </footer>
 
+    <!-- Módulos de Javascript -->
+    <script src="/js/monitor-config.js"></script>
+    <script src="/js/alert-manager.js"></script>
+    <script src="/js/history-manager.js"></script>
+    <script src="/js/chart-manager.js"></script>
+    <script src="/js/diagnostics.js"></script>
+
     <script>
-        'use strict';
-
-        const UPDATE_INTERVAL_MS = 10000;
-        const FETCH_TIMEOUT_MS = 8000;
-        const FALLBACK_AVATAR = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-
         let rawSessionId = '';
-        let updateInProgress = false;
-        let toastTimer = null;
+        let requestInProgress = false;
+        let lastCheckTime = null;
+        let countdownSeconds = MONITOR_CONFIG.refreshInterval / 1000;
 
-        const $ = (selector) => document.querySelector(selector);
+        // Registrar Service Worker para PWA
+        if ('serviceWorker' in navigator) {
+            window.addEventListener('load', () => {
+                navigator.serviceWorker.register('/sw.js').catch(() => {});
+            });
+        }
 
+        // Selector de Tema Neón
         function setTheme(themeName) {
-            document.body.classList.remove('theme-cyan', 'theme-green');
-
-            if (themeName === 'theme-cyan' || themeName === 'theme-green') {
-                document.body.classList.add(themeName);
-            }
-
+            document.body.className = themeName;
             localStorage.setItem('ats_theme', themeName);
         }
 
-        document.querySelectorAll('.theme-dot').forEach((button) => {
-            button.addEventListener('click', () => setTheme(button.dataset.theme || ''));
-        });
-
-        const savedTheme = localStorage.getItem('ats_theme');
-        if (savedTheme === 'theme-cyan' || savedTheme === 'theme-green') {
-            setTheme(savedTheme);
+        function toggleLightDark() {
+            document.body.classList.toggle('theme-light');
+            const isLight = document.body.classList.contains('theme-light');
+            localStorage.setItem('ats_light_mode', isLight ? 'true' : 'false');
         }
 
-        let audioContext = null;
+        const savedTheme = localStorage.getItem('ats_theme');
+        if (savedTheme) setTheme(savedTheme);
 
+        if (localStorage.getItem('ats_light_mode') === 'true') {
+            document.body.classList.add('theme-light');
+        }
+
+        // Sonido Neumático de Camión (reutilización eficiente de AudioContext)
+        let sharedAudioCtx = null;
         function playAirBrakeSound() {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
                 if (!AudioCtx) return;
+                if (!sharedAudioCtx) sharedAudioCtx = new AudioCtx();
 
-                audioContext ??= new AudioCtx();
+                const ctx = sharedAudioCtx;
+                if (ctx.state === 'suspended') ctx.resume();
 
-                if (audioContext.state === 'suspended') {
-                    audioContext.resume().catch(() => {});
-                }
-
-                const duration = 0.25;
-                const bufferSize = Math.floor(audioContext.sampleRate * duration);
-                const buffer = audioContext.createBuffer(1, bufferSize, audioContext.sampleRate);
+                const bufferSize = ctx.sampleRate * 0.25;
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
 
                 for (let i = 0; i < bufferSize; i++) {
                     data[i] = Math.random() * 2 - 1;
                 }
 
-                const noise = audioContext.createBufferSource();
+                const noise = ctx.createBufferSource();
                 noise.buffer = buffer;
 
-                const filter = audioContext.createBiquadFilter();
+                const filter = ctx.createBiquadFilter();
                 filter.type = 'bandpass';
                 filter.frequency.value = 1200;
                 filter.Q.value = 1.5;
 
-                const gain = audioContext.createGain();
-                gain.gain.setValueAtTime(0.2, audioContext.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, audioContext.currentTime + duration);
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
 
                 noise.connect(filter);
                 filter.connect(gain);
-                gain.connect(audioContext.destination);
+                gain.connect(ctx.destination);
+
                 noise.start();
-            } catch {
-                // El sonido es opcional; no debe afectar al monitor.
-            }
+            } catch (e) {}
         }
 
         function showToast(message) {
-            const toast = $('#toastNotification');
-            const toastText = $('#toastText');
-
-            toastText.textContent = message;
-            toast.classList.add('show');
-
-            clearTimeout(toastTimer);
-            toastTimer = setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            const toast = document.getElementById('toastNotification');
+            const toastText = document.getElementById('toastText');
+            if (toastText) toastText.textContent = message;
+            if (toast) {
+                toast.classList.add('show');
+                setTimeout(() => toast.classList.remove('show'), 3000);
+            }
         }
 
-        async function copySessionId() {
-            if (!rawSessionId || ['--', 'N/D', 'Sin Conexión'].includes(rawSessionId)) {
+        function copySessionId() {
+            if (!rawSessionId || rawSessionId === '--' || rawSessionId === 'N/D' || rawSessionId === 'Sin Conexión') {
                 showToast('No hay una sesión activa para copiar');
                 return;
             }
 
-            try {
-                await navigator.clipboard.writeText(rawSessionId);
+            navigator.clipboard.writeText(rawSessionId).then(() => {
                 playAirBrakeSound();
                 showToast('¡Server ID copiado al portapapeles!');
-            } catch {
-                showToast('No se pudo copiar el Server ID');
-            }
+            }).catch(() => {
+                showToast('Error al copiar el ID');
+            });
         }
-
-        $('#btnCopySession').addEventListener('click', copySessionId);
 
         function formatUptime(seconds) {
-            const totalSeconds = Number(seconds);
-
-            if (!Number.isFinite(totalSeconds) || totalSeconds < 0) {
-                return '--';
-            }
-
-            const days = Math.floor(totalSeconds / 86400);
-            const hours = Math.floor((totalSeconds % 86400) / 3600);
-            const mins = Math.floor((totalSeconds % 3600) / 60);
-
-            if (days > 0) return `${days}d ${hours}h ${mins}m`;
-            if (hours > 0) return `${hours}h ${mins}m`;
-            return `${mins}m`;
+            if (!seconds || isNaN(seconds)) return '--';
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
         }
 
-        function setStatus(state, text) {
-            const pill = $('#serverStatusPill');
-            const statusText = $('#statusText');
+        // Modal Diagnóstico
+        async function openDiagnostics() {
+            const modal = document.getElementById('diagnosticModal');
+            const container = document.getElementById('diagResults');
+            modal.style.display = 'flex';
+            container.innerHTML = '<p>Ejecutando pruebas de red y servidor...</p>';
 
-            pill.classList.remove('offline', 'warning');
-
-            if (state === 'offline') {
-                pill.classList.add('offline');
-            } else if (state === 'warning') {
-                pill.classList.add('warning');
-            }
-
-            statusText.textContent = text;
+            const res = await diagnostics.runFullCheck();
+            container.innerHTML = `
+                <div class="diag-row"><span>Frontend:</span> <strong>${res.frontend ? '🟢 OK' : '🔴 Error'}</strong></div>
+                <div class="diag-row"><span>API:</span> <strong>${res.api ? '🟢 OK' : '🔴 Error'}</strong></div>
+                <div class="diag-row"><span>ATS:</span> <strong>${res.ats ? '🟢 OK' : '🔴 Offline'}</strong></div>
+                <div class="diag-row"><span>Estado HTTP:</span> <strong>${res.httpStatus}</strong></div>
+                <div class="diag-row"><span>JSON Válido:</span> <strong>${res.jsonValid ? '🟢 Sí' : '🔴 No'}</strong></div>
+                <div class="diag-row"><span>Latencia:</span> <strong>${res.latency}</strong></div>
+            `;
         }
 
-        function clearServerData() {
-            rawSessionId = '';
-            $('#valSessionId').textContent = '--';
-            $('#valPlayers').textContent = '0 / 0';
-            $('#valVersion').textContent = '--';
-            $('#valUptime').textContent = '--';
-            $('#playersList').replaceChildren(
-                createEmptyState('No hay datos del servidor disponibles.')
-            );
-            document.title = '🟠 Monitor | ATS ECUADOR SERVER';
+        function closeDiagnostics() {
+            document.getElementById('diagnosticModal').style.display = 'none';
         }
 
-        function createEmptyState(message) {
-            const element = document.createElement('div');
-            element.className = 'empty-state';
-            element.textContent = message;
-            return element;
-        }
+        // Renderizado del registro de incidentes
+        function renderIncidents() {
+            const incidents = historyManager.getIncidents();
+            const container = document.getElementById('incidentList');
+            if (!container) return;
 
-        function createPlayerCard(player) {
-            const item = document.createElement('div');
-            item.className = 'player-card';
-
-            const playerHeader = document.createElement('div');
-            playerHeader.className = 'player-header';
-
-            const avatar = document.createElement('img');
-            avatar.className = 'player-avatar';
-            avatar.alt = 'Avatar del conductor';
-            avatar.loading = 'lazy';
-            avatar.referrerPolicy = 'no-referrer';
-            avatar.src = player.avatar || FALLBACK_AVATAR;
-            avatar.addEventListener('error', () => {
-                if (avatar.src !== FALLBACK_AVATAR) {
-                    avatar.src = FALLBACK_AVATAR;
-                }
-            }, { once: true });
-
-            const details = document.createElement('div');
-            details.className = 'player-details';
-
-            const username = document.createElement('h4');
-            username.textContent = player.username || 'Conductor';
-
-            const clientId = document.createElement('p');
-            clientId.textContent = `Client ID: ${player.client_id ?? 'N/D'}`;
-
-            details.append(username, clientId);
-            playerHeader.append(avatar, details);
-
-            const statusBadge = document.createElement('div');
-            statusBadge.className = 'player-status-badge';
-
-            const statusIcon = document.createElement('i');
-            statusIcon.className = 'fa-solid fa-steering-wheel';
-
-            statusBadge.append(statusIcon, document.createTextNode(' En Ruta'));
-
-            item.append(playerHeader, statusBadge);
-            return item;
-        }
-
-        function renderPlayers(players) {
-            const playersList = $('#playersList');
-            const fragment = document.createDocumentFragment();
-
-            if (!Array.isArray(players) || players.length === 0) {
-                playersList.replaceChildren(
-                    createEmptyState('No hay conductores en el servidor en este momento. 🚛')
-                );
+            if (incidents.length === 0) {
+                container.innerHTML = '<div style="color: var(--text-secondary); text-align: center; font-size: 0.85rem;">No se han registrado incidentes recientes.</div>';
                 return;
             }
 
-            players.forEach((player) => {
-                fragment.appendChild(createPlayerCard(player));
+            container.innerHTML = '';
+            incidents.slice(0, 5).forEach(inc => {
+                const item = document.createElement('div');
+                item.className = `incident-item ${inc.endTime ? 'resolved' : ''}`;
+                
+                const timeText = new Date(inc.startTime).toLocaleTimeString();
+                const durationText = inc.duration ? `(Duración: ${inc.duration})` : '(En curso)';
+
+                item.innerHTML = `
+                    <div>
+                        <strong>${inc.type}</strong> - <span style="color: var(--text-secondary)">${timeText}</span>
+                    </div>
+                    <div>${durationText}</div>
+                `;
+                container.appendChild(item);
             });
-
-            playersList.replaceChildren(fragment);
         }
 
-        async function fetchStatus() {
-            const controller = new AbortController();
-            const timeoutId = setTimeout(() => controller.abort(), FETCH_TIMEOUT_MS);
-
-            try {
-                const response = await fetch('/api/status', {
-                    method: 'GET',
-                    headers: { 'Accept': 'application/json' },
-                    cache: 'no-store',
-                    signal: controller.signal
-                });
-
-                let data;
-                try {
-                    data = await response.json();
-                } catch {
-                    throw new Error('La API devolvió una respuesta no válida.');
-                }
-
-                if (!response.ok) {
-                    const error = new Error(data.error || 'La API no está disponible.');
-                    error.apiStatus = data.status || 'api_error';
-                    error.httpStatus = response.status;
-                    throw error;
-                }
-
-                return data;
-            } finally {
-                clearTimeout(timeoutId);
-            }
-        }
-
+        // Función Principal de Sincronización
         async function updateStatus() {
-            if (updateInProgress) return;
-            updateInProgress = true;
+            if (requestInProgress) return;
+            requestInProgress = true;
 
             try {
-                const data = await fetchStatus();
+                const response = await fetch('/api/status', { cache: 'no-store' });
+                const data = await response.json();
 
-                if (data.status === 'offline' || data.serverRunning === false) {
-                    setStatus('offline', 'Servidor ATS Fuera de Línea');
-                    clearServerData();
-                    $('#playersList').replaceChildren(
-                        createEmptyState('El servidor ATS está detenido o no está disponible.')
-                    );
-                    return;
-                }
+                lastCheckTime = new Date();
+                countdownSeconds = MONITOR_CONFIG.refreshInterval / 1000;
 
-                if (data.status === 'api_error') {
-                    setStatus('warning', 'API con problemas');
-                    clearServerData();
-                    $('#playersList').replaceChildren(
-                        createEmptyState('La API no pudo consultar correctamente el servidor ATS.')
-                    );
-                    return;
-                }
+                const statusPill = document.getElementById('serverStatusPill');
+                const statusText = document.getElementById('statusText');
 
-                if (data.status !== 'online') {
-                    setStatus('warning', 'Estado desconocido');
-                    clearServerData();
-                    return;
-                }
+                if (response.ok && data.serverRunning) {
+                    statusPill.className = 'status-pill';
+                    statusText.textContent = 'En Línea';
 
-                setStatus('online', 'En Línea');
+                    const safeServerName = document.createTextNode(data.serverName || 'ATS ECUADOR SERVER');
+                    const headerElem = document.getElementById('serverNameHeader');
+                    headerElem.innerHTML = '';
+                    headerElem.appendChild(safeServerName);
 
-                $('#serverNameHeader').textContent =
-                    data.serverName || 'ATS ECUADOR SERVER';
+                    rawSessionId = data.sessionID || 'N/D';
+                    document.getElementById('valSessionId').textContent = rawSessionId;
 
-                rawSessionId = data.sessionID || 'N/D';
-                $('#valSessionId').textContent = rawSessionId;
+                    const players = Array.isArray(data.connectedPlayers) ? data.connectedPlayers : [];
+                    const slots = data.slots || 32;
+                    document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
 
-                const players = Array.isArray(data.connectedPlayers)
-                    ? data.connectedPlayers
-                    : [];
+                    document.getElementById('valVersion').textContent = data.game_version || '--';
+                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
 
-                const slots = Number.isFinite(Number(data.slots))
-                    ? Number(data.slots)
-                    : 32;
+                    document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
 
-                $('#valPlayers').textContent = `${players.length} / ${slots}`;
-                $('#valVersion').textContent = data.game_version || '--';
-                $('#valUptime').textContent = formatUptime(data.apiUptime);
+                    // Actualizar Lista de Jugadores (usando DOM seguro)
+                    const playersList = document.getElementById('playersList');
+                    if (players.length > 0) {
+                        playersList.innerHTML = '';
+                        players.forEach((p, idx) => {
+                            const username = p.username || 'Conductor';
+                            const clientId = p.client_id || `${idx + 1}`;
+                            const pingText = p.ping ? `${p.ping} ms` : 'En Ruta';
+                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
-                document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
+                            const item = document.createElement('div');
+                            item.className = 'player-card';
 
-                renderPlayers(players);
-            } catch (err) {
-                if (err.name === 'AbortError') {
-                    setStatus('warning', 'Tiempo de espera agotado');
-                    clearServerData();
-                    $('#playersList').replaceChildren(
-                        createEmptyState('La API tardó demasiado en responder.')
-                    );
+                            const headerDiv = document.createElement('div');
+                            headerDiv.className = 'player-header';
+
+                            const img = document.createElement('img');
+                            img.src = avatarUrl;
+                            img.className = 'player-avatar';
+                            img.alt = 'Avatar';
+
+                            const detailsDiv = document.createElement('div');
+                            detailsDiv.className = 'player-details';
+
+                            const h4 = document.createElement('h4');
+                            h4.textContent = username;
+
+                            const pElem = document.createElement('p');
+                            pElem.textContent = `Client ID: ${clientId}`;
+
+                            detailsDiv.appendChild(h4);
+                            detailsDiv.appendChild(pElem);
+                            headerDiv.appendChild(img);
+                            headerDiv.appendChild(detailsDiv);
+
+                            const badgeDiv = document.createElement('div');
+                            badgeDiv.className = 'player-status-badge';
+                            badgeDiv.textContent = pingText;
+
+                            item.appendChild(headerDiv);
+                            item.appendChild(badgeDiv);
+                            playersList.appendChild(item);
+                        });
+                    } else {
+                        playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
+                    }
+
                 } else {
-                    setStatus('warning', 'API no disponible');
-                    clearServerData();
-                    $('#playersList').replaceChildren(
-                        createEmptyState('No se pudo consultar el monitor del servidor.')
-                    );
+                    throw new Error(data.error || 'Servidor no disponible');
                 }
+
+                // Registrar Histórico y Métricas
+                historyManager.record(data);
+
+            } catch (err) {
+                const statusPill = document.getElementById('serverStatusPill');
+                statusPill.className = 'status-pill offline';
+                document.getElementById('statusText').textContent = 'Fuera de Línea';
+
+                rawSessionId = 'Sin Conexión';
+                document.getElementById('valSessionId').textContent = rawSessionId;
+                document.getElementById('valPlayers').textContent = '0 / 0';
+                document.getElementById('valVersion').textContent = '--';
+                document.getElementById('valUptime').textContent = '--';
+                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
+                document.title = `🔴 Fuera de Línea | ATS ECUADOR SERVER`;
+
+                historyManager.record({
+                    serverRunning: false,
+                    responseTime: 0,
+                    error: err.message
+                });
             } finally {
-                updateInProgress = false;
+                requestInProgress = false;
+
+                // Actualizar métricas visuales del dashboard
+                const metrics = historyManager.getMetrics(24);
+                document.getElementById('valUptimePct').textContent = `${metrics.uptimePct}%`;
+                document.getElementById('lblMinMaxLat').textContent = `${metrics.minLat} / ${metrics.avgLat} / ${metrics.maxLat} ms`;
+
+                const history = historyManager.getHistory();
+                const lastEntry = history[history.length - 1];
+
+                if (lastEntry) {
+                    const lat = lastEntry.latency;
+                    document.getElementById('valLatency').textContent = `${lat} ms`;
+                    const badge = document.getElementById('badgeLatency');
+
+                    if (lat < MONITOR_CONFIG.latency.normal) {
+                        badge.className = 'latency-badge latency-normal';
+                        badge.textContent = 'NORMAL';
+                    } else if (lat < MONITOR_CONFIG.latency.warning) {
+                        badge.className = 'latency-badge latency-warning';
+                        badge.textContent = 'LENTO';
+                    } else {
+                        badge.className = 'latency-badge latency-critical';
+                        badge.textContent = 'CRÍTICO';
+                    }
+                }
+
+                chartManager.renderLatencyChart('latencyCanvas', history);
+                renderIncidents();
             }
         }
 
+        // Temporizador secundario de interfaz (UI sin peticiones a la red)
+        setInterval(() => {
+            if (lastCheckTime) {
+                const elapsedSec = Math.floor((Date.now() - lastCheckTime.getTime()) / 1000);
+                document.getElementById('lblLastCheck').textContent = `hace ${elapsedSec} s`;
+            }
+
+            if (countdownSeconds > 0) {
+                countdownSeconds--;
+                document.getElementById('lblNextCheck').textContent = `${countdownSeconds} s`;
+            }
+        }, 1000);
+
+        // Inicialización y Loop de Sincronización
         updateStatus();
-        setInterval(updateStatus, UPDATE_INTERVAL_MS);
+        setInterval(updateStatus, MONITOR_CONFIG.refreshInterval);
     </script>
 </body>
 </html>
