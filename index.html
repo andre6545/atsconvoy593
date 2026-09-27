@@ -293,6 +293,7 @@
         .player-card {
             display: flex;
             align-items: center;
+            justify-content: space-between;
             gap: 1rem;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--panel-border);
@@ -305,6 +306,12 @@
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--ec-blue);
             transform: scale(1.02);
+        }
+
+        .player-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
 
         .player-avatar {
@@ -325,6 +332,32 @@
             font-size: 0.75rem;
             color: var(--text-secondary);
             font-family: 'JetBrains Mono', monospace;
+        }
+
+        .player-timer {
+            display: flex;
+            flex-direction: column;
+            align-items: flex-end;
+            justify-content: center;
+            font-family: 'JetBrains Mono', monospace;
+            background: rgba(10, 185, 129, 0.1);
+            border: 1px solid rgba(16, 185, 129, 0.25);
+            padding: 0.3rem 0.6rem;
+            border-radius: 8px;
+            min-width: 75px;
+        }
+
+        .player-timer-label {
+            font-size: 0.65rem;
+            text-transform: uppercase;
+            color: var(--text-secondary);
+            font-weight: 700;
+        }
+
+        .player-timer-value {
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--status-green);
         }
 
         /* Cargas Entregadas */
@@ -537,12 +570,38 @@
     <script>
         const WEBHOOK_URL = "https://discord.com/api/webhooks/1545938376723660810/nDwiQbl-bapjEp6ywpsGudfRPttVAhvwyr8QjBJ_yc7JkemiNvUnaGuj5b2ILhppPKW7";
 
+        // Registro local para guardar el tiempo de conexión de cada jugador
+        const playerConnectionTimes = new Map();
+
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
             const hrs = Math.floor(seconds / 3600);
             const mins = Math.floor((seconds % 3600) / 60);
             if (hrs > 0) return `${hrs}h ${mins}m`;
             return `${mins}m`;
+        }
+
+        function formatDuration(seconds) {
+            if (isNaN(seconds) || seconds < 0) return '0m 0s';
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            const secs = Math.floor(seconds % 60);
+
+            if (hrs > 0) {
+                return `${hrs}h ${mins}m`;
+            }
+            return `${mins}m ${secs}s`;
+        }
+
+        function updatePlayerTimers() {
+            const now = Date.now();
+            playerConnectionTimes.forEach((connectTime, playerKey) => {
+                const timerElem = document.getElementById(`timer-${playerKey}`);
+                if (timerElem) {
+                    const diffSeconds = Math.floor((now - connectTime) / 1000);
+                    timerElem.textContent = formatDuration(diffSeconds);
+                }
+            });
         }
 
         async function updateStatus() {
@@ -570,28 +629,56 @@
 
                     // Renderizar Lista de Jugadores
                     const playersList = document.getElementById('playersList');
+                    const activeKeys = new Set();
 
                     if (players.length > 0) {
                         playersList.innerHTML = '';
                         players.forEach(p => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id ? `Client ID: ${p.client_id}` : 'En Convoy';
+                            const playerKey = p.client_id || p.steam_id || username;
                             
+                            activeKeys.add(playerKey.toString());
+
+                            // Verificar o inicializar la hora de conexión del jugador
+                            if (!playerConnectionTimes.has(playerKey.toString())) {
+                                const connectTime = p.connected_at || p.connectedSince ? new Date(p.connected_at || p.connectedSince).getTime() : Date.now();
+                                playerConnectionTimes.set(playerKey.toString(), connectTime);
+                            }
+
+                            const startTime = playerConnectionTimes.get(playerKey.toString());
+                            const initialElapsed = Math.floor((Date.now() - startTime) / 1000);
+
                             // Avatar de Steam por defecto
-                            const avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
                             item.className = 'player-card';
                             item.innerHTML = `
-                                <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
-                                <div class="player-details">
-                                    <h4>${username}</h4>
-                                    <p>${clientId}</p>
+                                <div class="player-info">
+                                    <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
+                                    <div class="player-details">
+                                        <h4>${username}</h4>
+                                        <p>${clientId}</p>
+                                    </div>
+                                </div>
+                                <div class="player-timer">
+                                    <span class="player-timer-label"><i class="fa-solid fa-clock"></i> Tiempo</span>
+                                    <span class="player-timer-value" id="timer-${playerKey}">${formatDuration(initialElapsed)}</span>
                                 </div>
                             `;
                             playersList.appendChild(item);
                         });
+
+                        // Limpiar registros de jugadores desconectados
+                        playerConnectionTimes.forEach((_, key) => {
+                            if (!activeKeys.has(key)) {
+                                playerConnectionTimes.delete(key);
+                            }
+                        });
+
                     } else {
+                        playerConnectionTimes.clear();
                         playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta en este momento. 🚛</div>';
                     }
 
@@ -600,6 +687,7 @@
                 }
 
             } catch (err) {
+                playerConnectionTimes.clear();
                 const statusPill = document.getElementById('serverStatusPill');
                 statusPill.classList.add('offline');
                 document.getElementById('statusText').textContent = 'Fuera de Línea';
@@ -614,7 +702,6 @@
         async function fetchWebhookDeliveries() {
             const deliveriesList = document.getElementById('deliveriesList');
             try {
-                // Consultamos el webhook o endpoint interno de registro de trabajos
                 const response = await fetch('/api/deliveries');
                 
                 if (response.ok) {
@@ -669,8 +756,11 @@
 
         updateStatus();
         fetchWebhookDeliveries();
-        setInterval(updateStatus, 10000);
-        setInterval(fetchWebhookDeliveries, 15000);
+        
+        // Intervalos de actualización
+        setInterval(updatePlayerTimers, 1000); // Ticker en vivo cada segundo para los contadores
+        setInterval(updateStatus, 10000); // Polling de estado cada 10s
+        setInterval(fetchWebhookDeliveries, 15000); // Polling de entregas cada 15s
     </script>
 </body>
 </html>
