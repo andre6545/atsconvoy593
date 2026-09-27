@@ -9,7 +9,6 @@ export default async function handler(req, res) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-        // Petición directa al servidor ATS
         const atsRes = await fetch('http://198.199.67.5/status', {
             headers: { 'User-Agent': 'ATSHubProxy/1.0' },
             signal: controller.signal
@@ -31,6 +30,8 @@ export default async function handler(req, res) {
         const players = rawPlayers.map((p, idx) => ({
             client_id: p.client_id || p.id || `${idx + 1}`,
             username: p.username || p.name || 'Conductor',
+            // Captura los segundos de conexión reportados por el servidor ATS
+            connect_time: p.connect_time || p.connected_for || p.time_online || p.connectedTime || 0,
             avatar: 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
         }));
 
