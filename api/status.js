@@ -1,27 +1,11 @@
 // api/status.js
-const ALLOWED_ORIGIN = process.env.ALLOWED_ORIGIN || '*';
-const ATS_STATUS_URL = process.env.ATS_STATUS_URL;
+import { evaluateAtsState } from './lib/stateStore.js';
+import { sendDiscordWebhook } from './lib/discord.js';
 
 export default async function handler(req, res) {
-    // Manejo de CORS
-    res.setHeader('Access-Control-Allow-Credentials', true);
-    res.setHeader('Access-Control-Allow-Origin', ALLOWED_ORIGIN);
-    res.setHeader('Access-Control-Allow-Methods', 'GET,OPTIONS');
-    res.setHeader(
-        'Access-Control-Allow-Headers',
-        'X-CSRF-Token, X-Requested-With, Accept, Accept-Version, Content-Length, Content-MD5, Content-Type, Date, X-Api-Version'
-    );
-    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+    const ATS_STATUS_URL = process.env.ATS_STATUS_URL;
 
-    if (req.method === 'OPTIONS') {
-        res.status(200).end();
-        return;
-    }
-
-    if (req.method !== 'GET') {
-        return res.status(405).json({ error: 'Método no permitido' });
-    }
-
+    // Guardrail: Verificar si la variable de entorno está configurada
     if (!ATS_STATUS_URL) {
         return res.status(500).json({ 
             serverRunning: false, 
@@ -29,57 +13,48 @@ export default async function handler(req, res) {
         });
     }
 
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 8000);
     const startTime = Date.now();
+    let isOnline = false;
+    let latency = null;
+    let errorMessage = null;
 
     try {
-        const response = await fetch(ATS_STATUS_URL, {
-            signal: controller.signal,
-            headers: {
-                'User-Agent': 'ATS-Monitor-Server/2.0',
-                'Accept': 'application/json'
-            },
-            cache: 'no-store'
-        });
+        // Timeout de 5 segundos para no colgar la Serverless Function si el servidor ATS no responde
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 5000);
 
+        const response = await fetch(ATS_STATUS_URL, { signal: controller.signal });
         clearTimeout(timeoutId);
-        const responseTime = Date.now() - startTime;
 
-        if (!response.ok) {
-            return res.status(502).json({
-                serverRunning: false,
-                httpCode: response.status,
-                responseTime,
-                error: `El servidor remoto respondió con estado ${response.status}`
-            });
+        latency = Date.now() - startTime;
+
+        if (response.ok) {
+            isOnline = true;
+        } else {
+            errorMessage = `HTTP Status ${response.status}`;
         }
-
-        const data = await response.json();
-
-        // Mantenemos intactos los campos requeridos por el frontend existente
-        return res.status(200).json({
-            serverRunning: data.serverRunning ?? true,
-            serverName: data.serverName || data.name || 'ATS ECUADOR SERVER',
-            sessionID: data.sessionID || data.id || 'N/D',
-            connectedPlayers: Array.isArray(data.connectedPlayers) ? data.connectedPlayers : (Array.isArray(data.players) ? data.players : []),
-            slots: data.slots || data.maxPlayers || 32,
-            game_version: data.game_version || data.version || '1.51.x',
-            apiUptime: data.apiUptime || data.uptime || 0,
-            responseTime: responseTime,
-            timestamp: new Date().toISOString()
-        });
-
     } catch (err) {
-        clearTimeout(timeoutId);
-        const responseTime = Date.now() - startTime;
+        latency = Date.now() - startTime;
+        errorMessage = err.name === 'AbortError' 
+            ? 'Timeout al consultar el servidor ATS' 
+            : err.message;
+    }
 
-        const isTimeout = err.name === 'AbortError';
-        return res.status(504).json({
-            serverRunning: false,
-            isTimeout,
-            responseTime,
-            error: isTimeout ? 'Tiempo de espera agotado al conectar con ATS' : 'Error de red o conexión rechazada'
+    // 1. Evaluamos el estado para detectar si ocurrió un evento (OFFLINE, RECOVERED, TIMEOUT, HIGH_LATENCY)
+    const event = evaluateAtsState(isOnline, latency, errorMessage);
+    
+    // 2. Si hay un evento válido, lo enviamos a Discord de forma asíncrona (sin 'await' para no demorar la respuesta al frontend)
+    if (event) {
+        sendDiscordWebhook(event).catch(err => {
+            console.error('[DISCORD_ASYNC_ERROR] Error en envío en segundo plano:', err);
         });
     }
+
+    // 3. Respuesta estándar al frontend (mantiene exactamente la misma estructura que tu app espera)
+    return res.status(200).json({
+        serverRunning: isOnline,
+        latency: latency || 0,
+        error: errorMessage,
+        timestamp: new Date().toISOString()
+    });
 }
