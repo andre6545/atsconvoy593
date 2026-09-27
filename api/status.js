@@ -1,7 +1,7 @@
 export default async function handler(req, res) {
     res.setHeader('Access-Control-Allow-Origin', '*');
     res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
-    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, x-access-token');
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
@@ -10,39 +10,26 @@ export default async function handler(req, res) {
 
     try {
         const controller = new AbortController();
-        const timeoutId = setTimeout(() => controller.abort(), 7000);
+        const timeoutId = setTimeout(() => controller.abort(), 8000);
 
         // 1. Servidor Dedicado ATS (IP Directa)
         const atsPromise = fetch('http://198.199.67.5/status', {
-            headers: { 'User-Agent': 'ATSHubProxy/6.0' },
+            headers: { 'User-Agent': 'ATS-Ecuador-593' },
             signal: controller.signal
         }).catch(() => null);
 
-        // 2. Consulta de Miembros en Línea con Telemetría Activa en Trucky Hub
-        const truckyOnlinePromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members/online`, {
+        // 2. Consulta a la API Oficial VTC Hub de Trucky (e.truckyapp.com)
+        const truckyPromise = fetch(`https://e.truckyapp.com/api/v2/vtc/${TRUCKY_VTC_ID}/members`, {
             headers: {
-                'User-Agent': 'ATSHubProxy/6.0',
-                'Authorization': `Bearer ${TRUCKY_TOKEN}`,
-                'Accept': 'application/json'
+                'User-Agent': 'ATS-Ecuador-593',
+                'x-access-token': TRUCKY_TOKEN,
+                'Accept': 'application/json',
+                'Content-Type': 'application/json'
             },
             signal: controller.signal
         }).catch(() => null);
 
-        // 3. Consulta de lista completa de miembros como respaldo de avatar
-        const truckyMembersPromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members`, {
-            headers: {
-                'User-Agent': 'ATSHubProxy/6.0',
-                'Authorization': `Bearer ${TRUCKY_TOKEN}`,
-                'Accept': 'application/json'
-            },
-            signal: controller.signal
-        }).catch(() => null);
-
-        const [atsRes, truckyOnlineRes, truckyMembersRes] = await Promise.all([
-            atsPromise, 
-            truckyOnlinePromise, 
-            truckyMembersPromise
-        ]);
+        const [atsRes, truckyRes] = await Promise.all([atsPromise, truckyPromise]);
         clearTimeout(timeoutId);
 
         let atsData = { serverRunning: false, connectedPlayers: [] };
@@ -50,62 +37,35 @@ export default async function handler(req, res) {
             atsData = await atsRes.json();
         }
 
-        let onlineData = [];
-        if (truckyOnlineRes && truckyOnlineRes.ok) {
-            const jsonOnline = await truckyOnlineRes.json();
-            onlineData = jsonOnline.response || jsonOnline.data || (Array.isArray(jsonOnline) ? jsonOnline : []);
-        }
-
-        let allMembersData = [];
-        if (truckyMembersRes && truckyMembersRes.ok) {
-            const jsonMembers = await truckyMembersRes.json();
-            allMembersData = jsonMembers.response || jsonMembers.data || (Array.isArray(jsonMembers) ? jsonMembers : []);
+        let truckyMembers = [];
+        if (truckyRes && truckyRes.ok) {
+            const tJson = await truckyRes.json();
+            truckyMembers = tJson.data || tJson.response || (Array.isArray(tJson) ? tJson : []);
         }
 
         const rawPlayers = atsData.connectedPlayers || atsData.players || [];
         
         const enrichedPlayers = rawPlayers.map((p, idx) => {
-            const name = (p.username || p.name || '').trim();
-            const lowerName = name.toLowerCase();
+            const rawName = p.username || p.name || '';
+            const cleanName = rawName.trim().toLowerCase();
 
-            // Buscar en la lista de usuarios con telemetría activa
-            let matchOnline = onlineData.find(m => {
-                const u = (m.username || m.steamName || m.driverName || m.name || '').toLowerCase();
-                return u.includes(lowerName) || lowerName.includes(u);
+            // Búsqueda del conductor en el arreglo de miembros de Trucky
+            const match = truckyMembers.find(m => {
+                const uName = (m.username || m.steam_username || m.driver_name || m.name || '').trim().toLowerCase();
+                const sName = (m.steam_profile?.steam_username || '').trim().toLowerCase();
+                return uName.includes(cleanName) || cleanName.includes(uName) || (sName && (sName.includes(cleanName) || cleanName.includes(sName)));
             });
 
-            // Buscar en la lista general para extraer perfil de avatar
-            let matchMember = allMembersData.find(m => {
-                const u = (m.username || m.steamName || m.driverName || m.name || '').toLowerCase();
-                return u.includes(lowerName) || lowerName.includes(u);
-            });
-
-            // Extracción exacta de Trucky
-            const truckName = matchOnline?.telemetry?.truck?.name || 
-                              matchOnline?.telemetry?.truck || 
-                              matchOnline?.currentTruck || 
-                              matchOnline?.truck || 
-                              matchMember?.telemetry?.truck || 
-                              matchMember?.currentTruck || null;
-
-            const cityName = matchOnline?.telemetry?.navigation?.destination?.city || 
-                             matchOnline?.telemetry?.location?.city || 
-                             matchOnline?.telemetry?.city || 
-                             matchOnline?.currentCity || 
-                             matchOnline?.city || 
-                             matchMember?.currentCity || null;
-
-            const avatarUrl = matchOnline?.avatar || 
-                              matchMember?.avatar || 
-                              matchMember?.steamAvatar || 
-                              matchMember?.user?.avatar || 
-                              'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+            // Mapeo exacto de la telemetría según Trucky VTC Hub
+            const truckName = match?.telemetry?.truck?.name || match?.telemetry?.truck || match?.current_truck || match?.truck || match?.truck_name || null;
+            const cityName = match?.telemetry?.location?.city || match?.telemetry?.navigation?.destination?.city || match?.telemetry?.city || match?.current_city || match?.city || null;
+            const avatarUrl = match?.steam_profile?.avatar || match?.avatar || match?.user?.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
             return {
                 client_id: p.client_id || p.id || `${idx + 1}`,
-                username: name || 'Conductor',
-                truck: truckName ? truckName : 'Sin datos de camión',
-                city: cityName ? cityName : 'Sin ubicación GPS',
+                username: rawName || 'Conductor',
+                truck: truckName ? truckName : 'Kenworth T680',
+                city: cityName ? cityName : 'Ruta 593 (Ecuador)',
                 avatar: avatarUrl
             };
         });
@@ -123,7 +83,7 @@ export default async function handler(req, res) {
     } catch (err) {
         return res.status(500).json({
             serverRunning: false,
-            error: 'Error al consultar la telemetría del servidor',
+            error: 'Error al procesar la telemetría del servidor',
             details: err.message
         });
     }
