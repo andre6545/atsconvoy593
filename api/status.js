@@ -5,7 +5,6 @@ export default async function handler(req, res) {
 
     if (req.method === 'OPTIONS') return res.status(200).end();
 
-    // Credenciales de Trucky VTC Hub del usuario
     const TRUCKY_VTC_ID = "49477";
     const TRUCKY_TOKEN = "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9.eyJjb21wYW55X2lkIjo0OTQ3N30.kduk-J7AxFB-DJz0HraAe2QXlPKRtQlQVbMzC1o-kZU";
 
@@ -13,16 +12,16 @@ export default async function handler(req, res) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        // 1. Petición al servidor dedicado ATS (IP Directa)
+        // 1. Servidor Dedicado ATS
         const atsPromise = fetch('http://198.199.67.5/status', {
-            headers: { 'User-Agent': 'ATSHubProxy/4.0' },
+            headers: { 'User-Agent': 'ATSHubProxy/5.0' },
             signal: controller.signal
         }).catch(() => null);
 
-        // 2. Petición autenticada a la API de Trucky VTC Hub
+        // 2. Telemetría de Miembros en Trucky Hub
         const truckyPromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members`, {
             headers: {
-                'User-Agent': 'ATSHubProxy/4.0',
+                'User-Agent': 'ATSHubProxy/5.0',
                 'Authorization': `Bearer ${TRUCKY_TOKEN}`,
                 'Accept': 'application/json'
             },
@@ -40,36 +39,41 @@ export default async function handler(req, res) {
         let truckyMembers = [];
         if (truckyRes && truckyRes.ok) {
             const tJson = await truckyRes.json();
-            truckyMembers = tJson.response || tJson.data || [];
+            truckyMembers = tJson.response || tJson.data || (Array.isArray(tJson) ? tJson : []);
         }
 
-        // 3. Cruzar la lista de jugadores conectados al servidor con la telemetría de Trucky
         const rawPlayers = atsData.connectedPlayers || atsData.players || [];
+        
+        // Mapeo exacto de los datos provenientes de Trucky
         const enrichedPlayers = rawPlayers.map((p, idx) => {
-            const name = p.username || p.name || 'Conductor';
+            const name = p.username || p.name || '';
 
-            // Buscar al jugador en el registro de la VTC de Trucky
-            const match = truckyMembers.find(m => 
-                (m.username && m.username.toLowerCase() === name.toLowerCase()) ||
-                (m.steamName && m.steamName.toLowerCase() === name.toLowerCase()) ||
-                (m.driverName && m.driverName.toLowerCase() === name.toLowerCase())
-            );
+            // Búsqueda del miembro en Trucky por nombre o Steam ID
+            const match = truckyMembers.find(m => {
+                const mName = m.username || m.steamName || m.driverName || m.name || '';
+                return mName.toLowerCase() === name.toLowerCase();
+            });
+
+            // Extracción exacta de las propiedades de Trucky Telemetry
+            const truckName = match?.telemetry?.truck?.name || match?.telemetry?.truck || match?.currentTruck || match?.truck || null;
+            const cityName = match?.telemetry?.navigation?.destination?.city || match?.telemetry?.location?.city || match?.telemetry?.city || match?.currentCity || match?.city || null;
+            const avatarUrl = match?.avatar || match?.steamAvatar || match?.user?.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
             return {
                 client_id: p.client_id || p.id || `${idx + 1}`,
-                username: name,
-                truck: match?.telemetry?.truck || match?.currentTruck || match?.truck || 'Kenworth T680',
-                city: match?.telemetry?.city || match?.currentCity || match?.city || 'En Ruta (Ruta 593)',
-                avatar: match?.avatar || match?.steamAvatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
+                username: name || 'Conductor',
+                truck: truckName ? truckName : 'Sin datos de camión',
+                city: cityName ? cityName : 'Sin ubicación GPS',
+                avatar: avatarUrl
             };
         });
 
         return res.status(200).json({
             serverRunning: atsData.serverRunning !== undefined ? atsData.serverRunning : true,
             serverName: atsData.serverName || '[ES] ECUADOR SERVER +593',
-            sessionID: atsData.sessionID || '85568392936670275',
+            sessionID: atsData.sessionID || 'N/D',
             slots: atsData.slots || 32,
-            game_version: atsData.game_version || '1.58.0.140s',
+            game_version: atsData.game_version || '--',
             apiUptime: atsData.apiUptime || 0,
             connectedPlayers: enrichedPlayers
         });
@@ -77,7 +81,7 @@ export default async function handler(req, res) {
     } catch (err) {
         return res.status(500).json({
             serverRunning: false,
-            error: 'Error al consultar servidores de telemetría',
+            error: 'Error al consultar la telemetría del servidor',
             details: err.message
         });
     }
