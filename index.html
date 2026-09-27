@@ -278,8 +278,8 @@
             border-radius: 14px;
             padding: 1.2rem;
             display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
+            align-items: center;
+            justify-content: space-between;
             transition: all 0.2s ease;
         }
 
@@ -296,8 +296,8 @@
         }
 
         .player-avatar {
-            width: 50px;
-            height: 50px;
+            width: 48px;
+            height: 48px;
             border-radius: 10px;
             object-fit: cover;
             border: 2px solid var(--ec-yellow);
@@ -315,51 +315,18 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .player-activity {
-            display: flex;
-            flex-direction: column;
-            gap: 0.4rem;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 0.7rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .activity-item {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-        }
-
-        .activity-item i {
-            color: var(--ec-yellow);
-            width: 16px;
-            text-align: center;
-        }
-
-        .activity-item span {
-            color: var(--text-primary);
-            font-weight: 600;
-            white-space: nowrap;
-            overflow: hidden;
-            text-overflow: ellipsis;
-        }
-
         .timer-badge {
             background: rgba(16, 185, 129, 0.15);
             color: var(--status-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
             display: flex;
             align-items: center;
             gap: 0.4rem;
-            width: fit-content;
         }
 
         .empty-state {
@@ -455,11 +422,11 @@
 
         <div class="panel-box">
             <div class="panel-title">
-                <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
-                Conductores en Ruta (Telemetría Trucky Hub)
+                <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
+                Conductores Conectados
             </div>
             <div class="players-container" id="playersList">
-                <div class="empty-state">Consultando la lista de conductores...</div>
+                <div class="empty-state">Consultando lista de conductores...</div>
             </div>
         </div>
     </div>
@@ -524,9 +491,7 @@
                                 playerTimers.set(pKey, Date.now());
                             }
 
-                            const truckModel = p.truck;
-                            const currentCity = p.city;
-                            const avatarUrl = p.avatar;
+                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
                             item.className = 'player-card';
@@ -536,16 +501,6 @@
                                     <div class="player-details">
                                         <h4>${username}</h4>
                                         <p>Client ID: ${clientId}</p>
-                                    </div>
-                                </div>
-                                <div class="player-activity">
-                                    <div class="activity-item">
-                                        <i class="fa-solid fa-truck"></i>
-                                        <span title="${truckModel}">${truckModel}</span>
-                                    </div>
-                                    <div class="activity-item">
-                                        <i class="fa-solid fa-location-dot"></i>
-                                        <span title="${currentCity}">${currentCity}</span>
                                     </div>
                                 </div>
                                 <div class="timer-badge">
@@ -562,7 +517,7 @@
 
                     } else {
                         playerTimers.clear();
-                        playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta en este momento. 🚛</div>';
+                        playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
                     }
 
                 } else {
