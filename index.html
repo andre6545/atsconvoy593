@@ -322,12 +322,27 @@
             box-shadow: 0 0 10px var(--accent-glow);
         }
 
+        /* Layout para Paneles Inferiores */
+        .panels-grid {
+            display: grid;
+            grid-template-columns: 2fr 1fr;
+            gap: 2rem;
+        }
+        
+        @media (max-width: 900px) {
+            .panels-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
         .panel-box {
             background: var(--panel-bg);
             border: 1px solid var(--panel-border);
             border-radius: 18px;
             padding: 1.8rem;
             backdrop-filter: blur(10px);
+            display: flex;
+            flex-direction: column;
         }
 
         .panel-title {
@@ -363,6 +378,16 @@
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.2rem;
+            max-height: 400px;
+            overflow-y: auto;
+            padding-right: 5px;
+        }
+
+        /* Custom Scrollbar */
+        .players-container::-webkit-scrollbar, .event-list::-webkit-scrollbar { width: 6px; }
+        .players-container::-webkit-scrollbar-thumb, .event-list::-webkit-scrollbar-thumb { 
+            background: rgba(255,255,255,0.1); 
+            border-radius: 6px; 
         }
 
         .player-card {
@@ -427,6 +452,42 @@
             color: var(--text-secondary);
             font-style: italic;
             grid-column: 1 / -1;
+        }
+
+        /* ESTILOS DEL REGISTRO DE EVENTOS */
+        .event-list {
+            display: flex;
+            flex-direction: column;
+            gap: 0.8rem;
+            max-height: 400px;
+            overflow-y: auto;
+        }
+
+        .event-item {
+            display: flex;
+            gap: 1rem;
+            padding: 0.8rem;
+            background: rgba(255, 255, 255, 0.02);
+            border-left: 3px solid var(--accent-glow);
+            border-radius: 6px;
+            font-size: 0.85rem;
+            animation: fadeIn 0.4s ease;
+        }
+
+        .event-item.system { border-left-color: var(--ec-yellow); }
+        .event-item.join { border-left-color: var(--status-green); }
+        .event-item.leave { border-left-color: var(--ec-red); }
+
+        .event-time {
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+            font-size: 0.75rem;
+            min-width: 65px;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateX(-15px); }
+            to { opacity: 1; transform: translateX(0); }
         }
 
         .toast {
@@ -569,18 +630,36 @@
             </div>
         </div>
 
-        <!-- Panel de Conductores Conectados -->
-        <div class="panel-box">
-            <div class="panel-title">
-                <div style="display: flex; align-items: center; gap: 0.7rem;">
-                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
-                    Conductores Conectados
+        <!-- Grid para Paneles de Jugadores y Eventos -->
+        <div class="panels-grid">
+            
+            <!-- Panel de Conductores Conectados -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <div style="display: flex; align-items: center; gap: 0.7rem;">
+                        <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
+                        Conductores Conectados
+                    </div>
+                    <input type="text" id="searchDriver" class="search-input" placeholder="🔍 Buscar conductor..." oninput="filterDrivers()">
                 </div>
-                <input type="text" id="searchDriver" class="search-input" placeholder="🔍 Buscar conductor..." oninput="filterDrivers()">
+                <div class="players-container" id="playersList">
+                    <div class="empty-state">Consultando lista de conductores...</div>
+                </div>
             </div>
-            <div class="players-container" id="playersList">
-                <div class="empty-state">Consultando lista de conductores...</div>
+
+            <!-- Panel de Registro de Eventos -->
+            <div class="panel-box">
+                <div class="panel-title">
+                    <div style="display: flex; align-items: center; gap: 0.7rem;">
+                        <i class="fa-solid fa-satellite-dish" style="color: var(--ec-yellow)"></i>
+                        Radio CB (Eventos)
+                    </div>
+                </div>
+                <div class="event-list" id="eventList">
+                    <!-- Los eventos dinámicos aparecerán aquí -->
+                </div>
             </div>
+
         </div>
     </div>
 
@@ -597,59 +676,91 @@
     <script>
         let rawSessionId = '';
         let countdown = 10;
+        
+        // Variables para el Registro Dinámico de Eventos
+        let previousPlayers = new Set();
+        let isFirstLoad = true;
+        let searchAudioTimer;
 
-        // Selector de Tema Neón
-        function setTheme(themeName) {
-            document.body.className = themeName;
-            localStorage.setItem('ats_theme', themeName);
+        // --- SISTEMA DE AUDIO (WEB AUDIO API) ---
+
+        // 1. Sonido de Motor/Bocina al cambiar tema
+        function playThemeChangeSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'sawtooth';
+                osc.frequency.setValueAtTime(65, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.3);
+                gain.gain.setValueAtTime(0.08, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.3);
+            } catch (e) {}
         }
 
-        const savedTheme = localStorage.getItem('ats_theme');
-        if (savedTheme) setTheme(savedTheme);
+        // 2. Sonido Squelch de Radio CB al buscar
+        function playRadioClickSound() {
+            try {
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
+                const osc = ctx.createOscillator();
+                const gain = ctx.createGain();
+                osc.type = 'square';
+                osc.frequency.setValueAtTime(150, ctx.currentTime);
+                osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.1);
+                gain.gain.setValueAtTime(0.03, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
+                osc.connect(gain);
+                gain.connect(ctx.destination);
+                osc.start();
+                osc.stop(ctx.currentTime + 0.1);
+            } catch (e) {}
+        }
 
-        // Sonido Neumático de Camión
+        // 3. Sonido original de Freno de Aire
         function playAirBrakeSound() {
             try {
-                const AudioCtx = window.AudioContext || window.webkitAudioContext;
-                if (!AudioCtx) return;
-                const ctx = new AudioCtx();
-
+                const ctx = new (window.AudioContext || window.webkitAudioContext)();
                 const bufferSize = ctx.sampleRate * 0.25;
                 const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
                 const data = buffer.getChannelData(0);
-
-                for (let i = 0; i < bufferSize; i++) {
-                    data[i] = Math.random() * 2 - 1;
-                }
-
+                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
                 const noise = ctx.createBufferSource();
                 noise.buffer = buffer;
-
                 const filter = ctx.createBiquadFilter();
                 filter.type = 'bandpass';
                 filter.frequency.value = 1200;
                 filter.Q.value = 1.5;
-
                 const gain = ctx.createGain();
                 gain.gain.setValueAtTime(0.2, ctx.currentTime);
                 gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-
                 noise.connect(filter);
                 filter.connect(gain);
                 gain.connect(ctx.destination);
-
                 noise.start();
             } catch (e) {}
         }
+
+        // --- LÓGICA DE INTERFAZ ---
+
+        function setTheme(themeName, isInit = false) {
+            document.body.className = themeName;
+            localStorage.setItem('ats_theme', themeName);
+            if (!isInit) playThemeChangeSound();
+        }
+
+        const savedTheme = localStorage.getItem('ats_theme');
+        if (savedTheme) setTheme(savedTheme, true);
 
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
             const toastText = document.getElementById('toastText');
             toastText.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => {
-                toast.classList.remove('show');
-            }, 3000);
+            setTimeout(() => { toast.classList.remove('show'); }, 3000);
         }
 
         function copySessionId() {
@@ -657,7 +768,6 @@
                 showToast('No hay una sesión activa para copiar');
                 return;
             }
-
             navigator.clipboard.writeText(rawSessionId).then(() => {
                 playAirBrakeSound();
                 showToast('¡Server ID copiado al portapapeles!');
@@ -674,6 +784,12 @@
         }
 
         function filterDrivers() {
+            // Sonido de radio con debounce (para no saturar si escriben rápido)
+            clearTimeout(searchAudioTimer);
+            searchAudioTimer = setTimeout(() => {
+                playRadioClickSound();
+            }, 300);
+
             const term = document.getElementById('searchDriver').value.toLowerCase();
             const cards = document.querySelectorAll('#playersList .player-card');
             cards.forEach(card => {
@@ -681,6 +797,30 @@
                 card.style.display = name.includes(term) ? 'flex' : 'none';
             });
         }
+
+        // --- SISTEMA DE LOGS DE EVENTOS ---
+        
+        function addEventLog(message, type = 'system') {
+            const list = document.getElementById('eventList');
+            const time = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
+            
+            const item = document.createElement('div');
+            item.className = `event-item ${type}`;
+            item.innerHTML = `
+                <span class="event-time">${time}</span>
+                <span class="event-message">${message}</span>
+            `;
+            
+            list.prepend(item);
+            
+            // Mantener solo los últimos 15 eventos para no saturar memoria
+            if (list.children.length > 15) {
+                list.removeChild(list.lastChild);
+            }
+        }
+
+        // Al iniciar la página
+        addEventLog('Iniciando monitoreo de consola...', 'system');
 
         async function updateStatus() {
             try {
@@ -703,7 +843,7 @@
                     const slots = data.slots || 32;
                     document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
                     
-                    // Actualizar barra visual de ocupación
+                    // Barra de ocupación
                     const pct = slots > 0 ? Math.min((players.length / slots) * 100, 100) : 0;
                     const playerBar = document.getElementById('playerBar');
                     playerBar.style.width = `${pct}%`;
@@ -711,14 +851,13 @@
 
                     document.getElementById('valVersion').textContent = data.game_version || '--';
                     document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
-
                     document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
 
                     const playersList = document.getElementById('playersList');
+                    const currentPlayersNames = new Set(players.map(p => p.username || 'Conductor'));
 
                     if (players.length > 0) {
                         playersList.innerHTML = '';
-
                         players.forEach((p, idx) => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id || `${idx + 1}`;
@@ -740,12 +879,35 @@
                             `;
                             playersList.appendChild(item);
                         });
-
-                        filterDrivers(); // Re-aplicar filtro si hay búsqueda activa
-
+                        filterDrivers(); 
                     } else {
                         playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
                     }
+
+                    // LÓGICA DE DETECCIÓN DE EVENTOS
+                    if (!isFirstLoad) {
+                        // Detectar quienes entraron
+                        for (let name of currentPlayersNames) {
+                            if (!previousPlayers.has(name)) {
+                                addEventLog(`🚛 <strong>${name}</strong> se ha unido al convoy.`, 'join');
+                            }
+                        }
+                        // Detectar quienes salieron
+                        for (let name of previousPlayers) {
+                            if (!currentPlayersNames.has(name)) {
+                                addEventLog(`👋 <strong>${name}</strong> se desconectó.`, 'leave');
+                            }
+                        }
+                    } else {
+                        isFirstLoad = false;
+                        addEventLog('Conexión con el servidor establecida.', 'system');
+                        if (currentPlayersNames.size > 0) {
+                            addEventLog(`${currentPlayersNames.size} conductores en ruta.`, 'system');
+                        }
+                    }
+                    
+                    // Actualizar el estado previo para la próxima iteración
+                    previousPlayers = currentPlayersNames;
 
                 } else {
                     throw new Error(data.error || 'Servidor detenido');
@@ -764,10 +926,16 @@
                 document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
                 
                 document.title = `🔴 Fuera de Línea | ATS ECUADOR SERVER`;
+
+                if (!isFirstLoad) {
+                    addEventLog('⚠️ Pérdida de conexión con el servidor.', 'leave');
+                    previousPlayers.clear();
+                    isFirstLoad = true; // Reiniciar estado para cuando vuelva
+                }
             }
         }
 
-        // Temporizador visual regresivo
+        // Temporizador visual
         setInterval(() => {
             countdown--;
             if (countdown <= 0) countdown = 10;
