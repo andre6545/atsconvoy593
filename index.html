@@ -222,6 +222,7 @@
             border-radius: 16px;
             padding: 1.5rem;
             backdrop-filter: blur(10px);
+            transition: transform 0.2s ease, border-color 0.2s ease;
         }
 
         .metric-card:hover {
@@ -240,11 +241,41 @@
             font-weight: 700;
         }
 
+        .metric-value-box {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            gap: 0.5rem;
+        }
+
         .metric-value {
             font-size: 1.4rem;
             font-weight: 800;
             font-family: 'JetBrains Mono', monospace;
             color: var(--text-primary);
+            overflow: hidden;
+            text-overflow: ellipsis;
+            white-space: nowrap;
+        }
+
+        .copy-btn {
+            background: rgba(255, 218, 26, 0.15);
+            border: 1px solid rgba(255, 218, 26, 0.3);
+            color: var(--ec-yellow);
+            padding: 0.4rem 0.7rem;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 0.85rem;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .copy-btn:hover {
+            background: var(--ec-yellow);
+            color: #000;
+            box-shadow: 0 0 10px rgba(255, 218, 26, 0.4);
         }
 
         .panel-box {
@@ -383,6 +414,39 @@
             grid-column: 1 / -1;
         }
 
+        /* Notificación Flotante Toast */
+        .toast {
+            position: fixed;
+            bottom: 25px;
+            right: 25px;
+            background: rgba(15, 23, 42, 0.95);
+            border: 1px solid var(--ec-yellow);
+            color: var(--text-primary);
+            padding: 0.8rem 1.4rem;
+            border-radius: 12px;
+            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            font-size: 0.9rem;
+            font-weight: 700;
+            opacity: 0;
+            transform: translateY(20px);
+            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+            pointer-events: none;
+            z-index: 2000;
+        }
+
+        .toast.show {
+            opacity: 1;
+            transform: translateY(0);
+        }
+
+        .toast i {
+            color: var(--ec-yellow);
+            font-size: 1.1rem;
+        }
+
         footer {
             margin-top: 3rem;
             padding: 2rem;
@@ -438,7 +502,12 @@
                     <span>ID de Sesión (Server ID)</span>
                     <i class="fa-solid fa-fingerprint" style="color: var(--ec-yellow)"></i>
                 </div>
-                <div class="metric-value" id="valSessionId">--</div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valSessionId">--</div>
+                    <button class="copy-btn" id="btnCopySession" title="Copiar Server ID" onclick="copySessionId()">
+                        <i class="fa-regular fa-copy"></i>
+                    </button>
+                </div>
             </div>
 
             <div class="metric-card">
@@ -446,7 +515,9 @@
                     <span>Conexión / Jugadores</span>
                     <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 </div>
-                <div class="metric-value" id="valPlayers">0 / 0</div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valPlayers">0 / 0</div>
+                </div>
             </div>
 
             <div class="metric-card">
@@ -454,7 +525,9 @@
                     <span>Versión de ATS</span>
                     <i class="fa-solid fa-code-branch" style="color: var(--ec-red)"></i>
                 </div>
-                <div class="metric-value" id="valVersion">--</div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valVersion">--</div>
+                </div>
             </div>
 
             <div class="metric-card">
@@ -462,7 +535,9 @@
                     <span>Tiempo Activo (Uptime)</span>
                     <i class="fa-solid fa-stopwatch" style="color: var(--status-green)"></i>
                 </div>
-                <div class="metric-value" id="valUptime">--</div>
+                <div class="metric-value-box">
+                    <div class="metric-value" id="valUptime">--</div>
+                </div>
             </div>
         </div>
 
@@ -477,13 +552,42 @@
         </div>
     </div>
 
+    <!-- Notificación Toast -->
+    <div id="toastNotification" class="toast">
+        <i class="fa-solid fa-circle-check"></i>
+        <span id="toastText">¡Server ID copiado al portapapeles!</span>
+    </div>
+
     <footer>
         <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
     </footer>
 
     <script>
-        // Estructura para registrar hora de ingreso y timestamp de inicio
         const playerSessions = new Map();
+        let rawSessionId = '';
+
+        function showToast(message) {
+            const toast = document.getElementById('toastNotification');
+            const toastText = document.getElementById('toastText');
+            toastText.textContent = message;
+            toast.classList.add('show');
+            setTimeout(() => {
+                toast.classList.remove('show');
+            }, 3000);
+        }
+
+        function copySessionId() {
+            if (!rawSessionId || rawSessionId === '--' || rawSessionId === 'N/D' || rawSessionId === 'Sin Conexión') {
+                showToast('No hay una sesión activa para copiar');
+                return;
+            }
+
+            navigator.clipboard.writeText(rawSessionId).then(() => {
+                showToast('¡Server ID copiado al portapapeles!');
+            }).catch(() => {
+                showToast('Error al copiar el Server ID');
+            });
+        }
 
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
@@ -517,7 +621,9 @@
                     statusText.textContent = 'En Línea';
 
                     document.getElementById('serverNameHeader').textContent = data.serverName || 'ATS ECUADOR SERVER';
-                    document.getElementById('valSessionId').textContent = data.sessionID || 'N/D';
+                    
+                    rawSessionId = data.sessionID || 'N/D';
+                    document.getElementById('valSessionId').textContent = rawSessionId;
                     
                     const players = data.connectedPlayers || [];
                     const slots = data.slots || 32;
@@ -532,7 +638,6 @@
                         playersList.innerHTML = '';
                         const currentActiveKeys = new Set();
 
-                        // 1. Registrar sesión u hora de ingreso para nuevos conductores
                         players.forEach((p, idx) => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id || `${idx + 1}`;
@@ -548,7 +653,6 @@
                             }
                         });
 
-                        // 2. Determinar al conductor con mayor tiempo conectado (Rey de la Ruta)
                         let oldestKey = null;
                         let oldestTime = Infinity;
 
@@ -560,7 +664,6 @@
                             }
                         });
 
-                        // 3. Renderizar las tarjetas de conductores
                         players.forEach((p, idx) => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id || `${idx + 1}`;
@@ -595,7 +698,6 @@
                             playersList.appendChild(item);
                         });
 
-                        // Limpiar memoria de jugadores desconectados
                         for (const key of playerSessions.keys()) {
                             if (!currentActiveKeys.has(key)) playerSessions.delete(key);
                         }
@@ -613,7 +715,8 @@
                 const statusPill = document.getElementById('serverStatusPill');
                 statusPill.classList.add('offline');
                 document.getElementById('statusText').textContent = 'Fuera de Línea';
-                document.getElementById('valSessionId').textContent = 'Sin Conexión';
+                rawSessionId = 'Sin Conexión';
+                document.getElementById('valSessionId').textContent = rawSessionId;
                 document.getElementById('valPlayers').textContent = '0 / 0';
                 document.getElementById('valVersion').textContent = '--';
                 document.getElementById('valUptime').textContent = '--';
