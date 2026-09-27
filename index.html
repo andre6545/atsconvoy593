@@ -19,10 +19,20 @@
             --ec-blue: #034ea2;
             --ec-red: #ed1c24;
 
+            /* Acento Neón Activo */
+            --accent-glow: var(--ec-yellow);
             --accent-cyan: #06b6d4;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --status-green: #10b981;
+        }
+
+        /* Temas Neón Personalizados */
+        body.theme-cyan {
+            --accent-glow: #06b6d4;
+        }
+        body.theme-green {
+            --accent-glow: #10b981;
         }
 
         * {
@@ -42,6 +52,7 @@
             background-image: 
                 radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
                 radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
+            transition: --accent-glow 0.3s ease;
         }
 
         .ec-stripe {
@@ -51,7 +62,7 @@
             position: fixed;
             top: 0;
             z-index: 1001;
-            box-shadow: 0 0 12px rgba(255, 218, 26, 0.5);
+            box-shadow: 0 0 12px var(--accent-glow);
         }
 
         header {
@@ -75,7 +86,7 @@
         }
 
         .brand-icon {
-            background: linear-gradient(135deg, var(--ec-yellow), var(--ec-red));
+            background: linear-gradient(135deg, var(--accent-glow), var(--ec-red));
             width: 50px;
             height: 50px;
             border-radius: 12px;
@@ -84,12 +95,12 @@
             justify-content: center;
             font-size: 1.6rem;
             color: #000;
-            box-shadow: 0 0 20px rgba(255, 218, 26, 0.4);
+            box-shadow: 0 0 20px var(--accent-glow);
             animation: pulse-glow 3s infinite alternate;
         }
 
         @keyframes pulse-glow {
-            0% { box-shadow: 0 0 10px rgba(255, 218, 26, 0.3); }
+            0% { box-shadow: 0 0 10px var(--accent-glow); }
             100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
         }
 
@@ -98,7 +109,7 @@
             font-weight: 900;
             letter-spacing: 0.5px;
             text-transform: uppercase;
-            background: linear-gradient(90deg, #fff, var(--ec-yellow));
+            background: linear-gradient(90deg, #fff, var(--accent-glow));
             -webkit-background-clip: text;
             -webkit-text-fill-color: transparent;
         }
@@ -107,6 +118,39 @@
             font-size: 0.8rem;
             color: var(--text-secondary);
         }
+
+        .header-actions {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        /* Selector de Acento Neón */
+        .theme-selector {
+            display: flex;
+            gap: 0.4rem;
+            background: rgba(255, 255, 255, 0.05);
+            padding: 0.3rem 0.5rem;
+            border-radius: 20px;
+            border: 1px solid var(--panel-border);
+        }
+
+        .theme-dot {
+            width: 14px;
+            height: 14px;
+            border-radius: 50%;
+            cursor: pointer;
+            transition: transform 0.2s ease, border 0.2s ease;
+            border: 2px solid transparent;
+        }
+
+        .theme-dot:hover {
+            transform: scale(1.2);
+        }
+
+        .theme-dot.yellow { background: var(--ec-yellow); }
+        .theme-dot.cyan { background: var(--accent-cyan); }
+        .theme-dot.green { background: var(--status-green); }
 
         .status-pill {
             display: flex;
@@ -192,9 +236,9 @@
             position: absolute;
             bottom: 2px;
             font-size: 1.8rem;
-            color: var(--ec-yellow);
+            color: var(--accent-glow);
             animation: drive 12s linear infinite;
-            filter: drop-shadow(0 0 8px var(--ec-yellow));
+            filter: drop-shadow(0 0 8px var(--accent-glow));
         }
 
         @keyframes drive {
@@ -227,7 +271,7 @@
 
         .metric-card:hover {
             transform: translateY(-5px);
-            border-color: var(--ec-yellow);
+            border-color: var(--accent-glow);
         }
 
         .metric-header {
@@ -261,7 +305,7 @@
         .copy-btn {
             background: rgba(255, 218, 26, 0.15);
             border: 1px solid rgba(255, 218, 26, 0.3);
-            color: var(--ec-yellow);
+            color: var(--accent-glow);
             padding: 0.4rem 0.7rem;
             border-radius: 8px;
             cursor: pointer;
@@ -273,9 +317,9 @@
         }
 
         .copy-btn:hover {
-            background: var(--ec-yellow);
+            background: var(--accent-glow);
             color: #000;
-            box-shadow: 0 0 10px rgba(255, 218, 26, 0.4);
+            box-shadow: 0 0 10px var(--accent-glow);
         }
 
         .panel-box {
@@ -331,7 +375,7 @@
             height: 48px;
             border-radius: 10px;
             object-fit: cover;
-            border: 2px solid var(--ec-yellow);
+            border: 2px solid var(--accent-glow);
         }
 
         .player-details h4 {
@@ -372,7 +416,7 @@
             bottom: 25px;
             right: 25px;
             background: rgba(15, 23, 42, 0.95);
-            border: 1px solid var(--ec-yellow);
+            border: 1px solid var(--accent-glow);
             color: var(--text-primary);
             padding: 0.8rem 1.4rem;
             border-radius: 12px;
@@ -395,7 +439,7 @@
         }
 
         .toast i {
-            color: var(--ec-yellow);
+            color: var(--accent-glow);
             font-size: 1.1rem;
         }
 
@@ -409,7 +453,7 @@
             border-top: 1px solid var(--panel-border);
         }
 
-        footer strong { color: var(--ec-yellow); }
+        footer strong { color: var(--accent-glow); }
     </style>
 </head>
 <body>
@@ -424,9 +468,19 @@
                 <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
             </div>
         </div>
-        <div id="serverStatusPill" class="status-pill">
-            <div class="indicator"></div>
-            <span id="statusText">Cargando...</span>
+
+        <div class="header-actions">
+            <!-- Selector de Iluminación Neón -->
+            <div class="theme-selector" title="Cambiar color neón">
+                <div class="theme-dot yellow" onclick="setTheme('')"></div>
+                <div class="theme-dot cyan" onclick="setTheme('theme-cyan')"></div>
+                <div class="theme-dot green" onclick="setTheme('theme-green')"></div>
+            </div>
+
+            <div id="serverStatusPill" class="status-pill">
+                <div class="indicator"></div>
+                <span id="statusText">Cargando...</span>
+            </div>
         </div>
     </header>
 
@@ -452,7 +506,7 @@
             <div class="metric-card">
                 <div class="metric-header">
                     <span>ID de Sesión (Server ID)</span>
-                    <i class="fa-solid fa-fingerprint" style="color: var(--ec-yellow)"></i>
+                    <i class="fa-solid fa-fingerprint" style="color: var(--accent-glow)"></i>
                 </div>
                 <div class="metric-value-box">
                     <div class="metric-value" id="valSessionId">--</div>
@@ -517,6 +571,52 @@
     <script>
         let rawSessionId = '';
 
+        // 1. Selector de Tema Neón
+        function setTheme(themeName) {
+            document.body.className = themeName;
+            localStorage.setItem('ats_theme', themeName);
+        }
+
+        const savedTheme = localStorage.getItem('ats_theme');
+        if (savedTheme) setTheme(savedTheme);
+
+        // 2. Sonido Neumático de Camión (Air Brake Sound via Web Audio API)
+        function playAirBrakeSound() {
+            try {
+                const AudioCtx = window.AudioContext || window.webkitAudioContext;
+                if (!AudioCtx) return;
+                const ctx = new AudioCtx();
+
+                const bufferSize = ctx.sampleRate * 0.25; // 250ms de aire
+                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
+                const data = buffer.getChannelData(0);
+
+                for (let i = 0; i < bufferSize; i++) {
+                    data[i] = Math.random() * 2 - 1; // Ruido blanco
+                }
+
+                const noise = ctx.createBufferSource();
+                noise.buffer = buffer;
+
+                const filter = ctx.createBiquadFilter();
+                filter.type = 'bandpass';
+                filter.frequency.value = 1200;
+                filter.Q.value = 1.5;
+
+                const gain = ctx.createGain();
+                gain.gain.setValueAtTime(0.2, ctx.currentTime);
+                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
+
+                noise.connect(filter);
+                filter.connect(gain);
+                gain.connect(ctx.destination);
+
+                noise.start();
+            } catch (e) {
+                // Audio no permitido sin interacción previa
+            }
+        }
+
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
             const toastText = document.getElementById('toastText');
@@ -534,6 +634,7 @@
             }
 
             navigator.clipboard.writeText(rawSessionId).then(() => {
+                playAirBrakeSound();
                 showToast('¡Server ID copiado al portapapeles!');
             }).catch(() => {
                 showToast('Error al copiar el Server ID');
@@ -570,6 +671,9 @@
                     
                     document.getElementById('valVersion').textContent = data.game_version || '--';
                     document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
+
+                    // 3. Título Dinámico en la Pestaña del Navegador
+                    document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
 
                     const playersList = document.getElementById('playersList');
 
@@ -616,6 +720,9 @@
                 document.getElementById('valVersion').textContent = '--';
                 document.getElementById('valUptime').textContent = '--';
                 document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
+                
+                // Actualizar Título si está Offline
+                document.title = `🔴 Fuera de Línea | ATS ECUADOR SERVER`;
             }
         }
 
