@@ -299,7 +299,7 @@
 
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
             gap: 1.2rem;
         }
 
@@ -309,39 +309,15 @@
             border-radius: 14px;
             padding: 1.2rem;
             display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
+            align-items: center;
+            justify-content: space-between;
             transition: all 0.2s ease;
-            position: relative;
         }
 
         .player-card:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--ec-blue);
             transform: scale(1.02);
-        }
-
-        .player-card.top-driver {
-            border-color: var(--ec-yellow);
-            box-shadow: 0 0 15px rgba(255, 218, 26, 0.2);
-            background: rgba(255, 218, 26, 0.05);
-        }
-
-        .top-driver-badge {
-            position: absolute;
-            top: -10px;
-            right: 12px;
-            background: linear-gradient(135deg, var(--ec-yellow), #d97706);
-            color: #000;
-            padding: 0.2rem 0.6rem;
-            border-radius: 20px;
-            font-size: 0.7rem;
-            font-weight: 800;
-            text-transform: uppercase;
-            box-shadow: 0 0 10px rgba(255, 218, 26, 0.5);
-            display: flex;
-            align-items: center;
-            gap: 0.3rem;
         }
 
         .player-header {
@@ -370,37 +346,14 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
-        .player-meta {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background: rgba(0, 0, 0, 0.25);
-            padding: 0.6rem 0.8rem;
-            border-radius: 8px;
-            font-size: 0.78rem;
-            border: 1px solid rgba(255, 255, 255, 0.05);
-        }
-
-        .join-time {
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .join-time i {
-            color: var(--accent-cyan);
-        }
-
-        .timer-badge {
+        .player-status-badge {
             background: rgba(16, 185, 129, 0.15);
             color: var(--status-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.25rem 0.6rem;
-            border-radius: 6px;
-            font-size: 0.75rem;
+            padding: 0.3rem 0.7rem;
+            border-radius: 8px;
+            font-size: 0.8rem;
             font-weight: 700;
-            font-family: 'JetBrains Mono', monospace;
             display: flex;
             align-items: center;
             gap: 0.4rem;
@@ -562,7 +515,6 @@
     </footer>
 
     <script>
-        const playerSessions = new Map();
         let rawSessionId = '';
 
         function showToast(message) {
@@ -595,28 +547,6 @@
             return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
         }
 
-        function formatDuration(startTime) {
-            const elapsed = Math.max(0, Math.floor((Date.now() - startTime) / 1000));
-            const hrs = Math.floor(elapsed / 3600);
-            const mins = Math.floor((elapsed % 3600) / 60);
-            const secs = elapsed % 60;
-
-            if (hrs > 0) {
-                return `${hrs}h ${mins}m`;
-            } else if (mins > 0) {
-                return `${mins}m ${secs}s`;
-            } else {
-                return `${secs}s`;
-            }
-        }
-
-        function getFormattedTime(date) {
-            const hrs = String(date.getHours()).padStart(2, '0');
-            const mins = String(date.getMinutes()).padStart(2, '0');
-            const secs = String(date.getSeconds()).padStart(2, '0');
-            return `${hrs}:${mins}:${secs}`;
-        }
-
         async function updateStatus() {
             try {
                 const response = await fetch('/api/status');
@@ -644,64 +574,16 @@
                     const playersList = document.getElementById('playersList');
 
                     if (players.length > 0) {
-                        const currentActiveKeys = new Set();
-                        const nowMs = Date.now();
-
-                        // 1. Calcular el tiempo real de ingreso al servidor usando connect_time
-                        players.forEach((p, idx) => {
-                            const username = p.username || 'Conductor';
-                            const clientId = p.client_id || `${idx + 1}`;
-                            const pKey = `${username}_${clientId}`;
-                            currentActiveKeys.add(pKey);
-
-                            // Segundos que el jugador lleva conectado según el servidor ATS
-                            const connectSecs = parseInt(p.connect_time) || 0;
-                            const calculatedStartTime = nowMs - (connectSecs * 1000);
-
-                            if (!playerSessions.has(pKey)) {
-                                const joinDate = new Date(calculatedStartTime);
-                                playerSessions.set(pKey, {
-                                    startTime: calculatedStartTime,
-                                    joinTimeStr: getFormattedTime(joinDate)
-                                });
-                            } else {
-                                // Sincronizar suavemente si hay una diferencia mayor a 5 segundos
-                                const currentSess = playerSessions.get(pKey);
-                                if (Math.abs(currentSess.startTime - calculatedStartTime) > 5000) {
-                                    currentSess.startTime = calculatedStartTime;
-                                    currentSess.joinTimeStr = getFormattedTime(new Date(calculatedStartTime));
-                                }
-                            }
-                        });
-
-                        // 2. Determinar al Rey de la Ruta (mayor tiempo en el servidor)
-                        let oldestKey = null;
-                        let oldestTime = Infinity;
-
-                        currentActiveKeys.forEach(pKey => {
-                            const sess = playerSessions.get(pKey);
-                            if (sess && sess.startTime < oldestTime) {
-                                oldestTime = sess.startTime;
-                                oldestKey = pKey;
-                            }
-                        });
-
-                        // 3. Renderizar las tarjetas
                         playersList.innerHTML = '';
 
                         players.forEach((p, idx) => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id || `${idx + 1}`;
-                            const pKey = `${username}_${clientId}`;
-                            const session = playerSessions.get(pKey);
-
-                            const isTopDriver = (pKey === oldestKey) && (players.length > 1 || Math.floor((Date.now() - session.startTime)/1000) > 30);
                             const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
-                            item.className = `player-card ${isTopDriver ? 'top-driver' : ''}`;
+                            item.className = 'player-card';
                             item.innerHTML = `
-                                ${isTopDriver ? '<div class="top-driver-badge"><i class="fa-solid fa-crown"></i> Rey de la Ruta</div>' : ''}
                                 <div class="player-header">
                                     <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
                                     <div class="player-details">
@@ -709,26 +591,14 @@
                                         <p>Client ID: ${clientId}</p>
                                     </div>
                                 </div>
-                                <div class="player-meta">
-                                    <div class="join-time">
-                                        <i class="fa-solid fa-right-to-bracket"></i>
-                                        <span>Ingreso: <strong>${session ? session.joinTimeStr : '--:--:--'}</strong></span>
-                                    </div>
-                                    <div class="timer-badge">
-                                        <i class="fa-solid fa-clock"></i>
-                                        <span class="player-timer-text" data-key="${pKey}">${session ? formatDuration(session.startTime) : '0s'}</span>
-                                    </div>
+                                <div class="player-status-badge">
+                                    <i class="fa-solid fa-steering-wheel"></i> En Ruta
                                 </div>
                             `;
                             playersList.appendChild(item);
                         });
 
-                        for (const key of playerSessions.keys()) {
-                            if (!currentActiveKeys.has(key)) playerSessions.delete(key);
-                        }
-
                     } else {
-                        playerSessions.clear();
                         playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
                     }
 
@@ -748,17 +618,6 @@
                 document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
             }
         }
-
-        // Bucle en tiempo real cada 1 segundo para incrementar los temporizadores
-        setInterval(() => {
-            document.querySelectorAll('.player-timer-text').forEach(el => {
-                const pKey = el.getAttribute('data-key');
-                if (pKey && playerSessions.has(pKey)) {
-                    const session = playerSessions.get(pKey);
-                    el.textContent = formatDuration(session.startTime);
-                }
-            });
-        }, 1000);
 
         updateStatus();
         setInterval(updateStatus, 10000);
