@@ -1,91 +1,53 @@
-// api/status.js - Monitoreo ATS + Historial de Eventos Global Persistente
-
-// Inicialización de la memoria global del servidor si no existe
-if (!global.atsMonitorState) {
-    global.atsMonitorState = {
-        eventHistory: [
-            {
-                time: new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' }),
-                message: 'Sistema de monitoreo iniciado.',
-                type: 'system'
-            }
-        ],
-        previousPlayers: new Set(),
-        startTime: Date.now()
-    };
-}
-
-const MAX_EVENTS = 20;
-
-// Registrar evento en la memoria del servidor
-function recordEvent(message, type = 'system') {
-    const time = new Date().toLocaleTimeString('es-EC', { hour: '2-digit', minute: '2-digit' });
-    global.atsMonitorState.eventHistory.unshift({ time, message, type });
-    
-    // Mantener límite de eventos
-    if (global.atsMonitorState.eventHistory.length > MAX_EVENTS) {
-        global.atsMonitorState.eventHistory.pop();
-    }
-}
-
 export default async function handler(req, res) {
+    res.setHeader('Access-Control-Allow-Origin', '*');
+    res.setHeader('Access-Control-Allow-Methods', 'GET, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type');
+
+    if (req.method === 'OPTIONS') return res.status(200).end();
+
     try {
-        // ------------------------------------------------------------------------
-        // AQUÍ OBTIENES LOS DATOS REALES DE TU SERVIDOR ATS (LOGS / RCON / CONFIG)
-        // ------------------------------------------------------------------------
-        const serverRunning = true;
-        const serverName = "ATS ECUADOR SERVER (+593)";
-        const sessionID = "109775240987123456"; // Sustituir por la lectura real de tu Session ID
-        const gameVersion = "1.50.x";
-        const slots = 32;
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), 6000);
 
-        // Lista de jugadores actualmente en línea
-        const connectedPlayers = [
-            // { username: "EcuadorTrucker", client_id: "1", avatar: "..." }
-        ];
+        const atsRes = await fetch('http://198.199.67.5/status', {
+            headers: { 'User-Agent': 'ATSHubProxy/1.0' },
+            signal: controller.signal
+        });
+        
+        clearTimeout(timeoutId);
 
-        // ------------------------------------------------------------------------
-        // DETECCIÓN AUTOMÁTICA EN TIEMPO REAL (ENTRADAS / SALIDAS)
-        // ------------------------------------------------------------------------
-        const currentNames = new Set(connectedPlayers.map(p => p.username || 'Conductor'));
-
-        // Registrar quién ingresó
-        for (let name of currentNames) {
-            if (!global.atsMonitorState.previousPlayers.has(name)) {
-                recordEvent(`🚛 <strong>${name}</strong> se ha unido al convoy.`, 'join');
-            }
+        if (!atsRes.ok) {
+            return res.status(200).json({
+                serverRunning: false,
+                error: 'Servidor ATS no disponible',
+                connectedPlayers: []
+            });
         }
 
-        // Registrar quién se desconectó
-        for (let name of global.atsMonitorState.previousPlayers) {
-            if (!currentNames.has(name)) {
-                recordEvent(`👋 <strong>${name}</strong> se desconectó.`, 'leave');
-            }
-        }
+        const atsData = await atsRes.json();
+        const rawPlayers = atsData.connectedPlayers || atsData.players || [];
 
-        // Actualizar el estado previo para la siguiente consulta
-        global.atsMonitorState.previousPlayers = currentNames;
+        const players = rawPlayers.map((p, idx) => ({
+            client_id: p.client_id || p.id || `${idx + 1}`,
+            username: p.username || p.name || 'Conductor',
+            avatar: 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'
+        }));
 
-        // Calcular tiempo de actividad del backend (Uptime)
-        const apiUptime = Math.floor((Date.now() - global.atsMonitorState.startTime) / 1000);
-
-        // Respuesta final que recibe el sitio web
         return res.status(200).json({
-            serverRunning,
-            serverName,
-            sessionID,
-            game_version: gameVersion,
-            slots,
-            connectedPlayers,
-            apiUptime,
-            events: global.atsMonitorState.eventHistory
+            serverRunning: atsData.serverRunning !== undefined ? atsData.serverRunning : true,
+            serverName: atsData.serverName || '[ES] ECUADOR SERVER +593',
+            sessionID: atsData.sessionID || atsData.sessionId || 'N/D',
+            slots: atsData.slots || atsData.maxPlayers || 32,
+            game_version: atsData.game_version || atsData.version || '1.58.x',
+            apiUptime: atsData.apiUptime || atsData.uptime || 0,
+            connectedPlayers: players
         });
 
-    } catch (error) {
-        return res.status(500).json({
+    } catch (err) {
+        return res.status(200).json({
             serverRunning: false,
-            error: "Error al consultar el estado del servidor",
-            events: global.atsMonitorState ? global.atsMonitorState.eventHistory : []
+            error: err.message,
+            connectedPlayers: []
         });
     }
 }
