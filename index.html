@@ -268,7 +268,7 @@
 
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
             gap: 1.2rem;
         }
 
@@ -278,15 +278,39 @@
             border-radius: 14px;
             padding: 1.2rem;
             display: flex;
-            align-items: center;
-            justify-content: space-between;
+            flex-direction: column;
+            gap: 0.8rem;
             transition: all 0.2s ease;
+            position: relative;
         }
 
         .player-card:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--ec-blue);
             transform: scale(1.02);
+        }
+
+        .player-card.top-driver {
+            border-color: var(--ec-yellow);
+            box-shadow: 0 0 15px rgba(255, 218, 26, 0.2);
+            background: rgba(255, 218, 26, 0.05);
+        }
+
+        .top-driver-badge {
+            position: absolute;
+            top: -10px;
+            right: 12px;
+            background: linear-gradient(135deg, var(--ec-yellow), #d97706);
+            color: #000;
+            padding: 0.2rem 0.6rem;
+            border-radius: 20px;
+            font-size: 0.7rem;
+            font-weight: 800;
+            text-transform: uppercase;
+            box-shadow: 0 0 10px rgba(255, 218, 26, 0.5);
+            display: flex;
+            align-items: center;
+            gap: 0.3rem;
         }
 
         .player-header {
@@ -315,13 +339,35 @@
             font-family: 'JetBrains Mono', monospace;
         }
 
+        .player-meta {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            background: rgba(0, 0, 0, 0.25);
+            padding: 0.6rem 0.8rem;
+            border-radius: 8px;
+            font-size: 0.78rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .join-time {
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .join-time i {
+            color: var(--accent-cyan);
+        }
+
         .timer-badge {
             background: rgba(16, 185, 129, 0.15);
             color: var(--status-green);
             border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.3rem 0.7rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
+            padding: 0.25rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
             font-weight: 700;
             font-family: 'JetBrains Mono', monospace;
             display: flex;
@@ -436,7 +482,8 @@
     </footer>
 
     <script>
-        const playerTimers = new Map();
+        // Estructura para registrar hora de ingreso y timestamp de inicio
+        const playerSessions = new Map();
 
         function formatUptime(seconds) {
             if (!seconds || isNaN(seconds)) return '--';
@@ -451,6 +498,10 @@
             const mins = Math.floor((elapsed % 3600) / 60);
             const secs = elapsed % 60;
             return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m ${secs}s`;
+        }
+
+        function getFormattedTime(date) {
+            return date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
         }
 
         async function updateStatus() {
@@ -481,21 +532,48 @@
                         playersList.innerHTML = '';
                         const currentActiveKeys = new Set();
 
+                        // 1. Registrar sesión u hora de ingreso para nuevos conductores
                         players.forEach((p, idx) => {
                             const username = p.username || 'Conductor';
                             const clientId = p.client_id || `${idx + 1}`;
                             const pKey = `${username}_${clientId}`;
                             currentActiveKeys.add(pKey);
 
-                            if (!playerTimers.has(pKey)) {
-                                playerTimers.set(pKey, Date.now());
+                            if (!playerSessions.has(pKey)) {
+                                const now = new Date();
+                                playerSessions.set(pKey, {
+                                    startTime: now.getTime(),
+                                    joinTimeStr: getFormattedTime(now)
+                                });
                             }
+                        });
 
+                        // 2. Determinar al conductor con mayor tiempo conectado (Rey de la Ruta)
+                        let oldestKey = null;
+                        let oldestTime = Infinity;
+
+                        currentActiveKeys.forEach(pKey => {
+                            const sess = playerSessions.get(pKey);
+                            if (sess && sess.startTime < oldestTime) {
+                                oldestTime = sess.startTime;
+                                oldestKey = pKey;
+                            }
+                        });
+
+                        // 3. Renderizar las tarjetas de conductores
+                        players.forEach((p, idx) => {
+                            const username = p.username || 'Conductor';
+                            const clientId = p.client_id || `${idx + 1}`;
+                            const pKey = `${username}_${clientId}`;
+                            const session = playerSessions.get(pKey);
+
+                            const isTopDriver = (pKey === oldestKey) && (players.length > 1 || Math.floor((Date.now() - session.startTime)/1000) > 30);
                             const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
                             const item = document.createElement('div');
-                            item.className = 'player-card';
+                            item.className = `player-card ${isTopDriver ? 'top-driver' : ''}`;
                             item.innerHTML = `
+                                ${isTopDriver ? '<div class="top-driver-badge"><i class="fa-solid fa-crown"></i> Rey de la Ruta</div>' : ''}
                                 <div class="player-header">
                                     <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
                                     <div class="player-details">
@@ -503,20 +581,27 @@
                                         <p>Client ID: ${clientId}</p>
                                     </div>
                                 </div>
-                                <div class="timer-badge">
-                                    <i class="fa-solid fa-clock"></i>
-                                    <span class="player-timer-text" data-key="${pKey}">${formatDuration(playerTimers.get(pKey))}</span>
+                                <div class="player-meta">
+                                    <div class="join-time">
+                                        <i class="fa-solid fa-right-to-bracket"></i>
+                                        <span>Ingreso: <strong>${session ? session.joinTimeStr : '--:--'}</strong></span>
+                                    </div>
+                                    <div class="timer-badge">
+                                        <i class="fa-solid fa-clock"></i>
+                                        <span class="player-timer-text" data-key="${pKey}">${session ? formatDuration(session.startTime) : '0m 0s'}</span>
+                                    </div>
                                 </div>
                             `;
                             playersList.appendChild(item);
                         });
 
-                        for (const key of playerTimers.keys()) {
-                            if (!currentActiveKeys.has(key)) playerTimers.delete(key);
+                        // Limpiar memoria de jugadores desconectados
+                        for (const key of playerSessions.keys()) {
+                            if (!currentActiveKeys.has(key)) playerSessions.delete(key);
                         }
 
                     } else {
-                        playerTimers.clear();
+                        playerSessions.clear();
                         playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
                     }
 
@@ -539,8 +624,8 @@
         setInterval(() => {
             document.querySelectorAll('.player-timer-text').forEach(el => {
                 const pKey = el.getAttribute('data-key');
-                if (pKey && playerTimers.has(pKey)) {
-                    el.textContent = formatDuration(playerTimers.get(pKey));
+                if (pKey && playerSessions.has(pKey)) {
+                    el.textContent = formatDuration(playerSessions.get(pKey).startTime);
                 }
             });
         }, 1000);
