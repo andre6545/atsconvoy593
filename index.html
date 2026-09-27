@@ -1,890 +1,270 @@
-<!DOCTYPE html>
-<html lang="es">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ATS ECUADOR SERVER (+593)</title>
-    <!-- Fonts & Icons -->
-    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.1/css/all.min.css">
-
-    <style>
-        :root {
-            --bg-dark: #070a11;
-            --panel-bg: rgba(15, 23, 42, 0.85);
-            --panel-border: rgba(255, 255, 255, 0.1);
-            
-            /* Colores Bandera de Ecuador */
-            --ec-yellow: #ffda1a;
-            --ec-blue: #034ea2;
-            --ec-red: #ed1c24;
-
-            /* Acento Neón Activo */
-            --accent-glow: var(--ec-yellow);
-            --accent-cyan: #06b6d4;
-            --text-primary: #f8fafc;
-            --text-secondary: #94a3b8;
-            --status-green: #10b981;
+12px; border:1px solid var(--border); border-radius:999px; background:var(--panel); font-weight:700; }
+        .dot { width:9px; height:9px; border-radius:50%; background:var(--muted); }
+        .online .dot { background:var(--green); }
+        .offline .dot { background:var(--red); }
+        .timeout .dot { background:var(--yellow); }
+        .api-error .dot { background:var(--orange); }
+        .grid { display:grid; grid-template-columns:repeat(4, 1fr); gap:14px; }
+        .card { background:var(--panel); border:1px solid var(--border); border-radius:16px; padding:18px; }
+        .label { color:var(--muted); font-size:.86rem; margin-bottom:8px; }
+        .value { font-size:1.25rem; font-weight:800; word-break:break-word; }
+        .wide { grid-column:span 2; }
+        .events { margin-top:14px; }
+        .events h2 { margin:0 0 12px; font-size:1.1rem; }
+        .event { display:flex; gap:12px; padding:12px 0; border-bottom:1px solid var(--border); }
+        .event:last-child { border-bottom:0; }
+        .event-time { color:var(--muted); min-width:58px; font-variant-numeric:tabular-nums; }
+        .event-message { flex:1; }
+        .event-type { color:var(--blue); font-size:.76rem; text-transform:uppercase; letter-spacing:.06em; }
+        .players { display:grid; gap:8px; margin-top:10px; }
+        .player { display:flex; justify-content:space-between; gap:12px; padding:10px 12px; border:1px solid var(--border); border-radius:10px; }
+        .muted { color:var(--muted); }
+        .error { color:var(--orange); }
+        .sr-only { position:absolute; width:1px; height:1px; padding:0; margin:-1px; overflow:hidden; clip:rect(0,0,0,0); white-space:nowrap; border:0; }
+        @media (max-width: 760px) {
+            header { flex-direction:column; }
+            .grid { grid-template-columns:1fr 1fr; }
+            .wide { grid-column:span 2; }
         }
-
-        /* Temas Neón Personalizados */
-        body.theme-cyan {
-            --accent-glow: #06b6d4;
+        @media (max-width: 480px) {
+            .wrap { width:min(100% - 20px, 1100px); padding-top:18px; }
+            .grid { grid-template-columns:1fr; }
+            .wide { grid-column:span 1; }
+            .event { flex-direction:column; gap:4px; }
         }
-        body.theme-green {
-            --accent-glow: #10b981;
-        }
-
-        * {
-            box-sizing: border-box;
-            margin: 0;
-            padding: 0;
-            font-family: 'Outfit', sans-serif;
-        }
-
-        body {
-            background-color: var(--bg-dark);
-            color: var(--text-primary);
-            min-height: 100vh;
-            display: flex;
-            flex-direction: column;
-            overflow-x: hidden;
-            background-image: 
-                radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
-                radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
-            transition: --accent-glow 0.3s ease;
-        }
-
-        .ec-stripe {
-            height: 5px;
-            width: 100%;
-            background: linear-gradient(90deg, var(--ec-yellow) 50%, var(--ec-blue) 50% 75%, var(--ec-red) 75%);
-            position: fixed;
-            top: 0;
-            z-index: 1001;
-            box-shadow: 0 0 12px var(--accent-glow);
-        }
-
-        header {
-            margin-top: 5px;
-            background: rgba(10, 15, 26, 0.9);
-            border-bottom: 1px solid var(--panel-border);
-            padding: 1rem 2rem;
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            backdrop-filter: blur(15px);
-            position: sticky;
-            top: 5px;
-            z-index: 1000;
-        }
-
-        .brand {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .brand-icon {
-            background: linear-gradient(135deg, var(--accent-glow), var(--ec-red));
-            width: 50px;
-            height: 50px;
-            border-radius: 12px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 1.6rem;
-            color: #000;
-            box-shadow: 0 0 20px var(--accent-glow);
-            animation: pulse-glow 3s infinite alternate;
-        }
-
-        @keyframes pulse-glow {
-            0% { box-shadow: 0 0 10px var(--accent-glow); }
-            100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
-        }
-
-        .brand-title h1 {
-            font-size: 1.3rem;
-            font-weight: 900;
-            letter-spacing: 0.5px;
-            text-transform: uppercase;
-            background: linear-gradient(90deg, #fff, var(--accent-glow));
-            -webkit-background-clip: text;
-            -webkit-text-fill-color: transparent;
-        }
-
-        .brand-title p {
-            font-size: 0.8rem;
-            color: var(--text-secondary);
-        }
-
-        .header-actions {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .theme-selector {
-            display: flex;
-            gap: 0.4rem;
-            background: rgba(255, 255, 255, 0.05);
-            padding: 0.3rem 0.5rem;
-            border-radius: 20px;
-            border: 1px solid var(--panel-border);
-        }
-
-        .theme-dot {
-            width: 14px;
-            height: 14px;
-            border-radius: 50%;
-            cursor: pointer;
-            transition: transform 0.2s ease, border 0.2s ease;
-            border: 2px solid transparent;
-        }
-
-        .theme-dot:hover {
-            transform: scale(1.2);
-        }
-
-        .theme-dot.yellow { background: var(--ec-yellow); }
-        .theme-dot.cyan { background: var(--accent-cyan); }
-        .theme-dot.green { background: var(--status-green); }
-
-        .status-pill {
-            display: flex;
-            align-items: center;
-            gap: 0.6rem;
-            background: rgba(16, 185, 129, 0.15);
-            border: 1px solid rgba(16, 185, 129, 0.4);
-            padding: 0.5rem 1.2rem;
-            border-radius: 30px;
-            font-size: 0.85rem;
-            font-weight: 700;
-            color: var(--status-green);
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
-        }
-
-        .status-pill.offline {
-            background: rgba(237, 28, 36, 0.15);
-            border-color: rgba(237, 28, 36, 0.4);
-            color: var(--ec-red);
-            box-shadow: 0 0 15px rgba(237, 28, 36, 0.2);
-        }
-
-        .indicator {
-            width: 10px;
-            height: 10px;
-            border-radius: 50%;
-            background-color: currentColor;
-            box-shadow: 0 0 10px currentColor;
-            animation: blink 1.5s infinite;
-        }
-
-        @keyframes blink { 50% { opacity: 0.4; } }
-
-        .hero-banner {
-            position: relative;
-            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
-                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
-            padding: 3rem 2rem;
-            border-bottom: 1px solid var(--panel-border);
-            text-align: center;
-            overflow: hidden;
-        }
-
-        .hero-content h2 {
-            font-size: 2.2rem;
-            font-weight: 900;
-            text-transform: uppercase;
-            text-shadow: 0 0 20px rgba(0,0,0,0.8);
-            margin-bottom: 0.5rem;
-        }
-
-        .hero-badges {
-            display: flex;
-            justify-content: center;
-            gap: 0.8rem;
-            flex-wrap: wrap;
-            margin-top: 1rem;
-        }
-
-        .badge {
-            background: rgba(255, 255, 255, 0.08);
-            border: 1px solid rgba(255, 255, 255, 0.15);
-            padding: 0.3rem 0.8rem;
-            border-radius: 20px;
-            font-size: 0.8rem;
-            font-weight: 600;
-            backdrop-filter: blur(5px);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .road-animation {
-            width: 100%;
-            height: 40px;
-            border-bottom: 2px dashed rgba(255,255,255,0.2);
-            position: relative;
-            overflow: hidden;
-            margin-top: 1.5rem;
-        }
-
-        .moving-truck {
-            position: absolute;
-            bottom: 2px;
-            font-size: 1.8rem;
-            color: var(--accent-glow);
-            animation: drive 12s linear infinite;
-            filter: drop-shadow(0 0 8px var(--accent-glow));
-        }
-
-        @keyframes drive {
-            0% { left: -10%; }
-            100% { left: 110%; }
-        }
-
-        .container {
-            max-width: 1300px;
-            width: 95%;
-            margin: 2rem auto;
-            display: grid;
-            gap: 2rem;
-            flex: 1;
-        }
-
-        .metrics-row {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
-            gap: 1.25rem;
-        }
-
-        .metric-card {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 16px;
-            padding: 1.5rem;
-            backdrop-filter: blur(10px);
-            transition: transform 0.2s ease, border-color 0.2s ease;
-        }
-
-        .metric-card:hover {
-            transform: translateY(-5px);
-            border-color: var(--accent-glow);
-        }
-
-        .metric-header {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            margin-bottom: 0.8rem;
-            color: var(--text-secondary);
-            font-size: 0.85rem;
-            text-transform: uppercase;
-            font-weight: 700;
-        }
-
-        .metric-value-box {
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 0.5rem;
-        }
-
-        .metric-value {
-            font-size: 1.4rem;
-            font-weight: 800;
-            font-family: 'JetBrains Mono', monospace;
-            color: var(--text-primary);
-            overflow: hidden;
-            text-overflow: ellipsis;
-            white-space: nowrap;
-        }
-
-        .copy-btn {
-            background: rgba(255, 218, 26, 0.15);
-            border: 1px solid rgba(255, 218, 26, 0.3);
-            color: var(--accent-glow);
-            padding: 0.4rem 0.7rem;
-            border-radius: 8px;
-            cursor: pointer;
-            font-size: 0.85rem;
-            transition: all 0.2s ease;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-        }
-
-        .copy-btn:hover {
-            background: var(--accent-glow);
-            color: #000;
-            box-shadow: 0 0 10px var(--accent-glow);
-        }
-
-        .panels-grid {
-            display: grid;
-            grid-template-columns: 2fr 1fr;
-            gap: 2rem;
-        }
-        
-        @media (max-width: 900px) {
-            .panels-grid {
-                grid-template-columns: 1fr;
-            }
-        }
-
-        .panel-box {
-            background: var(--panel-bg);
-            border: 1px solid var(--panel-border);
-            border-radius: 18px;
-            padding: 1.8rem;
-            backdrop-filter: blur(10px);
-            display: flex;
-            flex-direction: column;
-        }
-
-        .panel-title {
-            font-size: 1.2rem;
-            font-weight: 800;
-            margin-bottom: 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            flex-wrap: wrap;
-            gap: 1rem;
-            border-bottom: 1px solid rgba(255,255,255,0.08);
-            padding-bottom: 0.8rem;
-        }
-
-        .search-input {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--panel-border);
-            color: var(--text-primary);
-            padding: 0.45rem 0.9rem;
-            border-radius: 8px;
-            font-size: 0.85rem;
-            outline: none;
-            transition: border-color 0.2s ease;
-            width: 220px;
-        }
-
-        .search-input:focus {
-            border-color: var(--accent-cyan);
-        }
-
-        .players-container {
-            display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
-            gap: 1.2rem;
-            max-height: 400px;
-            overflow-y: auto;
-            padding-right: 5px;
-        }
-
-        .players-container::-webkit-scrollbar, .event-list::-webkit-scrollbar { width: 6px; }
-        .players-container::-webkit-scrollbar-thumb, .event-list::-webkit-scrollbar-thumb { 
-            background: rgba(255,255,255,0.1); 
-            border-radius: 6px; 
-        }
-
-        .player-card {
-            background: rgba(255, 255, 255, 0.03);
-            border: 1px solid var(--panel-border);
-            border-radius: 14px;
-            padding: 1.2rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            transition: all 0.2s ease;
-        }
-
-        .player-card:hover {
-            background: rgba(255, 255, 255, 0.08);
-            border-color: var(--ec-blue);
-            transform: scale(1.02);
-        }
-
-        .player-header {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .player-avatar {
-            width: 48px;
-            height: 48px;
-            border-radius: 10px;
-            object-fit: cover;
-            border: 2px solid var(--accent-glow);
-        }
-
-        .player-details h4 {
-            font-size: 1rem;
-            font-weight: 700;
-            color: var(--text-primary);
-        }
-
-        .player-details p {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
-        }
-
-        .player-status-badge {
-            background: rgba(16, 185, 129, 0.15);
-            color: var(--status-green);
-            border: 1px solid rgba(16, 185, 129, 0.3);
-            padding: 0.3rem 0.7rem;
-            border-radius: 8px;
-            font-size: 0.8rem;
-            font-weight: 700;
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .empty-state {
-            text-align: center;
-            padding: 3rem 1rem;
-            color: var(--text-secondary);
-            font-style: italic;
-            grid-column: 1 / -1;
-        }
-
-        .event-list {
-            display: flex;
-            flex-direction: column;
-            gap: 0.8rem;
-            max-height: 400px;
-            overflow-y: auto;
-        }
-
-        .event-item {
-            display: flex;
-            gap: 1rem;
-            padding: 0.8rem;
-            background: rgba(255, 255, 255, 0.02);
-            border-left: 3px solid var(--accent-glow);
-            border-radius: 6px;
-            font-size: 0.85rem;
-            animation: fadeIn 0.4s ease;
-        }
-
-        .event-item.system { border-left-color: var(--ec-yellow); }
-        .event-item.join { border-left-color: var(--status-green); }
-        .event-item.leave { border-left-color: var(--ec-red); }
-
-        .event-time {
-            color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
-            font-size: 0.75rem;
-            min-width: 65px;
-        }
-
-        @keyframes fadeIn {
-            from { opacity: 0; transform: translateX(-15px); }
-            to { opacity: 1; transform: translateX(0); }
-        }
-
-        .toast {
-            position: fixed;
-            bottom: 25px;
-            right: 25px;
-            background: rgba(15, 23, 42, 0.95);
-            border: 1px solid var(--accent-glow);
-            color: var(--text-primary);
-            padding: 0.8rem 1.4rem;
-            border-radius: 12px;
-            box-shadow: 0 0 20px rgba(0, 0, 0, 0.8);
-            display: flex;
-            align-items: center;
-            gap: 0.7rem;
-            font-size: 0.9rem;
-            font-weight: 700;
-            opacity: 0;
-            transform: translateY(20px);
-            transition: all 0.3s cubic-bezier(0.68, -0.55, 0.265, 1.55);
-            pointer-events: none;
-            z-index: 2000;
-        }
-
-        .toast.show {
-            opacity: 1;
-            transform: translateY(0);
-        }
-
-        .toast i {
-            color: var(--accent-glow);
-            font-size: 1.1rem;
-        }
-
-        footer {
-            margin-top: 3rem;
-            padding: 2rem;
-            text-align: center;
-            font-size: 0.85rem;
-            color: var(--text-secondary);
-            background: rgba(5, 8, 15, 0.95);
-            border-top: 1px solid var(--panel-border);
-        }
-
-        footer strong { color: var(--accent-glow); }
     </style>
 </head>
 <body>
-
-    <div class="ec-stripe"></div>
-
+<main class="wrap">
     <header>
-        <div class="brand">
-            <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
-            <div class="brand-title">
-                <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
-                <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
-            </div>
+        <div>
+            <h1 id="serverName">ATS Monitor</h1>
+            <p class="subtitle">Monitor de estado y actividad del servidor</p>
         </div>
-
-        <div class="header-actions">
-            <div class="theme-selector" title="Cambiar color neón">
-                <div class="theme-dot yellow" onclick="setTheme('')"></div>
-                <div class="theme-dot cyan" onclick="setTheme('theme-cyan')"></div>
-                <div class="theme-dot green" onclick="setTheme('theme-green')"></div>
-            </div>
-
-            <div id="serverStatusPill" class="status-pill">
-                <div class="indicator"></div>
-                <span id="statusText">Cargando...</span>
-                <span id="refreshTimer" style="font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8;">(10s)</span>
-            </div>
+        <div id="statusPill" class="status-pill" role="status" aria-live="polite">
+            <span class="dot" aria-hidden="true"></span>
+            <span id="statusText">Comprobando…</span>
         </div>
     </header>
 
-    <section class="hero-banner">
-        <div class="hero-content">
-            <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
-            <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
-            
-            <div class="hero-badges">
-                <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
-                <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
-                <span class="badge"><i class="fa-solid fa-mountain"></i> Ecuador Truckers</span>
+    <section class="grid" aria-label="Estado del servidor">
+        <article class="card">
+            <div class="label">Estado</div>
+            <div class="value" id="serverState">Comprobando…</div>
+        </article>
+        <article class="card">
+            <div class="label">Jugadores</div>
+            <div class="value" id="playerCount">—</div>
+        </article>
+        <article class="card">
+            <div class="label">Slots</div>
+            <div class="value" id="slotCount">—</div>
+        </article>
+        <article class="card">
+            <div class="label">Versión</div>
+            <div class="value" id="gameVersion">—</div>
+        </article>
+        <article class="card wide">
+            <div class="label">Session ID</div>
+            <div class="value" id="sessionId">—</div>
+        </article>
+        <article class="card">
+            <div class="label">Uptime de API</div>
+            <div class="value" id="apiUptime">—</div>
+        </article>
+        <article class="card wide">
+            <div class="label">Jugadores conectados</div>
+            <div id="players" class="players">
+                <div class="muted">Sin datos.</div>
             </div>
-        </div>
-
-        <div class="road-animation">
-            <i class="fa-solid fa-truck-moving moving-truck"></i>
-        </div>
+        </article>
+        <article class="card wide events">
+            <h2>Historial reciente</h2>
+            <div id="events" aria-live="polite"></div>
+        </article>
     </section>
+</main>
 
-    <div class="container">
-        <div class="metrics-row">
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span>ID de Sesión (Server ID)</span>
-                    <i class="fa-solid fa-fingerprint" style="color: var(--accent-glow)"></i>
-                </div>
-                <div class="metric-value-box">
-                    <div class="metric-value" id="valSessionId">--</div>
-                    <button class="copy-btn" id="btnCopySession" title="Copiar Server ID" onclick="copySessionId()">
-                        <i class="fa-regular fa-copy"></i>
-                    </button>
-                </div>
-            </div>
+<script>
+(() => {
+    'use strict';
 
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span>Conexión / Jugadores</span>
-                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
-                </div>
-                <div class="metric-value-box">
-                    <div class="metric-value" id="valPlayers">0 / 0</div>
-                </div>
-                <div style="width: 100%; background: rgba(255,255,255,0.08); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
-                    <div id="playerBar" style="width: 0%; height: 100%; background: var(--accent-cyan); transition: width 0.4s ease, background 0.3s ease;"></div>
-                </div>
-            </div>
+    const POLL_INTERVAL_MS = 10000;
+    const REQUEST_TIMEOUT_MS = 8000;
+    let isUpdating = false;
+    let countdown = 10;
 
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span>Versión de ATS</span>
-                    <i class="fa-solid fa-code-branch" style="color: var(--ec-red)"></i>
-                </div>
-                <div class="metric-value-box">
-                    <div class="metric-value" id="valVersion">--</div>
-                </div>
-            </div>
+    const $ = (id) => document.getElementById(id);
 
-            <div class="metric-card">
-                <div class="metric-header">
-                    <span>Tiempo Activo (Uptime)</span>
-                    <i class="fa-solid fa-stopwatch" style="color: var(--status-green)"></i>
-                </div>
-                <div class="metric-value-box">
-                    <div class="metric-value" id="valUptime">--</div>
-                </div>
-            </div>
-        </div>
+    const statusPill = $('statusPill');
+    const statusText = $('statusText');
+    const serverState = $('serverState');
+    const serverName = $('serverName');
+    const playerCount = $('playerCount');
+    const slotCount = $('slotCount');
+    const gameVersion = $('gameVersion');
+    const sessionId = $('sessionId');
+    const apiUptime = $('apiUptime');
+    const players = $('players');
+    const events = $('events');
 
-        <div class="panels-grid">
-            <div class="panel-box">
-                <div class="panel-title">
-                    <div style="display: flex; align-items: center; gap: 0.7rem;">
-                        <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
-                        Conductores Conectados
-                    </div>
-                    <input type="text" id="searchDriver" class="search-input" placeholder="🔍 Buscar conductor..." oninput="filterDrivers()">
-                </div>
-                <div class="players-container" id="playersList">
-                    <div class="empty-state">Consultando lista de conductores...</div>
-                </div>
-            </div>
+    function formatUptime(totalSeconds) {
+        const seconds = Math.max(0, Number(totalSeconds) || 0);
+        const days = Math.floor(seconds / 86400);
+        const hours = Math.floor((seconds % 86400) / 3600);
+        const minutes = Math.floor((seconds % 3600) / 60);
+        const secs = seconds % 60;
+        const parts = [];
+        if (days) parts.push(`${days}d`);
+        if (hours || days) parts.push(`${hours}h`);
+        if (minutes || hours || days) parts.push(`${minutes}m`);
+        parts.push(`${secs}s`);
+        return parts.join(' ');
+    }
 
-            <div class="panel-box">
-                <div class="panel-title">
-                    <div style="display: flex; align-items: center; gap: 0.7rem;">
-                        <i class="fa-solid fa-satellite-dish" style="color: var(--ec-yellow)"></i>
-                        Radio CB (Eventos)
-                    </div>
-                </div>
-                <div class="event-list" id="eventList">
-                    <div class="empty-state">Cargando historial...</div>
-                </div>
-            </div>
-        </div>
-    </div>
+    function setStatus(state, label) {
+        statusPill.classList.remove('online', 'offline', 'timeout', 'api-error');
+        statusPill.classList.add(state);
+        statusText.textContent = label;
+        serverState.textContent = label;
+    }
 
-    <div id="toastNotification" class="toast">
-        <i class="fa-solid fa-circle-check"></i>
-        <span id="toastText">¡Server ID copiado al portapapeles!</span>
-    </div>
+    function safeText(value, fallback = '—') {
+        return value === null || value === undefined ? fallback : String(value);
+    }
 
-    <footer>
-        <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
-    </footer>
+    function renderPlayers(list) {
+        players.replaceChildren();
 
-    <script>
-        let rawSessionId = '';
-        let countdown = 10;
-        let searchAudioTimer;
-
-        // --- EFECTOS DE SONIDO (WEB AUDIO API) ---
-        function playThemeChangeSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'sawtooth';
-                osc.frequency.setValueAtTime(65, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(120, ctx.currentTime + 0.3);
-                gain.gain.setValueAtTime(0.08, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.3);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.3);
-            } catch (e) {}
+        if (!Array.isArray(list) || list.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'muted';
+            empty.textContent = 'No hay jugadores conectados.';
+            players.appendChild(empty);
+            return;
         }
 
-        function playRadioClickSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const osc = ctx.createOscillator();
-                const gain = ctx.createGain();
-                osc.type = 'square';
-                osc.frequency.setValueAtTime(150, ctx.currentTime);
-                osc.frequency.exponentialRampToValueAtTime(40, ctx.currentTime + 0.1);
-                gain.gain.setValueAtTime(0.03, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.1);
-                osc.connect(gain);
-                gain.connect(ctx.destination);
-                osc.start();
-                osc.stop(ctx.currentTime + 0.1);
-            } catch (e) {}
+        const fragment = document.createDocumentFragment();
+
+        for (const player of list) {
+            const item = document.createElement('div');
+            item.className = 'player';
+
+            const name = document.createElement('strong');
+            name.textContent = safeText(player?.username, 'Conductor');
+
+            const id = document.createElement('span');
+            id.className = 'muted';
+            id.textContent = safeText(player?.client_id, '');
+
+            item.append(name, id);
+            fragment.appendChild(item);
         }
 
-        function playAirBrakeSound() {
-            try {
-                const ctx = new (window.AudioContext || window.webkitAudioContext)();
-                const bufferSize = ctx.sampleRate * 0.25;
-                const buffer = ctx.createBuffer(1, bufferSize, ctx.sampleRate);
-                const data = buffer.getChannelData(0);
-                for (let i = 0; i < bufferSize; i++) data[i] = Math.random() * 2 - 1;
-                const noise = ctx.createBufferSource();
-                noise.buffer = buffer;
-                const filter = ctx.createBiquadFilter();
-                filter.type = 'bandpass';
-                filter.frequency.value = 1200;
-                filter.Q.value = 1.5;
-                const gain = ctx.createGain();
-                gain.gain.setValueAtTime(0.2, ctx.currentTime);
-                gain.gain.exponentialRampToValueAtTime(0.01, ctx.currentTime + 0.25);
-                noise.connect(filter);
-                filter.connect(gain);
-                gain.connect(ctx.destination);
-                noise.start();
-            } catch (e) {}
+        players.appendChild(fragment);
+    }
+
+    function renderEvents(list) {
+        events.replaceChildren();
+
+        if (!Array.isArray(list) || list.length === 0) {
+            const empty = document.createElement('div');
+            empty.className = 'muted';
+            empty.textContent = 'No hay eventos registrados.';
+            events.appendChild(empty);
+            return;
         }
 
-        // --- LÓGICA DE INTERFAZ ---
-        function setTheme(themeName, isInit = false) {
-            document.body.className = themeName;
-            localStorage.setItem('ats_theme', themeName);
-            if (!isInit) playThemeChangeSound();
+        const fragment = document.createDocumentFragment();
+
+        for (const event of list) {
+            const item = document.createElement('div');
+            item.className = 'event';
+
+            const time = document.createElement('span');
+            time.className = 'event-time';
+            time.textContent = safeText(event?.time, '--:--');
+
+            const content = document.createElement('div');
+
+            const type = document.createElement('div');
+            type.className = 'event-type';
+            type.textContent = safeText(event?.type, 'system');
+
+            const message = document.createElement('div');
+            message.className = 'event-message';
+            message.textContent = safeText(event?.message, '');
+
+            content.append(type, message);
+            item.append(time, content);
+            fragment.appendChild(item);
         }
 
-        const savedTheme = localStorage.getItem('ats_theme');
-        if (savedTheme) setTheme(savedTheme, true);
+        events.appendChild(fragment);
+    }
 
-        function showToast(message) {
-            const toast = document.getElementById('toastNotification');
-            document.getElementById('toastText').textContent = message;
-            toast.classList.add('show');
-            setTimeout(() => { toast.classList.remove('show'); }, 3000);
-        }
+    async function updateStatus() {
+        if (isUpdating) return;
+        isUpdating = true;
 
-        function copySessionId() {
-            if (!rawSessionId || rawSessionId === '--' || rawSessionId === 'N/D' || rawSessionId === 'Sin Conexión') {
-                showToast('No hay una sesión activa para copiar');
-                return;
-            }
-            navigator.clipboard.writeText(rawSessionId).then(() => {
-                playAirBrakeSound();
-                showToast('¡Server ID copiado al portapapeles!');
-            }).catch(() => showToast('Error al copiar el ID'));
-        }
+        const controller = new AbortController();
+        const timeoutId = setTimeout(() => controller.abort(), REQUEST_TIMEOUT_MS);
 
-        function formatUptime(seconds) {
-            if (!seconds || isNaN(seconds)) return '--';
-            const hrs = Math.floor(seconds / 3600);
-            const mins = Math.floor((seconds % 3600) / 60);
-            return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
-        }
-
-        function filterDrivers() {
-            clearTimeout(searchAudioTimer);
-            searchAudioTimer = setTimeout(() => playRadioClickSound(), 300);
-
-            const term = document.getElementById('searchDriver').value.toLowerCase();
-            const cards = document.querySelectorAll('#playersList .player-card');
-            cards.forEach(card => {
-                const name = card.querySelector('h4').textContent.toLowerCase();
-                card.style.display = name.includes(term) ? 'flex' : 'none';
+        try {
+            const response = await fetch('/api/status', {
+                method: 'GET',
+                cache: 'no-store',
+                headers: { 'Accept': 'application/json' },
+                signal: controller.signal
             });
-        }
 
-        function renderEvents(eventsArray) {
-            const list = document.getElementById('eventList');
-            list.innerHTML = ''; 
-
-            if (!eventsArray || eventsArray.length === 0) {
-                list.innerHTML = '<div class="empty-state">No hay eventos registrados en el servidor.</div>';
-                return;
+            if (!response.ok) {
+                throw new Error(`HTTP_${response.status}`);
             }
 
-            eventsArray.forEach(ev => {
-                const item = document.createElement('div');
-                item.className = `event-item ${ev.type}`;
-                item.innerHTML = `
-                    <span class="event-time">${ev.time}</span>
-                    <span class="event-message">${ev.message}</span>
-                `;
-                list.appendChild(item);
-            });
-        }
+            const data = await response.json();
 
-        async function updateStatus() {
-            try {
-                const response = await fetch('/api/status');
-                const data = await response.json();
+            serverName.textContent = safeText(data.serverName, 'ATS Monitor');
+            playerCount.textContent = Array.isArray(data.connectedPlayers) ? data.connectedPlayers.length : 0;
+            slotCount.textContent = safeText(data.slots, '—');
+            gameVersion.textContent = safeText(data.game_version, '—');
+            sessionId.textContent = safeText(data.sessionID, '—');
+            apiUptime.textContent = formatUptime(data.apiUptime);
 
-                const statusPill = document.getElementById('serverStatusPill');
-                const statusText = document.getElementById('statusText');
+            const state = safeText(data.status, data.serverRunning ? 'online' : 'offline');
 
-                if (response.ok && data.serverRunning) {
-                    statusPill.classList.remove('offline');
-                    statusText.textContent = 'En Línea';
-
-                    document.getElementById('serverNameHeader').textContent = data.serverName || 'ATS ECUADOR SERVER';
-                    
-                    rawSessionId = data.sessionID || 'N/D';
-                    document.getElementById('valSessionId').textContent = rawSessionId;
-                    
-                    const players = data.connectedPlayers || [];
-                    const slots = data.slots || 32;
-                    document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
-                    
-                    const pct = slots > 0 ? Math.min((players.length / slots) * 100, 100) : 0;
-                    const playerBar = document.getElementById('playerBar');
-                    playerBar.style.width = `${pct}%`;
-                    playerBar.style.background = pct >= 90 ? 'var(--ec-red)' : 'var(--accent-cyan)';
-
-                    document.getElementById('valVersion').textContent = data.game_version || '--';
-                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
-                    document.title = `🟢 (${players.length}/${slots}) ATS ECUADOR SERVER`;
-
-                    const playersList = document.getElementById('playersList');
-                    if (players.length > 0) {
-                        playersList.innerHTML = '';
-                        players.forEach((p, idx) => {
-                            const username = p.username || 'Conductor';
-                            const clientId = p.client_id || `${idx + 1}`;
-                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
-
-                            const item = document.createElement('div');
-                            item.className = 'player-card';
-                            item.innerHTML = `
-                                <div class="player-header">
-                                    <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
-                                    <div class="player-details">
-                                        <h4>${username}</h4>
-                                        <p>Client ID: ${clientId}</p>
-                                    </div>
-                                </div>
-                                <div class="player-status-badge">
-                                    <i class="fa-solid fa-steering-wheel"></i> En Ruta
-                                </div>
-                            `;
-                            playersList.appendChild(item);
-                        });
-                        filterDrivers();
-                    } else {
-                        playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
-                    }
-
-                    renderEvents(data.events);
-
-                } else {
-                    throw new Error(data.error || 'Servidor detenido');
-                }
-
-            } catch (err) {
-                const statusPill = document.getElementById('serverStatusPill');
-                statusPill.classList.add('offline');
-                document.getElementById('statusText').textContent = 'Fuera de Línea';
-                rawSessionId = 'Sin Conexión';
-                document.getElementById('valSessionId').textContent = rawSessionId;
-                document.getElementById('valPlayers').textContent = '0 / 0';
-                document.getElementById('playerBar').style.width = '0%';
-                document.getElementById('valVersion').textContent = '--';
-                document.getElementById('valUptime').textContent = '--';
-                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
-                document.title = `🔴 Fuera de Línea | ATS ECUADOR SERVER`;
+            if (state === 'online') {
+                setStatus('online', 'En Línea');
+            } else if (state === 'timeout') {
+                setStatus('timeout', 'Timeout');
+            } else if (state === 'api_error') {
+                setStatus('api-error', 'API con problemas');
+            } else {
+                setStatus('offline', 'Servidor ATS fuera de línea');
             }
+
+            renderPlayers(data.connectedPlayers ?? []);
+            renderEvents(data.events ?? []);
+        } catch (error) {
+            if (error?.name === 'AbortError') {
+                setStatus('timeout', 'Timeout');
+            } else {
+                setStatus('api-error', 'API con problemas');
+            }
+            serverState.classList.add('error');
+        } finally {
+            clearTimeout(timeoutId);
+            isUpdating = false;
         }
+    }
 
-        setInterval(() => {
-            countdown--;
-            if (countdown <= 0) countdown = 10;
-            const timerEl = document.getElementById('refreshTimer');
-            if (timerEl) timerEl.textContent = `(${countdown}s)`;
-        }, 1000);
+    updateStatus();
 
+    setInterval(() => {
+        countdown = 10;
         updateStatus();
-        setInterval(() => {
-            countdown = 10;
-            updateStatus();
-        }, 10000);
-    </script>
+    }, POLL_INTERVAL_MS);
+})();
+</script>
 </body>
 </html>
