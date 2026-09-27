@@ -52,7 +52,7 @@
             background-image: 
                 radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
                 radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
-            transition: --accent-glow 0.3s ease;
+            transition: background-color 0.3s ease;
         }
 
         .ec-stripe {
@@ -570,6 +570,18 @@
 
     <script>
         let rawSessionId = '';
+        let toastTimeout = null;
+
+        // Sanitización para prevenir ataques XSS
+        function escapeHTML(str) {
+            return String(str).replace(/[&<>"']/g, match => ({
+                '&': '&amp;',
+                '<': '&lt;',
+                '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#39;'
+            })[match]);
+        }
 
         // Selector de Tema Neón
         function setTheme(themeName) {
@@ -580,7 +592,7 @@
         const savedTheme = localStorage.getItem('ats_theme');
         if (savedTheme) setTheme(savedTheme);
 
-        // Sonido Neumático de Camión
+        // Sonido Neumático de Camión (Web Audio API)
         function playAirBrakeSound() {
             try {
                 const AudioCtx = window.AudioContext || window.webkitAudioContext;
@@ -618,9 +630,13 @@
         function showToast(message) {
             const toast = document.getElementById('toastNotification');
             const toastText = document.getElementById('toastText');
+            
             toastText.textContent = message;
             toast.classList.add('show');
-            setTimeout(() => {
+
+            if (toastTimeout) clearTimeout(toastTimeout);
+
+            toastTimeout = setTimeout(() => {
                 toast.classList.remove('show');
             }, 3000);
         }
@@ -678,9 +694,9 @@
                         playersList.innerHTML = '';
 
                         players.forEach((p, idx) => {
-                            const username = p.username || 'Conductor';
-                            const clientId = p.client_id || `${idx + 1}`;
-                            const avatarUrl = p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+                            const username = escapeHTML(p.username || 'Conductor');
+                            const clientId = escapeHTML(p.client_id || `${idx + 1}`);
+                            const avatarUrl = escapeHTML(p.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg');
 
                             const item = document.createElement('div');
                             item.className = 'player-card';
