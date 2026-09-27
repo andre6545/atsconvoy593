@@ -336,9 +336,27 @@
             margin-bottom: 1.5rem;
             display: flex;
             align-items: center;
-            gap: 0.7rem;
+            justify-content: space-between;
+            flex-wrap: wrap;
+            gap: 1rem;
             border-bottom: 1px solid rgba(255,255,255,0.08);
             padding-bottom: 0.8rem;
+        }
+
+        .search-input {
+            background: rgba(255, 255, 255, 0.05);
+            border: 1px solid var(--panel-border);
+            color: var(--text-primary);
+            padding: 0.45rem 0.9rem;
+            border-radius: 8px;
+            font-size: 0.85rem;
+            outline: none;
+            transition: border-color 0.2s ease;
+            width: 220px;
+        }
+
+        .search-input:focus {
+            border-color: var(--accent-cyan);
         }
 
         .players-container {
@@ -479,6 +497,7 @@
             <div id="serverStatusPill" class="status-pill">
                 <div class="indicator"></div>
                 <span id="statusText">Cargando...</span>
+                <span id="refreshTimer" style="font-size: 0.75rem; color: var(--text-secondary); opacity: 0.8;">(10s)</span>
             </div>
         </div>
     </header>
@@ -523,6 +542,10 @@
                 <div class="metric-value-box">
                     <div class="metric-value" id="valPlayers">0 / 0</div>
                 </div>
+                <!-- Barra de Ocupación Visual -->
+                <div style="width: 100%; background: rgba(255,255,255,0.08); height: 6px; border-radius: 3px; margin-top: 10px; overflow: hidden;">
+                    <div id="playerBar" style="width: 0%; height: 100%; background: var(--accent-cyan); transition: width 0.4s ease, background 0.3s ease;"></div>
+                </div>
             </div>
 
             <div class="metric-card">
@@ -549,8 +572,11 @@
         <!-- Panel de Conductores Conectados -->
         <div class="panel-box">
             <div class="panel-title">
-                <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
-                Conductores Conectados
+                <div style="display: flex; align-items: center; gap: 0.7rem;">
+                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
+                    Conductores Conectados
+                </div>
+                <input type="text" id="searchDriver" class="search-input" placeholder="🔍 Buscar conductor..." oninput="filterDrivers()">
             </div>
             <div class="players-container" id="playersList">
                 <div class="empty-state">Consultando lista de conductores...</div>
@@ -570,6 +596,7 @@
 
     <script>
         let rawSessionId = '';
+        let countdown = 10;
 
         // Selector de Tema Neón
         function setTheme(themeName) {
@@ -646,6 +673,15 @@
             return hrs > 0 ? `${hrs}h ${mins}m` : `${mins}m`;
         }
 
+        function filterDrivers() {
+            const term = document.getElementById('searchDriver').value.toLowerCase();
+            const cards = document.querySelectorAll('#playersList .player-card');
+            cards.forEach(card => {
+                const name = card.querySelector('h4').textContent.toLowerCase();
+                card.style.display = name.includes(term) ? 'flex' : 'none';
+            });
+        }
+
         async function updateStatus() {
             try {
                 const response = await fetch('/api/status');
@@ -667,6 +703,12 @@
                     const slots = data.slots || 32;
                     document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
                     
+                    // Actualizar barra visual de ocupación
+                    const pct = slots > 0 ? Math.min((players.length / slots) * 100, 100) : 0;
+                    const playerBar = document.getElementById('playerBar');
+                    playerBar.style.width = `${pct}%`;
+                    playerBar.style.background = pct >= 90 ? 'var(--ec-red)' : 'var(--accent-cyan)';
+
                     document.getElementById('valVersion').textContent = data.game_version || '--';
                     document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
 
@@ -699,6 +741,8 @@
                             playersList.appendChild(item);
                         });
 
+                        filterDrivers(); // Re-aplicar filtro si hay búsqueda activa
+
                     } else {
                         playersList.innerHTML = '<div class="empty-state">No hay conductores en el servidor en este momento. 🚛</div>';
                     }
@@ -714,6 +758,7 @@
                 rawSessionId = 'Sin Conexión';
                 document.getElementById('valSessionId').textContent = rawSessionId;
                 document.getElementById('valPlayers').textContent = '0 / 0';
+                document.getElementById('playerBar').style.width = '0%';
                 document.getElementById('valVersion').textContent = '--';
                 document.getElementById('valUptime').textContent = '--';
                 document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
@@ -722,8 +767,19 @@
             }
         }
 
+        // Temporizador visual regresivo
+        setInterval(() => {
+            countdown--;
+            if (countdown <= 0) countdown = 10;
+            const timerEl = document.getElementById('refreshTimer');
+            if (timerEl) timerEl.textContent = `(${countdown}s)`;
+        }, 1000);
+
         updateStatus();
-        setInterval(updateStatus, 10000);
+        setInterval(() => {
+            countdown = 10;
+            updateStatus();
+        }, 10000);
     </script>
 </body>
 </html>
