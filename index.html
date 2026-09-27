@@ -286,7 +286,7 @@
         /* Jugadores */
         .players-container {
             display: grid;
-            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            grid-template-columns: repeat(auto-fill, minmax(320px, 1fr));
             gap: 1rem;
         }
 
@@ -297,41 +297,71 @@
             gap: 1rem;
             background: rgba(255, 255, 255, 0.03);
             border: 1px solid var(--panel-border);
-            border-radius: 12px;
-            padding: 0.9rem 1.1rem;
+            border-radius: 14px;
+            padding: 1rem 1.1rem;
             transition: all 0.2s ease;
         }
 
         .player-card:hover {
             background: rgba(255, 255, 255, 0.08);
             border-color: var(--ec-blue);
-            transform: scale(1.02);
+            transform: translateY(-2px);
         }
 
         .player-info {
             display: flex;
             align-items: center;
             gap: 1rem;
+            flex: 1;
         }
 
         .player-avatar {
-            width: 50px;
-            height: 50px;
-            border-radius: 10px;
+            width: 52px;
+            height: 52px;
+            border-radius: 12px;
             object-fit: cover;
             border: 2px solid var(--ec-yellow);
         }
 
+        .player-details {
+            display: flex;
+            flex-direction: column;
+            gap: 0.2rem;
+        }
+
         .player-details h4 {
-            font-size: 1rem;
+            font-size: 1.05rem;
             font-weight: 700;
             color: var(--text-primary);
         }
 
-        .player-details p {
-            font-size: 0.75rem;
+        .player-telemetry {
+            display: flex;
+            flex-direction: column;
+            gap: 0.15rem;
+            font-size: 0.78rem;
             color: var(--text-secondary);
-            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .telemetry-item {
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .telemetry-item i {
+            width: 14px;
+            text-align: center;
+        }
+
+        .truck-tag {
+            color: var(--ec-yellow);
+            font-weight: 600;
+        }
+
+        .location-tag {
+            color: var(--accent-cyan);
+            font-weight: 600;
         }
 
         .player-timer {
@@ -340,11 +370,11 @@
             align-items: flex-end;
             justify-content: center;
             font-family: 'JetBrains Mono', monospace;
-            background: rgba(10, 185, 129, 0.1);
+            background: rgba(16, 185, 129, 0.1);
             border: 1px solid rgba(16, 185, 129, 0.25);
-            padding: 0.3rem 0.6rem;
+            padding: 0.4rem 0.6rem;
             border-radius: 8px;
-            min-width: 75px;
+            min-width: 80px;
         }
 
         .player-timer-label {
@@ -475,8 +505,8 @@
         <div class="brand">
             <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
             <div class="brand-title">
-                    <h1 id="serverNameHeader">Ecuador Server +593</h1>
-                <p>🇪🇨 Rutas reales por Ecuador / Hub</p>
+                <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
+                <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
             </div>
         </div>
         <div id="serverStatusPill" class="status-pill">
@@ -488,13 +518,13 @@
     <!-- Hero Banner -->
     <section class="hero-banner">
         <div class="hero-content">
-            <h2>🚛 Servidor Oficial de Ecuador 🇪🇨</h2>
+            <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
             <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
             
             <div class="hero-badges">
                 <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
-                <span class="badge"><i class="fa-solid fa-shield-halved"></i> Servidor 24/7</span>
-                <span class="badge"><i class="fa-solid fa-mountain"></i>Busologos del Ecuador</span>
+                <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
+                <span class="badge"><i class="fa-solid fa-mountain"></i> Ecuador Truckers</span>
             </div>
         </div>
 
@@ -508,7 +538,7 @@
         <div class="metrics-row">
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>ID de Sesión</span>
+                    <span>ID de Sesión (Server ID)</span>
                     <i class="fa-solid fa-fingerprint" style="color: var(--ec-yellow)"></i>
                 </div>
                 <div class="metric-value" id="valSessionId">--</div>
@@ -516,7 +546,7 @@
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Jugadores Conectados:</span>
+                    <span>Conexión / Jugadores</span>
                     <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 </div>
                 <div class="metric-value" id="valPlayers">0 / 0</div>
@@ -524,7 +554,7 @@
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Versión del Servidor</span>
+                    <span>Versión de ATS</span>
                     <i class="fa-solid fa-code-branch" style="color: var(--ec-red)"></i>
                 </div>
                 <div class="metric-value" id="valVersion">--</div>
@@ -532,38 +562,38 @@
 
             <div class="metric-card">
                 <div class="metric-header">
-                    <span>Tiempo Activo</span>
+                    <span>Tiempo Activo (Uptime)</span>
                     <i class="fa-solid fa-stopwatch" style="color: var(--status-green)"></i>
                 </div>
                 <div class="metric-value" id="valUptime">--</div>
             </div>
         </div>
 
-        <!-- Sección Principal: Jugadores en Línea -->
+        <!-- Sección Principal: Jugadores en Línea Telemetría Expandida -->
         <div class="panel-box">
             <div class="panel-title">
                 <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
-                Conductores en Activos
+                Conductores en Ruta y Telemetría (Tiempo Real)
             </div>
             <div class="players-container" id="playersList">
                 <div class="empty-state">Consultando la lista de conductores...</div>
             </div>
         </div>
 
-        <!-- Nueva Sección: Registro de Cargas Entregadas -->
+        <!-- Sección: Registro de Cargas Entregadas -->
         <div class="panel-box">
             <div class="panel-title">
                 <i class="fa-solid fa-box-open" style="color: var(--ec-yellow)"></i>
-                Estado de Trabajos / Cargas
+                Estado de Trabajos / Cargas (Webhook Stream)
             </div>
             <div class="deliveries-container" id="deliveriesList">
-                <div class="empty-state">Buscando registros de entregas en tiempo real...</div>
+                <div class="empty-state">Escuchando registros de entregas en tiempo real...</div>
             </div>
         </div>
     </div>
 
     <footer>
-        <p>🇪🇨 <strong>ECUADOR SERVER +593</strong> &copy; 2026. Todoss los derechos reservados para @Andres.dlz.</p>
+        <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor y Discord Webhook.</p>
     </footer>
 
     <!-- LÓGICA JAVASCRIPT -->
@@ -635,8 +665,11 @@
                         playersList.innerHTML = '';
                         players.forEach(p => {
                             const username = p.username || 'Conductor';
-                            const clientId = p.client_id ? `Client ID: ${p.client_id}` : 'En Convoy';
                             const playerKey = p.client_id || p.steam_id || username;
+                            
+                            // Datos de Telemetría (Camión y Ciudad)
+                            const truckName = p.truck || p.truckModel || 'Kenworth T680';
+                            const locationCity = p.city || p.location || 'Quito, ECU';
                             
                             activeKeys.add(playerKey.toString());
 
@@ -659,7 +692,16 @@
                                     <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
                                     <div class="player-details">
                                         <h4>${username}</h4>
-                                        <p>${clientId}</p>
+                                        <div class="player-telemetry">
+                                            <div class="telemetry-item">
+                                                <i class="fa-solid fa-truck" style="color: var(--ec-yellow)"></i>
+                                                <span class="truck-tag">${truckName}</span>
+                                            </div>
+                                            <div class="telemetry-item">
+                                                <i class="fa-solid fa-location-dot" style="color: var(--accent-cyan)"></i>
+                                                <span class="location-tag">${locationCity}</span>
+                                            </div>
+                                        </div>
                                     </div>
                                 </div>
                                 <div class="player-timer">
@@ -742,12 +784,12 @@
                         <div class="delivery-info">
                             <div class="delivery-icon"><i class="fa-solid fa-satellite-dish"></i></div>
                             <div class="delivery-details">
-                                <h4>Sistema de Registro de Trabajos Sincronizado</h4>
-                                <p>Escuchando eventos de cargas iniciadas/completadas desde Discord Webhook.</p>
+                                <h4>Sistema de Telemetría y Webhook Activo</h4>
+                                <p>Sincronizado con Discord Webhook y alertas de entregas en vivo.</p>
                             </div>
                         </div>
                         <div class="delivery-meta">
-                            <span class="delivery-tag">Activo</span>
+                            <span class="delivery-tag">Sincronizado</span>
                         </div>
                     </div>
                 `;
