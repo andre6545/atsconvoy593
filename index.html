@@ -53,7 +53,6 @@
                 radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
                 radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
             transition: --accent-glow 0.3s ease;
-            padding-bottom: 90px; /* Espacio para la barra de radio flotante */
         }
 
         .ec-stripe {
@@ -252,6 +251,7 @@
             margin: 2rem auto;
             display: grid;
             gap: 2rem;
+            flex: 1;
         }
 
         .metrics-row {
@@ -411,151 +411,9 @@
             grid-column: 1 / -1;
         }
 
-        /* -------------------------------------------------------------
-           ESTILOS: BARRA DE RADIO FLOTANTE EN VIVO
-        ------------------------------------------------------------- */
-        .radio-bar {
-            position: fixed;
-            bottom: 0;
-            left: 0;
-            width: 100%;
-            background: rgba(10, 15, 26, 0.95);
-            border-top: 1px solid var(--accent-glow);
-            backdrop-filter: blur(20px);
-            padding: 0.75rem 1.5rem;
-            display: flex;
-            align-items: center;
-            justify-content: space-between;
-            gap: 1rem;
-            z-index: 2000;
-            box-shadow: 0 -5px 25px rgba(0, 0, 0, 0.6);
-        }
-
-        .radio-info {
-            display: flex;
-            align-items: center;
-            gap: 0.9rem;
-            min-width: 250px;
-        }
-
-        .radio-icon-box {
-            width: 42px;
-            height: 42px;
-            background: rgba(255, 218, 26, 0.15);
-            border: 1px solid var(--accent-glow);
-            border-radius: 10px;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            color: var(--accent-glow);
-            font-size: 1.2rem;
-            transition: all 0.3s ease;
-        }
-
-        .radio-icon-box.playing {
-            animation: pulse-radio 2s infinite ease-in-out;
-            background: var(--accent-glow);
-            color: #000;
-        }
-
-        @keyframes pulse-radio {
-            0%, 100% { box-shadow: 0 0 5px var(--accent-glow); }
-            50% { box-shadow: 0 0 20px var(--accent-glow); }
-        }
-
-        .radio-details h5 {
-            font-size: 0.95rem;
-            font-weight: 800;
-            color: var(--text-primary);
-        }
-
-        .radio-details span {
-            font-size: 0.75rem;
-            color: var(--text-secondary);
-            display: flex;
-            align-items: center;
-            gap: 0.4rem;
-        }
-
-        .live-dot {
-            width: 7px;
-            height: 7px;
-            background-color: var(--ec-red);
-            border-radius: 50%;
-            display: inline-block;
-            box-shadow: 0 0 8px var(--ec-red);
-            animation: blink 1s infinite;
-        }
-
-        .radio-controls {
-            display: flex;
-            align-items: center;
-            gap: 1rem;
-        }
-
-        .radio-play-btn {
-            width: 45px;
-            height: 45px;
-            background: var(--accent-glow);
-            border: none;
-            border-radius: 50%;
-            color: #000;
-            font-size: 1.2rem;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            transition: transform 0.2s ease, box-shadow 0.2s ease;
-        }
-
-        .radio-play-btn:hover {
-            transform: scale(1.08);
-            box-shadow: 0 0 15px var(--accent-glow);
-        }
-
-        .radio-select {
-            background: rgba(255, 255, 255, 0.05);
-            border: 1px solid var(--panel-border);
-            color: var(--text-primary);
-            padding: 0.5rem 0.8rem;
-            border-radius: 10px;
-            font-size: 0.85rem;
-            outline: none;
-            cursor: pointer;
-            max-width: 250px;
-        }
-
-        .radio-select option {
-            background: #0f172a;
-            color: #fff;
-        }
-
-        .radio-volume {
-            display: flex;
-            align-items: center;
-            gap: 0.5rem;
-            color: var(--text-secondary);
-            font-size: 0.9rem;
-        }
-
-        .radio-volume input[type="range"] {
-            accent-color: var(--accent-glow);
-            cursor: pointer;
-            width: 80px;
-        }
-
-        @media (max-width: 768px) {
-            .radio-bar {
-                flex-wrap: wrap;
-                justify-content: center;
-                padding: 0.6rem 1rem;
-            }
-            .radio-volume { display: none; }
-        }
-
         .toast {
             position: fixed;
-            bottom: 95px;
+            bottom: 25px;
             right: 25px;
             background: rgba(15, 23, 42, 0.95);
             border: 1px solid var(--accent-glow);
@@ -699,46 +557,6 @@
             </div>
         </div>
     </div>
-
-    <!-- BARRA DE RADIO ECUATORIANA EN VIVO -->
-    <div class="radio-bar">
-        <div class="radio-info">
-            <div class="radio-icon-box" id="radioIconBox">
-                <i class="fa-solid fa-radio"></i>
-            </div>
-            <div class="radio-details">
-                <h5 id="radioStationName">Radio Canela (Ecuador)</h5>
-                <span><i class="live-dot"></i> EN VIVO DESDE ECUADOR</span>
-            </div>
-        </div>
-
-        <div class="radio-controls">
-            <button class="radio-play-btn" id="radioPlayBtn" onclick="toggleRadio()">
-                <i class="fa-solid fa-play" id="radioPlayIcon"></i>
-            </button>
-
-            <select class="radio-select" id="radioSelect" onchange="changeRadioStation()">
-                <option value="https://stream.zeno.fm/f3v98a88y8quv">Radio Canela (Variedad)</option>
-                <option value="https://stream.zeno.fm/z544v7yv598uv">Radio Disney Ecuador</option>
-                <option value="https://stream.zeno.fm/4m2yq4h3m8quv">La Otra FM (Música Variada)</option>
-                <option value="https://stream.zeno.fm/u132e088y8quv">Radio Diblu (Deportes)</option>
-                <option value="https://stream.zeno.fm/c3a2m29m8quv">Radio Caravana (Deportes)</option>
-                <option value="https://stream.zeno.fm/8y43w6y3m8quv">Radio América (Salsa & Cumbia)</option>
-                <option value="https://stream.zeno.fm/87g2a78y8quv">Radio Sonorama (Noticias & Pop)</option>
-                <option value="https://stream.zeno.fm/h2v4a29m8quv">Radio EXA FM Ecuador</option>
-                <option value="https://stream.zeno.fm/3r66t088y8quv">JC Radio La Bruja</option>
-                <option value="https://stream.zeno.fm/2r7yq4h3m8quv">Radio Centro (Noticias & Más)</option>
-            </select>
-        </div>
-
-        <div class="radio-volume">
-            <i class="fa-solid fa-volume-high"></i>
-            <input type="range" id="radioVolumeSlider" min="0" max="1" step="0.05" value="0.7" oninput="setRadioVolume(this.value)">
-        </div>
-    </div>
-
-    <!-- Elemento Audio Oculto -->
-    <audio id="ecuadorAudioPlayer" preload="none"></audio>
 
     <!-- Notificación Toast -->
     <div id="toastNotification" class="toast">
@@ -906,52 +724,6 @@
 
         updateStatus();
         setInterval(updateStatus, 10000);
-
-        /* -------------------------------------------------------------
-           LÓGICA DEL REPRODUCTOR DE RADIO ECUATORIANA EN VIVO
-        ------------------------------------------------------------- */
-        const audioPlayer = document.getElementById('ecuadorAudioPlayer');
-        const playBtnIcon = document.getElementById('radioPlayIcon');
-        const radioSelect = document.getElementById('radioSelect');
-        const radioStationName = document.getElementById('radioStationName');
-        const radioIconBox = document.getElementById('radioIconBox');
-
-        function toggleRadio() {
-            if (audioPlayer.paused) {
-                if (!audioPlayer.src) {
-                    audioPlayer.src = radioSelect.value;
-                }
-                audioPlayer.play().then(() => {
-                    playBtnIcon.className = 'fa-solid fa-pause';
-                    radioIconBox.classList.add('playing');
-                    showToast('Reproduciendo ' + radioSelect.options[radioSelect.selectedIndex].text);
-                }).catch(() => {
-                    showToast('Error al conectar con la emisora');
-                });
-            } else {
-                audioPlayer.pause();
-                playBtnIcon.className = 'fa-solid fa-play';
-                radioIconBox.classList.remove('playing');
-            }
-        }
-
-        function changeRadioStation() {
-            const selectedUrl = radioSelect.value;
-            const selectedName = radioSelect.options[radioSelect.selectedIndex].text;
-            
-            radioStationName.textContent = selectedName;
-            audioPlayer.src = selectedUrl;
-            
-            if (!audioPlayer.paused) {
-                audioPlayer.play().then(() => {
-                    showToast('Sintonizando ' + selectedName);
-                });
-            }
-        }
-
-        function setRadioVolume(vol) {
-            audioPlayer.volume = vol;
-        }
     </script>
 </body>
 </html>
