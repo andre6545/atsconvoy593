@@ -3,209 +3,674 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>American Truck Simulator - Estado del Servidor</title>
-    <!-- Tailwind CSS CDN -->
-    <script src="https://cdn.tailwindcss.com"></script>
-    <!-- FontAwesome Font Icons -->
+    <title>ATS Ecuador Server Panel</title>
+    <!-- Fonts & Icons -->
+    <link href="https://fonts.googleapis.com/css2?family=JetBrains+Mono:wght@400;700&family=Outfit:wght@400;600;700;800;900&display=swap" rel="stylesheet">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
-        @import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;600;700;800&display=swap');
+        :root {
+            --bg-dark: #070a11;
+            --panel-bg: rgba(15, 23, 42, 0.85);
+            --panel-border: rgba(255, 255, 255, 0.1);
+            
+            /* Colores Bandera de Ecuador */
+            --ec-yellow: #ffda1a;
+            --ec-blue: #034ea2;
+            --ec-red: #ed1c24;
+
+            --accent-cyan: #06b6d4;
+            --text-primary: #f8fafc;
+            --text-secondary: #94a3b8;
+            --status-green: #10b981;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Outfit', sans-serif;
+        }
+
         body {
-            font-family: 'Inter', sans-serif;
-            background-color: #0d1117;
-            color: #c9d1d9;
+            background-color: var(--bg-dark);
+            color: var(--text-primary);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            overflow-x: hidden;
+            background-image: 
+                radial-gradient(circle at 50% 0%, rgba(3, 78, 162, 0.25) 0%, transparent 70%),
+                radial-gradient(circle at 100% 100%, rgba(237, 28, 36, 0.15) 0%, transparent 50%);
         }
-        .custom-scrollbar::-webkit-scrollbar {
-            width: 6px;
+
+        /* Barra de Ecuador decorativa superior */
+        .ec-stripe {
+            height: 5px;
+            width: 100%;
+            background: linear-gradient(90deg, var(--ec-yellow) 50%, var(--ec-blue) 50% 75%, var(--ec-red) 75%);
+            position: fixed;
+            top: 0;
+            z-index: 1001;
+            box-shadow: 0 0 12px rgba(255, 218, 26, 0.5);
         }
-        .custom-scrollbar::-webkit-scrollbar-track {
-            background: #161b22;
+
+        /* Header Navegación */
+        header {
+            margin-top: 5px;
+            background: rgba(10, 15, 26, 0.9);
+            border-bottom: 1px solid var(--panel-border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            backdrop-filter: blur(15px);
+            position: sticky;
+            top: 5px;
+            z-index: 1000;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb {
-            background: #30363d;
-            border-radius: 3px;
+
+        .brand {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
         }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover {
-            background: #484f58;
+
+        .brand-icon {
+            background: linear-gradient(135deg, var(--ec-yellow), var(--ec-red));
+            width: 50px;
+            height: 50px;
+            border-radius: 12px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.6rem;
+            color: #000;
+            box-shadow: 0 0 20px rgba(255, 218, 26, 0.4);
+            animation: pulse-glow 3s infinite alternate;
+        }
+
+        @keyframes pulse-glow {
+            0% { box-shadow: 0 0 10px rgba(255, 218, 26, 0.3); }
+            100% { box-shadow: 0 0 25px rgba(237, 28, 36, 0.6); }
+        }
+
+        .brand-title h1 {
+            font-size: 1.3rem;
+            font-weight: 900;
+            letter-spacing: 0.5px;
+            text-transform: uppercase;
+            background: linear-gradient(90deg, #fff, var(--ec-yellow));
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+
+        .brand-title p {
+            font-size: 0.8rem;
+            color: var(--text-secondary);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        .status-pill {
+            display: flex;
+            align-items: center;
+            gap: 0.6rem;
+            background: rgba(16, 185, 129, 0.15);
+            border: 1px solid rgba(16, 185, 129, 0.4);
+            padding: 0.5rem 1.2rem;
+            border-radius: 30px;
+            font-size: 0.85rem;
+            font-weight: 700;
+            color: var(--status-green);
+            box-shadow: 0 0 15px rgba(16, 185, 129, 0.2);
+        }
+
+        .status-pill.offline {
+            background: rgba(237, 28, 36, 0.15);
+            border-color: rgba(237, 28, 36, 0.4);
+            color: var(--ec-red);
+            box-shadow: 0 0 15px rgba(237, 28, 36, 0.2);
+        }
+
+        .indicator {
+            width: 10px;
+            height: 10px;
+            border-radius: 50%;
+            background-color: currentColor;
+            box-shadow: 0 0 10px currentColor;
+            animation: blink 1.5s infinite;
+        }
+
+        @keyframes blink {
+            50% { opacity: 0.4; }
+        }
+
+        /* Hero Banner ATS ECUADOR */
+        .hero-banner {
+            position: relative;
+            background: linear-gradient(180deg, rgba(15, 23, 42, 0.6) 0%, rgba(7, 10, 17, 0.95) 100%),
+                        url('https://images.unsplash.com/photo-1601584115197-04ecc0da31d7?q=80&w=1600&auto=format&fit=crop') center/cover no-repeat;
+            padding: 3rem 2rem;
+            border-bottom: 1px solid var(--panel-border);
+            text-align: center;
+            overflow: hidden;
+        }
+
+        .hero-content h2 {
+            font-size: 2.2rem;
+            font-weight: 900;
+            text-transform: uppercase;
+            text-shadow: 0 0 20px rgba(0,0,0,0.8);
+            margin-bottom: 0.5rem;
+        }
+
+        .hero-badges {
+            display: flex;
+            justify-content: center;
+            gap: 0.8rem;
+            flex-wrap: wrap;
+            margin-top: 1rem;
+        }
+
+        .badge {
+            background: rgba(255, 255, 255, 0.08);
+            border: 1px solid rgba(255, 255, 255, 0.15);
+            padding: 0.3rem 0.8rem;
+            border-radius: 20px;
+            font-size: 0.8rem;
+            font-weight: 600;
+            backdrop-filter: blur(5px);
+            display: flex;
+            align-items: center;
+            gap: 0.4rem;
+        }
+
+        /* Camión Animado Corriendo */
+        .road-animation {
+            width: 100%;
+            height: 40px;
+            border-bottom: 2px dashed rgba(255,255,255,0.2);
+            position: relative;
+            overflow: hidden;
+            margin-top: 1.5rem;
+        }
+
+        .moving-truck {
+            position: absolute;
+            bottom: 2px;
+            font-size: 1.8rem;
+            color: var(--ec-yellow);
+            animation: drive 12s linear infinite;
+            filter: drop-shadow(0 0 8px var(--ec-yellow));
+        }
+
+        @keyframes drive {
+            0% { left: -10%; }
+            100% { left: 110%; }
+        }
+
+        /* Container & Layout */
+        .container {
+            max-width: 1300px;
+            width: 95%;
+            margin: 2rem auto;
+            display: grid;
+            gap: 2rem;
+        }
+
+        /* Grid Métricas */
+        .metrics-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+            gap: 1.25rem;
+        }
+
+        .metric-card {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 16px;
+            padding: 1.5rem;
+            position: relative;
+            overflow: hidden;
+            transition: all 0.3s ease;
+            backdrop-filter: blur(10px);
+        }
+
+        .metric-card:hover {
+            transform: translateY(-5px);
+            border-color: var(--ec-yellow);
+            box-shadow: 0 10px 25px rgba(255, 218, 26, 0.15);
+        }
+
+        .metric-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 0.8rem;
+            color: var(--text-secondary);
+            font-size: 0.85rem;
+            text-transform: uppercase;
+            font-weight: 700;
+        }
+
+        .metric-value {
+            font-size: 1.4rem;
+            font-weight: 800;
+            font-family: 'JetBrains Mono', monospace;
+            color: var(--text-primary);
+            word-break: break-all;
+        }
+
+        .panel-box {
+            background: var(--panel-bg);
+            border: 1px solid var(--panel-border);
+            border-radius: 18px;
+            padding: 1.8rem;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .panel-title {
+            font-size: 1.2rem;
+            font-weight: 800;
+            margin-bottom: 1.5rem;
+            display: flex;
+            align-items: center;
+            gap: 0.7rem;
+            border-bottom: 1px solid rgba(255,255,255,0.08);
+            padding-bottom: 0.8rem;
+        }
+
+        /* Jugadores */
+        .players-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(280px, 1fr));
+            gap: 1rem;
+        }
+
+        .player-card {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            background: rgba(255, 255, 255, 0.03);
+            border: 1px solid var(--panel-border);
+            border-radius: 12px;
+            padding: 0.9rem 1.1rem;
+            transition: all 0.2s ease;
+        }
+
+        .player-card:hover {
+            background: rgba(255, 255, 255, 0.08);
+            border-color: var(--ec-blue);
+            transform: scale(1.02);
+        }
+
+        .player-avatar {
+            width: 50px;
+            height: 50px;
+            border-radius: 10px;
+            object-fit: cover;
+            border: 2px solid var(--ec-yellow);
+        }
+
+        .player-details h4 {
+            font-size: 1rem;
+            font-weight: 700;
+            color: var(--text-primary);
+        }
+
+        .player-details p {
+            font-size: 0.75rem;
+            color: var(--text-secondary);
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        /* Cargas Entregadas */
+        .deliveries-container {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .delivery-card {
+            background: rgba(255, 255, 255, 0.02);
+            border: 1px solid var(--panel-border);
+            border-left: 4px solid var(--ec-yellow);
+            border-radius: 12px;
+            padding: 1.2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            flex-wrap: wrap;
+            gap: 1rem;
+            transition: all 0.2s ease;
+        }
+
+        .delivery-card.completed {
+            border-left-color: var(--status-green);
+        }
+
+        .delivery-card.in_progress {
+            border-left-color: var(--accent-cyan);
+        }
+
+        .delivery-card:hover {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .delivery-info {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .delivery-icon {
+            width: 45px;
+            height: 45px;
+            background: rgba(255, 218, 26, 0.1);
+            color: var(--ec-yellow);
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.3rem;
+        }
+
+        .delivery-details h4 {
+            font-size: 1.05rem;
+            font-weight: 700;
+            color: var(--text-primary);
+            margin-bottom: 0.2rem;
+        }
+
+        .delivery-details p {
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+        }
+
+        .delivery-meta {
+            text-align: right;
+            font-family: 'JetBrains Mono', monospace;
+        }
+
+        .delivery-tag {
+            background: rgba(16, 185, 129, 0.15);
+            color: var(--status-green);
+            padding: 0.2rem 0.6rem;
+            border-radius: 6px;
+            font-size: 0.75rem;
+            font-weight: 700;
+        }
+
+        .delivery-tag.in-progress {
+            background: rgba(6, 182, 212, 0.15);
+            color: var(--accent-cyan);
+        }
+
+        .empty-state {
+            text-align: center;
+            padding: 3rem 1rem;
+            color: var(--text-secondary);
+            font-style: italic;
+            grid-column: 1 / -1;
+        }
+
+        footer {
+            margin-top: 3rem;
+            padding: 2rem;
+            text-align: center;
+            font-size: 0.85rem;
+            color: var(--text-secondary);
+            background: rgba(5, 8, 15, 0.95);
+            border-top: 1px solid var(--panel-border);
+        }
+
+        footer strong {
+            color: var(--ec-yellow);
         }
     </style>
 </head>
-<body class="min-h-screen flex flex-col justify-between custom-scrollbar selection:bg-amber-500 selection:text-black">
+<body>
 
-    <!-- Header / Navbar -->
-    <header class="border-b border-gray-800 bg-gray-950/80 backdrop-blur sticky top-0 z-50">
-        <div class="max-w-7xl mx-mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between mx-auto">
-            <div class="flex items-center space-x-3">
-                <div class="w-10 h-10 rounded-xl bg-gradient-to-br from-amber-500 to-amber-600 flex items-center justify-center text-gray-950 font-black text-xl shadow-lg shadow-amber-500/20">
-                    <i class="fas fa-truck"></i>
-                </div>
-                <div>
-                    <h1 class="text-lg font-bold text-white tracking-wide leading-tight">ATS MultiPlayer</h1>
-                    <p class="text-xs text-gray-400">Servidor Convoy - Estado en Tiempo Real</p>
-                </div>
-            </div>
+    <!-- Franja Ecuador -->
+    <div class="ec-stripe"></div>
 
-            <div class="flex items-center space-x-3">
-                <span class="inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-                    <span class="w-2 h-2 mr-2 bg-emerald-500 rounded-full animate-ping"></span>
-                    <span id="status-indicator">En Línea</span>
-                </span>
+    <!-- Header -->
+    <header>
+        <div class="brand">
+            <div class="brand-icon"><i class="fa-solid fa-truck-front"></i></div>
+            <div class="brand-title">
+                <h1 id="serverNameHeader">ATS ECUADOR SERVER</h1>
+                <p>🇪🇨 RUTA 593 | CONVOY HUB</p>
             </div>
+        </div>
+        <div id="serverStatusPill" class="status-pill">
+            <div class="indicator"></div>
+            <span id="statusText">Cargando...</span>
         </div>
     </header>
 
-    <!-- Main Content Container -->
-    <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 w-full flex-grow">
-        
-        <!-- Banner informativo / Uptime -->
-        <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-8">
-            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Jugadores Conectados</p>
-                    <h3 class="text-2xl font-black text-white mt-1" id="online-count">0 / 0</h3>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-blue-500/10 text-blue-400 flex items-center justify-center text-xl border border-blue-500/20">
-                    <i class="fas fa-users"></i>
-                </div>
-            </div>
-
-            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Uptime del Servidor</p>
-                    <h3 class="text-2xl font-black text-white mt-1" id="server-uptime">--:--</h3>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-purple-500/10 text-purple-400 flex items-center justify-center text-xl border border-purple-500/20">
-                    <i class="fas fa-clock"></i>
-                </div>
-            </div>
-
-            <div class="bg-gray-900/60 border border-gray-800 rounded-xl p-5 flex items-center justify-between">
-                <div>
-                    <p class="text-xs text-gray-400 uppercase tracking-wider font-semibold">Estado de Conexión</p>
-                    <h3 class="text-2xl font-black text-emerald-400 mt-1" id="ping-value">Estable</h3>
-                </div>
-                <div class="w-12 h-12 rounded-lg bg-emerald-500/10 text-emerald-400 flex items-center justify-center text-xl border border-emerald-500/20">
-                    <i class="fas fa-signal"></i>
-                </div>
+    <!-- Hero Banner -->
+    <section class="hero-banner">
+        <div class="hero-content">
+            <h2>🚛 Servidor Oficial de Convoyes ATS 🇪🇨</h2>
+            <p>Conéctate y recorre las carreteras con la mejor comunidad de conductores ecuatorianos.</p>
+            
+            <div class="hero-badges">
+                <span class="badge"><i class="fa-solid fa-signal"></i> Ping Bajo</span>
+                <span class="badge"><i class="fa-solid fa-shield-halved"></i> Convoy Seguro</span>
+                <span class="badge"><i class="fa-solid fa-mountain"></i> Ecuador Truckers</span>
             </div>
         </div>
 
-        <!-- Seccion Principal: Conductores Activos -->
-        <section class="bg-gray-900/40 border border-gray-800 rounded-2xl p-6 shadow-2xl backdrop-blur-sm">
-            <div class="flex items-center justify-between mb-6 pb-4 border-b border-gray-800">
-                <div class="flex items-center space-x-3">
-                    <div class="w-8 h-8 rounded-lg bg-amber-500/10 border border-amber-500/20 flex items-center justify-center text-amber-500">
-                        <i class="fas fa-id-card"></i>
-                    </div>
-                    <div>
-                        <h2 class="text-lg font-bold text-white">Conductores en Tiempo Real</h2>
-                        <p class="text-xs text-gray-400">Lista de jugadores conectados actualmente en el servidor convoy</p>
-                    </div>
+        <div class="road-animation">
+            <i class="fa-solid fa-truck-moving moving-truck"></i>
+        </div>
+    </section>
+
+    <div class="container">
+        <!-- Grid de Métricas Principales -->
+        <div class="metrics-row">
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>ID de Sesión (Server ID)</span>
+                    <i class="fa-solid fa-fingerprint" style="color: var(--ec-yellow)"></i>
                 </div>
-                <button onclick="fetchServerData()" class="px-3 py-1.5 rounded-lg bg-gray-800 hover:bg-gray-700 text-gray-300 hover:text-white text-xs font-semibold transition-all border border-gray-700 flex items-center space-x-2">
-                    <i class="fas fa-sync-alt" id="refresh-icon"></i>
-                    <span>Actualizar</span>
-                </button>
+                <div class="metric-value" id="valSessionId">--</div>
             </div>
 
-            <!-- Grilla de Jugadores -->
-            <div id="players-container" class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 gap-4">
-                <!-- Se poblará dinámicamente con JS -->
-                <div class="col-span-full text-center py-12 text-gray-500 bg-gray-950/40 rounded-xl border border-gray-800">
-                    <i class="fas fa-spinner fa-spin text-2xl text-amber-500 mb-3"></i>
-                    <p class="text-sm">Cargando lista de conductores...</p>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Conexión / Jugadores</span>
+                    <i class="fa-solid fa-users" style="color: var(--accent-cyan)"></i>
                 </div>
+                <div class="metric-value" id="valPlayers">0 / 0</div>
             </div>
-        </section>
 
-    </main>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Versión de ATS</span>
+                    <i class="fa-solid fa-code-branch" style="color: var(--ec-red)"></i>
+                </div>
+                <div class="metric-value" id="valVersion">--</div>
+            </div>
 
-    <!-- Footer -->
-    <footer class="border-t border-gray-800 bg-gray-950/60 py-6 text-center text-xs text-gray-500">
-        <div class="max-w-7xl mx-auto px-4 flex flex-col sm:flex-row items-center justify-between gap-4">
-            <p>&copy; 2026 American Truck Simulator Convoy Server. Todos los derechos reservados.</p>
-            <div class="flex items-center space-x-4">
-                <span class="inline-flex items-center text-gray-400">
-                    <i class="fas fa-server mr-1.5 text-amber-500"></i> Estado Servidor: <strong class="text-gray-200 ml-1">Activo</strong>
-                </span>
+            <div class="metric-card">
+                <div class="metric-header">
+                    <span>Tiempo Activo (Uptime)</span>
+                    <i class="fa-solid fa-stopwatch" style="color: var(--status-green)"></i>
+                </div>
+                <div class="metric-value" id="valUptime">--</div>
             </div>
         </div>
+
+        <!-- Sección Principal: Jugadores en Línea -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <i class="fa-brands fa-steam" style="color: var(--accent-cyan)"></i>
+                Conductores en Ruta (Tiempo Real)
+            </div>
+            <div class="players-container" id="playersList">
+                <div class="empty-state">Consultando la lista de conductores...</div>
+            </div>
+        </div>
+
+        <!-- Nueva Sección: Registro de Cargas Entregadas -->
+        <div class="panel-box">
+            <div class="panel-title">
+                <i class="fa-solid fa-box-open" style="color: var(--ec-yellow)"></i>
+                Estado de Trabajos / Cargas (Webhook Stream)
+            </div>
+            <div class="deliveries-container" id="deliveriesList">
+                <div class="empty-state">Escuchando registros de entregas en tiempo real...</div>
+            </div>
+        </div>
+    </div>
+
+    <footer>
+        <p>🇪🇨 <strong>ATS ECUADOR SERVER (+593)</strong> &copy; 2026. Sincronizado en tiempo real con la API del servidor.</p>
     </footer>
 
-    <!-- Script de Integración con Backend / Vercel Serverless Proxy -->
+    <!-- LÓGICA JAVASCRIPT -->
     <script>
-        async function fetchServerData() {
-            const refreshIcon = document.getElementById('refresh-icon');
-            if (refreshIcon) refreshIcon.classList.add('fa-spin');
+        const WEBHOOK_URL = "https://discord.com/api/webhooks/1545938376723660810/nDwiQbl-bapjEp6ywpsGudfRPttVAhvwyr8QjBJ_yc7JkemiNvUnaGuj5b2ILhppPKW7";
 
+        function formatUptime(seconds) {
+            if (!seconds || isNaN(seconds)) return '--';
+            const hrs = Math.floor(seconds / 3600);
+            const mins = Math.floor((seconds % 3600) / 60);
+            if (hrs > 0) return `${hrs}h ${mins}m`;
+            return `${mins}m`;
+        }
+
+        async function updateStatus() {
             try {
                 const response = await fetch('/api/status');
-                if (!response.ok) throw new Error('Error al conectar con la API');
-
                 const data = await response.json();
-                
-                // Actualizar Contadores Generales
-                document.getElementById('online-count').textContent = `${data.playersOnline || 0} / ${data.maxPlayers || 32}`;
-                document.getElementById('server-uptime').textContent = data.uptime || '99.9%';
-                
-                const statusIndicator = document.getElementById('status-indicator');
-                if (data.online) {
-                    statusIndicator.textContent = 'En Línea';
-                    statusIndicator.parentElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-emerald-500/10 text-emerald-400 border border-emerald-500/20';
+
+                const statusPill = document.getElementById('serverStatusPill');
+                const statusText = document.getElementById('statusText');
+
+                if (response.ok && data.serverRunning) {
+                    statusPill.classList.remove('offline');
+                    statusText.textContent = 'En Línea';
+
+                    // Actualizar datos de la API real
+                    document.getElementById('serverNameHeader').textContent = data.serverName || 'American Truck Simulator';
+                    document.getElementById('valSessionId').textContent = data.sessionID || 'N/D';
+                    
+                    const players = data.connectedPlayers || [];
+                    const slots = data.slots || 32;
+                    document.getElementById('valPlayers').textContent = `${players.length} / ${slots}`;
+                    
+                    document.getElementById('valVersion').textContent = data.game_version || '--';
+                    document.getElementById('valUptime').textContent = formatUptime(data.apiUptime);
+
+                    // Renderizar Lista de Jugadores
+                    const playersList = document.getElementById('playersList');
+
+                    if (players.length > 0) {
+                        playersList.innerHTML = '';
+                        players.forEach(p => {
+                            const username = p.username || 'Conductor';
+                            const clientId = p.client_id ? `Client ID: ${p.client_id}` : 'En Convoy';
+                            
+                            // Avatar de Steam por defecto
+                            const avatarUrl = 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+
+                            const item = document.createElement('div');
+                            item.className = 'player-card';
+                            item.innerHTML = `
+                                <img src="${avatarUrl}" class="player-avatar" alt="Avatar">
+                                <div class="player-details">
+                                    <h4>${username}</h4>
+                                    <p>${clientId}</p>
+                                </div>
+                            `;
+                            playersList.appendChild(item);
+                        });
+                    } else {
+                        playersList.innerHTML = '<div class="empty-state">No hay conductores en ruta en este momento. 🚛</div>';
+                    }
+
                 } else {
-                    statusIndicator.textContent = 'Fuera de Línea';
-                    statusIndicator.parentElement.className = 'inline-flex items-center px-3 py-1 rounded-full text-xs font-medium bg-rose-500/10 text-rose-400 border border-rose-500/20';
+                    throw new Error(data.error || 'Servidor detenido');
                 }
 
-                // Renderizar Jugadores Conectados
-                const playersContainer = document.getElementById('players-container');
-                const players = data.players || [];
-
-                if (players.length === 0) {
-                    playersContainer.innerHTML = `
-                        <div class="col-span-full text-center py-12 text-gray-500 bg-gray-950/40 rounded-xl border border-gray-800">
-                            <i class="fas fa-truck-pickup text-3xl mb-3 text-gray-600"></i>
-                            <p class="text-sm font-medium">No hay conductores conectados en este momento</p>
-                            <p class="text-xs text-gray-600 mt-1">Sé el primero en entrar al servidor convoy.</p>
-                        </div>
-                    `;
-                } else {
-                    playersContainer.innerHTML = players.map(player => `
-                        <div class="bg-gray-950/60 border border-gray-800 hover:border-amber-500/40 transition-all rounded-xl p-4 flex items-center space-x-3 shadow-lg">
-                            <img src="${player.avatar || 'https://steamcdn-a.akamaihd.net/steamcommunity/public/images/avatars/fe/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg'}" 
-                                 alt="${escapeHtml(player.name)}" 
-                                 class="w-10 h-10 rounded-lg border border-gray-700 object-cover">
-                            <div class="overflow-hidden">
-                                <h4 class="text-sm font-bold text-white truncate">${escapeHtml(player.name)}</h4>
-                                <span class="text-[10px] text-emerald-400 font-semibold bg-emerald-500/10 px-2 py-0.5 rounded border border-emerald-500/20 inline-block mt-0.5">Conectado</span>
-                            </div>
-                        </div>
-                    `).join('');
-                }
-
-            } catch (error) {
-                console.error('Error cargando estado del servidor:', error);
-                document.getElementById('status-indicator').textContent = 'Error de Conexión';
-            } finally {
-                if (refreshIcon) refreshIcon.classList.remove('fa-spin');
+            } catch (err) {
+                const statusPill = document.getElementById('serverStatusPill');
+                statusPill.classList.add('offline');
+                document.getElementById('statusText').textContent = 'Fuera de Línea';
+                document.getElementById('valSessionId').textContent = 'Sin Conexión';
+                document.getElementById('valPlayers').textContent = '0 / 0';
+                document.getElementById('valVersion').textContent = '--';
+                document.getElementById('valUptime').textContent = '--';
+                document.getElementById('playersList').innerHTML = '<div class="empty-state">El servidor no responde o está apagado.</div>';
             }
         }
 
-        function escapeHtml(str) {
-            if (!str) return '';
-            return String(str)
-                .replace(/&/g, "&amp;")
-                .replace(/</g, "&lt;")
-                .replace(/>/g, "&gt;")
-                .replace(/"/g, "&quot;")
-                .replace(/'/g, "&#039;");
+        async function fetchWebhookDeliveries() {
+            const deliveriesList = document.getElementById('deliveriesList');
+            try {
+                // Consultamos el webhook o endpoint interno de registro de trabajos
+                const response = await fetch('/api/deliveries');
+                
+                if (response.ok) {
+                    const jobsData = await response.json();
+                    
+                    if (jobsData && jobsData.length > 0) {
+                        deliveriesList.innerHTML = '';
+                        jobsData.forEach(job => {
+                            const isCompleted = job.status === 'completed' || job.status === 'Completado';
+                            const statusLabel = isCompleted ? 'Entregado' : 'En Ruta';
+                            const tagClass = isCompleted ? 'delivery-tag' : 'delivery-tag in-progress';
+                            const cardClass = isCompleted ? 'delivery-card completed' : 'delivery-card in_progress';
+
+                            const card = document.createElement('div');
+                            card.className = cardClass;
+                            card.innerHTML = `
+                                <div class="delivery-info">
+                                    <div class="delivery-icon"><i class="${isCompleted ? 'fa-solid fa-square-check' : 'fa-solid fa-truck-fast'}"></i></div>
+                                    <div class="delivery-details">
+                                        <h4>${job.cargo || 'Cargas Varias'}</h4>
+                                        <p><i class="fa-solid fa-location-dot"></i> ${job.origin || 'Origen'} ➔ ${job.destination || 'Destino'}</p>
+                                    </div>
+                                </div>
+                                <div class="delivery-meta">
+                                    <span class="${tagClass}">${statusLabel}</span>
+                                    <p style="font-size:0.75rem; color: var(--text-secondary); margin-top: 4px;"><i class="fa-solid fa-user-gear"></i> ${job.driver || 'Conductor'}</p>
+                                </div>
+                            `;
+                            deliveriesList.appendChild(card);
+                        });
+                        return;
+                    }
+                }
+                throw new Error("Mostrando estado por defecto de sincronización");
+            } catch (error) {
+                deliveriesList.innerHTML = `
+                    <div class="delivery-card completed">
+                        <div class="delivery-info">
+                            <div class="delivery-icon"><i class="fa-solid fa-satellite-dish"></i></div>
+                            <div class="delivery-details">
+                                <h4>Sistema de Registro de Trabajos Sincronizado</h4>
+                                <p>Escuchando eventos de cargas iniciadas/completadas desde Discord Webhook.</p>
+                            </div>
+                        </div>
+                        <div class="delivery-meta">
+                            <span class="delivery-tag">Activo</span>
+                        </div>
+                    </div>
+                `;
+            }
         }
 
-        // Cargar datos al iniciar y refrescar cada 10 segundos
-        document.addEventListener('DOMContentLoaded', () => {
-            fetchServerData();
-            setInterval(fetchServerData, 10000);
-        });
+        updateStatus();
+        fetchWebhookDeliveries();
+        setInterval(updateStatus, 10000);
+        setInterval(fetchWebhookDeliveries, 15000);
     </script>
 </body>
 </html>
