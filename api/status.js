@@ -12,23 +12,37 @@ export default async function handler(req, res) {
         const controller = new AbortController();
         const timeoutId = setTimeout(() => controller.abort(), 7000);
 
-        // 1. Servidor Dedicado ATS
+        // 1. Servidor Dedicado ATS (IP Directa)
         const atsPromise = fetch('http://198.199.67.5/status', {
-            headers: { 'User-Agent': 'ATSHubProxy/5.0' },
+            headers: { 'User-Agent': 'ATSHubProxy/6.0' },
             signal: controller.signal
         }).catch(() => null);
 
-        // 2. Telemetría de Miembros en Trucky Hub
-        const truckyPromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members`, {
+        // 2. Consulta de Miembros en Línea con Telemetría Activa en Trucky Hub
+        const truckyOnlinePromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members/online`, {
             headers: {
-                'User-Agent': 'ATSHubProxy/5.0',
+                'User-Agent': 'ATSHubProxy/6.0',
                 'Authorization': `Bearer ${TRUCKY_TOKEN}`,
                 'Accept': 'application/json'
             },
             signal: controller.signal
         }).catch(() => null);
 
-        const [atsRes, truckyRes] = await Promise.all([atsPromise, truckyPromise]);
+        // 3. Consulta de lista completa de miembros como respaldo de avatar
+        const truckyMembersPromise = fetch(`https://api.truckyapp.com/v2/vtc/${TRUCKY_VTC_ID}/members`, {
+            headers: {
+                'User-Agent': 'ATSHubProxy/6.0',
+                'Authorization': `Bearer ${TRUCKY_TOKEN}`,
+                'Accept': 'application/json'
+            },
+            signal: controller.signal
+        }).catch(() => null);
+
+        const [atsRes, truckyOnlineRes, truckyMembersRes] = await Promise.all([
+            atsPromise, 
+            truckyOnlinePromise, 
+            truckyMembersPromise
+        ]);
         clearTimeout(timeoutId);
 
         let atsData = { serverRunning: false, connectedPlayers: [] };
@@ -36,28 +50,56 @@ export default async function handler(req, res) {
             atsData = await atsRes.json();
         }
 
-        let truckyMembers = [];
-        if (truckyRes && truckyRes.ok) {
-            const tJson = await truckyRes.json();
-            truckyMembers = tJson.response || tJson.data || (Array.isArray(tJson) ? tJson : []);
+        let onlineData = [];
+        if (truckyOnlineRes && truckyOnlineRes.ok) {
+            const jsonOnline = await truckyOnlineRes.json();
+            onlineData = jsonOnline.response || jsonOnline.data || (Array.isArray(jsonOnline) ? jsonOnline : []);
+        }
+
+        let allMembersData = [];
+        if (truckyMembersRes && truckyMembersRes.ok) {
+            const jsonMembers = await truckyMembersRes.json();
+            allMembersData = jsonMembers.response || jsonMembers.data || (Array.isArray(jsonMembers) ? jsonMembers : []);
         }
 
         const rawPlayers = atsData.connectedPlayers || atsData.players || [];
         
-        // Mapeo exacto de los datos provenientes de Trucky
         const enrichedPlayers = rawPlayers.map((p, idx) => {
-            const name = p.username || p.name || '';
+            const name = (p.username || p.name || '').trim();
+            const lowerName = name.toLowerCase();
 
-            // Búsqueda del miembro en Trucky por nombre o Steam ID
-            const match = truckyMembers.find(m => {
-                const mName = m.username || m.steamName || m.driverName || m.name || '';
-                return mName.toLowerCase() === name.toLowerCase();
+            // Buscar en la lista de usuarios con telemetría activa
+            let matchOnline = onlineData.find(m => {
+                const u = (m.username || m.steamName || m.driverName || m.name || '').toLowerCase();
+                return u.includes(lowerName) || lowerName.includes(u);
             });
 
-            // Extracción exacta de las propiedades de Trucky Telemetry
-            const truckName = match?.telemetry?.truck?.name || match?.telemetry?.truck || match?.currentTruck || match?.truck || null;
-            const cityName = match?.telemetry?.navigation?.destination?.city || match?.telemetry?.location?.city || match?.telemetry?.city || match?.currentCity || match?.city || null;
-            const avatarUrl = match?.avatar || match?.steamAvatar || match?.user?.avatar || 'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
+            // Buscar en la lista general para extraer perfil de avatar
+            let matchMember = allMembersData.find(m => {
+                const u = (m.username || m.steamName || m.driverName || m.name || '').toLowerCase();
+                return u.includes(lowerName) || lowerName.includes(u);
+            });
+
+            // Extracción exacta de Trucky
+            const truckName = matchOnline?.telemetry?.truck?.name || 
+                              matchOnline?.telemetry?.truck || 
+                              matchOnline?.currentTruck || 
+                              matchOnline?.truck || 
+                              matchMember?.telemetry?.truck || 
+                              matchMember?.currentTruck || null;
+
+            const cityName = matchOnline?.telemetry?.navigation?.destination?.city || 
+                             matchOnline?.telemetry?.location?.city || 
+                             matchOnline?.telemetry?.city || 
+                             matchOnline?.currentCity || 
+                             matchOnline?.city || 
+                             matchMember?.currentCity || null;
+
+            const avatarUrl = matchOnline?.avatar || 
+                              matchMember?.avatar || 
+                              matchMember?.steamAvatar || 
+                              matchMember?.user?.avatar || 
+                              'https://avatars.steamstatic.com/fef49e7fa7e1997310d705b2a6158ff8dc1cdfeb_full.jpg';
 
             return {
                 client_id: p.client_id || p.id || `${idx + 1}`,
@@ -70,7 +112,7 @@ export default async function handler(req, res) {
 
         return res.status(200).json({
             serverRunning: atsData.serverRunning !== undefined ? atsData.serverRunning : true,
-            serverName: atsData.serverName || '[ES] ECUADOR SERVER +593',
+            serverName: atsData.serverName || 'ATS ECUADOR SERVER',
             sessionID: atsData.sessionID || 'N/D',
             slots: atsData.slots || 32,
             game_version: atsData.game_version || '--',
