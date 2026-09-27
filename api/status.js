@@ -28,7 +28,24 @@ export default async function handler(req, res) {
         }
 
         const data = await response.json();
-        return res.status(200).json(data);
+
+        // Normalización de Jugadores para garantizar compatibilidad
+        const rawPlayers = data.connectedPlayers || data.players || [];
+        const normalizedPlayers = rawPlayers.map((p, idx) => {
+            return {
+                id: p.client_id || p.id || `driver-${idx}`,
+                username: p.username || p.name || 'Conductor',
+                truck: p.truck || p.truck_model || p.vehicle || 'Truck Assignment In Progress',
+                city: p.city || p.location || p.current_city || 'En Carretera / On Route',
+                connectedSince: p.connectedSince || p.connected_at || Date.now()
+            };
+        });
+
+        return res.status(200).json({
+            ...data,
+            serverRunning: data.serverRunning !== undefined ? data.serverRunning : true,
+            connectedPlayers: normalizedPlayers
+        });
 
     } catch (err) {
         return res.status(500).json({
