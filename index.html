@@ -58,14 +58,38 @@ body {
 .muted { color: var(--muted); }
 .server { font: 16px ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
 
+/* Botonera de acciones rápidas */
+.server-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.btn {
+  background: var(--line); color: var(--text); border: 1px solid #3a4754;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px;
+  font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:hover { background: #334150; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #1a3828; color: #57df92; border-color: #39d17f44; }
+.btn-primary:hover { background: #224a35; }
+
+/* Barra de progreso de ocupación */
+.progress-container { width: 100%; background: #080d12; height: 8px; border-radius: 99px; margin-top: 10px; overflow: hidden; border: 1px solid var(--line); }
+.progress-bar { width: 0%; background: var(--green); height: 100%; transition: width 0.4s ease, background 0.4s ease; }
+
 .grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
 .metric .k { font-size: 12px; color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; }
 .metric .v { font-size: 29px; font-weight: 900; margin-top: 8px; }
 .metric .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
+/* Buscador de jugadores y lista */
 .players-card { margin-top: 16px; }
-.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .section-head h3 { margin: 0; font-size: 19px; }
+.head-controls { display: flex; align-items: center; gap: 10px; }
+.search-input {
+  background: #080d12; border: 1px solid var(--line); border-radius: 10px;
+  padding: 6px 12px; color: var(--text); font-size: 13px; outline: none;
+}
+.search-input:focus { border-color: var(--gold); }
 .pill { border: 1px solid #39d17f44; background: #39d17f12; color: #57df92; border-radius: 999px; padding: 7px 11px; font-weight: 800; font-size: 12px; }
 
 .players { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
@@ -97,6 +121,8 @@ body {
   .metric .v { font-size: 24px; }
   .title { font-size: 24px; }
   .sub { font-size: 14px; }
+  .head-controls { width: 100%; justify-content: space-between; }
+  .search-input { width: 100%; }
 }
 </style>
 </head>
@@ -130,12 +156,26 @@ body {
     <div class="card">
       <div class="label">Servidor dedicado</div>
       <div class="server" id="serverName">—</div>
-      <div class="server muted" style="font-size:13px;margin-top:12px">API: /api/status</div>
+      <div class="server muted" style="font-size:13px;margin-top:6px">IP: 159.89.51.54</div>
+      
+      <!-- Acciones rápidas -->
+      <div class="server-actions">
+        <button id="copyBtn" class="btn" onclick="copyIP()">📋 Copiar IP</button>
+        <a href="steam://run/270880" class="btn btn-primary">🎮 Abrir ATS</a>
+      </div>
     </div>
   </section>
 
   <section class="grid">
-    <div class="card metric"><div class="k">Jugadores</div><div class="v" id="players">—</div><div class="s" id="slots">—</div></div>
+    <div class="card metric">
+      <div class="k">Jugadores</div>
+      <div class="v" id="players">—</div>
+      <!-- Barra visual de ocupación -->
+      <div class="progress-container">
+        <div id="playerBar" class="progress-bar"></div>
+      </div>
+      <div class="s" id="slots" style="margin-top:8px">—</div>
+    </div>
     <div class="card metric"><div class="k">Versión ATS</div><div class="v" id="version">—</div><div class="s" id="beta">—</div></div>
     <div class="card metric"><div class="k">API uptime</div><div class="v" id="uptime">—</div><div class="s">segundos reportados</div></div>
     <div class="card metric"><div class="k">Líneas de log</div><div class="v" id="logLines">—</div><div class="s" id="logState">—</div></div>
@@ -144,7 +184,10 @@ body {
   <section class="card players-card">
     <div class="section-head">
       <h3>Jugadores conectados</h3>
-      <span class="pill" id="playerCount">0 conectados</span>
+      <div class="head-controls">
+        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()">
+        <span class="pill" id="playerCount">0 conectados</span>
+      </div>
     </div>
     <div class="players" id="playerList">
       <div class="muted">Cargando…</div>
@@ -189,9 +232,17 @@ body {
 const REFRESH_INTERVAL = 10;
 let left = REFRESH_INTERVAL;
 let isFetching = false;
+let currentPlayers = [];
 
 const $ = id => document.getElementById(id);
 const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
+
+function copyIP() {
+  navigator.clipboard.writeText("159.89.51.54");
+  const btn = $("copyBtn");
+  btn.textContent = "¡IP Copiada!";
+  setTimeout(() => btn.textContent = "📋 Copiar IP", 2000);
+}
 
 function showError(msg) {
   $("error").style.display = "block";
@@ -199,40 +250,13 @@ function showError(msg) {
   $("ok").style.display = "none";
 }
 
-function render(d) {
-  $("error").style.display = "none";
-  $("ok").style.display = "block";
-  $("json").textContent = JSON.stringify(d, null, 2);
-
-  const online = d.serverRunning === true;
-  $("dot").classList.toggle("off", !online);
-  $("status").textContent = online ? "Servidor en línea" : d.serverRunning === false ? "Servidor fuera de línea" : "Estado recibido";
-  $("statusText").textContent = online ? "La API confirma que el servidor está ejecutándose." : "Respuesta recibida desde la API.";
-  $("serverName").textContent = d.serverName ?? "—";
-
-  const count = Array.isArray(d.connectedPlayers) ? d.connectedPlayers.length : 0;
-  $("players").textContent = count;
-  $("playerCount").textContent = `${count} conectados`;
-  $("slots").textContent = d.slots != null ? `${d.slots} slots disponibles` : "—";
-  $("version").textContent = d.gameVersion ?? "—";
-  $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
-  $("uptime").textContent = d.apiUptime != null ? `${Math.round(d.apiUptime)} s` : "—";
-  $("logLines").textContent = d.totalLogLines ?? "—";
-  $("logState").textContent = d.logFileExists === true ? "archivo de log detectado" : "—";
-  $("session").textContent = d.sessionID ?? "—";
-  $("slotCount").textContent = d.slots ?? "—";
-  $("game").textContent = d.game ?? "—";
-  $("running").textContent = yn(d.serverRunning);
-  $("logExists").textContent = yn(d.logFileExists);
-  $("tail").textContent = yn(d.tailStarted);
-  $("updated").textContent = new Date().toLocaleTimeString("es-EC");
-
+function renderPlayers(playersToDisplay) {
   const list = $("playerList");
   list.innerHTML = "";
 
-  if (count > 0) {
+  if (playersToDisplay.length > 0) {
     const fragment = document.createDocumentFragment();
-    d.connectedPlayers.forEach(p => {
+    playersToDisplay.forEach(p => {
       const e = document.createElement("div");
       e.className = "player";
       
@@ -248,8 +272,62 @@ function render(d) {
     });
     list.appendChild(fragment);
   } else {
-    list.innerHTML = '<div class="muted">No hay jugadores conectados en este momento.</div>';
+    list.innerHTML = '<div class="muted">No se encontraron jugadores.</div>';
   }
+}
+
+function filterPlayers() {
+  const query = $("playerSearch").value.toLowerCase();
+  const filtered = currentPlayers.filter(p => 
+    (p.username ?? "").toLowerCase().includes(query) || 
+    String(p.client_id ?? "").includes(query)
+  );
+  renderPlayers(filtered);
+}
+
+function render(d) {
+  $("error").style.display = "none";
+  $("ok").style.display = "block";
+  $("json").textContent = JSON.stringify(d, null, 2);
+
+  const online = d.serverRunning === true;
+  $("dot").classList.toggle("off", !online);
+  $("status").textContent = online ? "Servidor en línea" : d.serverRunning === false ? "Servidor fuera de línea" : "Estado recibido";
+  $("statusText").textContent = online ? "La API confirma que el servidor está ejecutándose." : "Respuesta recibida desde la API.";
+  $("serverName").textContent = d.serverName ?? "—";
+
+  currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
+  const count = currentPlayers.length;
+  const maxSlots = d.slots ?? 0;
+
+  $("players").textContent = count;
+  $("playerCount").textContent = `${count} conectados`;
+  $("slots").textContent = maxSlots ? `${maxSlots} slots disponibles` : "—";
+
+  // Actualización de la barra de progreso
+  const bar = $("playerBar");
+  if (maxSlots > 0) {
+    const pct = Math.min((count / maxSlots) * 100, 100);
+    bar.style.width = pct + "%";
+    bar.style.background = pct >= 90 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
+  } else {
+    bar.style.width = "0%";
+  }
+
+  $("version").textContent = d.gameVersion ?? "—";
+  $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
+  $("uptime").textContent = d.apiUptime != null ? `${Math.round(d.apiUptime)} s` : "—";
+  $("logLines").textContent = d.totalLogLines ?? "—";
+  $("logState").textContent = d.logFileExists === true ? "archivo de log detectado" : "—";
+  $("session").textContent = d.sessionID ?? "—";
+  $("slotCount").textContent = d.slots ?? "—";
+  $("game").textContent = d.game ?? "—";
+  $("running").textContent = yn(d.serverRunning);
+  $("logExists").textContent = yn(d.logFileExists);
+  $("tail").textContent = yn(d.tailStarted);
+  $("updated").textContent = new Date().toLocaleTimeString("es-EC");
+
+  filterPlayers();
 }
 
 async function load() {
@@ -265,7 +343,7 @@ async function load() {
     $("dot").classList.add("off");
     $("status").textContent = "API no disponible";
     $("statusText").textContent = "El proxy no pudo obtener una respuesta del servidor dedicado.";
-    showError(`No se pudo obtener el estado real: ${e.message}. Comprueba que 159.89.51.54/status esté accesible desde Internet y escuchando.`);
+    showError(`No se pudo obtener el estado real: ${e.message}. Comprueba que 159.89.51.54/status esté accesible.`);
   } finally {
     isFetching = false;
     left = REFRESH_INTERVAL;
