@@ -171,21 +171,21 @@ details[open] summary::after { content: "－"; }
     <div class="brand">
       <div class="logo">ATS</div>
       <div>
-        <div class="title">ECUA SERVER +593</div>
+        <h1 class="title" style="margin:0;">ECUA SERVER +593</h1>
         <div class="sub">American Truck Simulator · Estado del servidor</div>
       </div>
     </div>
-    <div class="refresh">Actualización: <b id="timer">10s</b></div>
+    <div class="refresh" aria-live="polite">Actualización: <b id="timer">10s</b></div>
   </header>
 
   <div id="error" class="error" role="alert"></div>
-  <div id="ok" class="ok">✓ API conectada. Datos recibidos desde el servidor dedicado.</div>
+  <div id="ok" class="ok" role="status">✓ API conectada. Datos recibidos desde el servidor dedicado.</div>
 
   <section class="hero">
     <div class="card">
       <div class="label">Estado en tiempo real</div>
       <div class="status">
-        <span id="dot" class="dot off"></span>
+        <span id="dot" class="dot off" aria-hidden="true"></span>
         <div>
           <h2 id="status">Conectando…</h2>
           <div class="muted" id="statusText">Consultando el proxy del servidor…</div>
@@ -198,8 +198,8 @@ details[open] summary::after { content: "－"; }
       <div class="server muted" style="font-size:13px;margin-top:6px">IP: 159.89.51.54</div>
       
       <div class="server-actions">
-        <button id="copyBtn" class="btn" onclick="copyIP()">📋 Copiar IP</button>
-        <a href="steam://run/270880" class="btn btn-primary">🎮 Abrir ATS</a>
+        <button id="copyBtn" class="btn" onclick="copyIP()" aria-label="Copiar dirección IP del servidor">📋 Copiar IP</button>
+        <a href="steam://run/270880" class="btn btn-primary" aria-label="Abrir juego American Truck Simulator">🎮 Abrir ATS</a>
       </div>
     </div>
   </section>
@@ -217,7 +217,7 @@ details[open] summary::after { content: "－"; }
           <strong>Discord Oficial</strong>
           <span>Comunidad y soporte</span>
         </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn btn-discord">Unirse</a>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn btn-discord" aria-label="Unirse al servidor de Discord">Unirse</a>
       </div>
       
       <div class="social-card">
@@ -225,7 +225,7 @@ details[open] summary::after { content: "－"; }
           <strong>Grupo de WhatsApp</strong>
           <span>Alertas y convoys</span>
         </div>
-        <a href="https://wa.link/k18cir" target="_blank" rel="noopener" class="btn btn-whatsapp">Entrar</a>
+        <a href="https://wa.link/k18cir" target="_blank" rel="noopener" class="btn btn-whatsapp" aria-label="Entrar al grupo de WhatsApp">Entrar</a>
       </div>
       
       <div class="social-card">
@@ -233,7 +233,7 @@ details[open] summary::after { content: "－"; }
           <strong>Soporte / Reportes</strong>
           <span>Notificar incidencias</span>
         </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn">Reportar</a>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn" aria-label="Abrir canal de soporte en Discord">Reportar</a>
       </div>
     </div>
 
@@ -266,7 +266,7 @@ details[open] summary::after { content: "－"; }
     <div class="card metric">
       <div class="k">Jugadores</div>
       <div class="v" id="players">—</div>
-      <div class="progress-container">
+      <div class="progress-container" role="progressbar" id="progressWrapper" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
         <div id="playerBar" class="progress-bar"></div>
       </div>
       <div class="s" id="slots" style="margin-top:8px">—</div>
@@ -280,10 +280,10 @@ details[open] summary::after { content: "－"; }
   <section class="card chart-card">
     <div class="section-head">
       <h3>Historial de Jugadores en Vivo</h3>
-      <span class="muted">Tendencia de conexión en la sesión actual</span>
+      <span class="muted">Tendencia de conexión reciente</span>
     </div>
     <div class="chart-container">
-      <canvas id="playersChart"></canvas>
+      <canvas id="playersChart" aria-label="Gráfico de jugadores conectados en el tiempo" role="img"></canvas>
     </div>
   </section>
 
@@ -291,7 +291,8 @@ details[open] summary::after { content: "－"; }
     <div class="section-head">
       <h3>Jugadores conectados</h3>
       <div class="head-controls">
-        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()">
+        <label for="playerSearch" class="sr-only" style="display:none">Buscar jugador por nombre o id</label>
+        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()" aria-label="Buscar jugador conectado">
         <span class="pill" id="playerCount">0 conectados</span>
       </div>
     </div>
@@ -340,10 +341,10 @@ let left = REFRESH_INTERVAL;
 let isFetching = false;
 let currentPlayers = [];
 
-// Historial para Chart.js
+// Historial con persistencia en localStorage
 const MAX_HISTORY = 15;
-const historyLabels = [];
-const historyData = [];
+let historyLabels = JSON.parse(localStorage.getItem("ecuaserver_labels") || "[]");
+let historyData = JSON.parse(localStorage.getItem("ecuaserver_data") || "[]");
 let playersChart = null;
 
 const $ = id => document.getElementById(id);
@@ -352,7 +353,6 @@ const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
 function initChart() {
   const ctx = document.getElementById("playersChart").getContext("2d");
   
-  // Gradiente de color verde bajo la línea
   const gradient = ctx.createLinearGradient(0, 0, 0, 200);
   gradient.addColorStop(0, "rgba(57, 209, 127, 0.35)");
   gradient.addColorStop(1, "rgba(57, 209, 127, 0)");
@@ -386,15 +386,21 @@ function initChart() {
         },
         y: {
           beginAtZero: true,
+          suggestedMax: 8,
           grid: { color: "#28333e66" },
-          ticks: { color: "#9aa7b5", precision: 0, font: { size: 11 } }
+          ticks: { 
+            color: "#9aa7b5", 
+            precision: 0, 
+            stepSize: 1,
+            font: { size: 11 } 
+          }
         }
       }
     }
   });
 }
 
-function updateChart(count) {
+function updateChart(count, maxSlots) {
   const now = new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
   
   if (historyLabels.length >= MAX_HISTORY) {
@@ -405,7 +411,18 @@ function updateChart(count) {
   historyLabels.push(now);
   historyData.push(count);
 
+  // Guardar en localStorage para no perder el historial al recargar
+  try {
+    localStorage.setItem("ecuaserver_labels", JSON.stringify(historyLabels));
+    localStorage.setItem("ecuaserver_data", JSON.stringify(historyData));
+  } catch (e) {
+    console.warn("No se pudo guardar el historial en localStorage", e);
+  }
+
   if (playersChart) {
+    if (maxSlots && maxSlots > 0) {
+      playersChart.options.scales.y.suggestedMax = maxSlots;
+    }
     playersChart.update();
   }
 }
@@ -471,24 +488,27 @@ function render(d) {
 
   currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
   const count = currentPlayers.length;
-  const maxSlots = d.slots ?? 0;
+  const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
 
   $("players").textContent = count;
   $("playerCount").textContent = `${count} conectados`;
-  $("slots").textContent = maxSlots ? `${maxSlots} slots disponibles` : "—";
+  $("slots").textContent = maxSlots > 0 ? `${maxSlots} slots disponibles` : "Slots no especificados";
 
-  // Actualizar la barra de progreso
+  // Actualizar la barra de progreso de forma defensiva
   const bar = $("playerBar");
+  const wrapper = $("progressWrapper");
   if (maxSlots > 0) {
-    const pct = Math.min((count / maxSlots) * 100, 100);
+    const pct = Math.min(Math.round((count / maxSlots) * 100), 100);
     bar.style.width = pct + "%";
     bar.style.background = pct >= 90 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
+    wrapper.setAttribute("aria-valuenow", pct);
   } else {
     bar.style.width = "0%";
+    wrapper.setAttribute("aria-valuenow", 0);
   }
 
   // Actualizar el gráfico
-  updateChart(count);
+  updateChart(count, maxSlots);
 
   $("version").textContent = d.gameVersion ?? "—";
   $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
