@@ -11,30 +11,30 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<!-- Favicon básico SVG dinámico con iniciales ATS -->
+<!-- Favicon básico SVG dinámico -->
 <link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f1b642'/><text x='50%' y='65%' font-size='50' font-weight='900' font-family='sans-serif' text-anchor='middle' fill='%23101010'>ATS</text></svg>">
 
-<!-- Open Graph para tarjetas de vista previa (WhatsApp, Discord, Facebook) -->
+<!-- Open Graph para redes sociales -->
 <meta property="og:type" content="website">
 <meta property="og:title" content="ECUA SERVER +593 · Estado ATS">
 <meta property="og:description" content="Consulta en tiempo real jugadores conectados, estado del servidor dedicado e historial de conexiones de ECUA SERVER +593.">
-<meta property="og:image" content="https://ecuaserver.com/og-preview.jpg"> <!-- Reemplazar con la URL final de tu imagen -->
+<meta property="og:image" content="https://ecuaserver.com/og-preview.jpg">
 <meta property="og:image:width" content="1200">
 <meta property="og:image:height" content="630">
 <meta property="og:url" content="https://ecuaserver.com/">
 
-<!-- Twitter / X Card -->
+<!-- Twitter Card -->
 <meta name="twitter:card" content="summary_large_image">
 <meta name="twitter:title" content="ECUA SERVER +593 · Estado ATS">
 <meta name="twitter:description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
 <meta name="twitter:image" content="https://ecuaserver.com/og-preview.jpg">
 
-<!-- Optimización de carga de tipografía (Inter) con font-display: swap -->
+<!-- Optimización de fuentes -->
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 
-<!-- Chart.js CDN para gráficos dinámicos -->
+<!-- Chart.js CDN -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
@@ -136,6 +136,38 @@ summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
 details[open] summary::after { content: "－"; }
 .rule-content { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid #1a232c; padding-top: 8px; }
 
+/* Modo Debug Colapsable */
+.debug-card {
+  margin-top: 16px;
+  background: linear-gradient(180deg, #141b23, #0e141a);
+  border: 1px solid var(--line);
+  border-radius: 18px;
+  padding: 14px 20px;
+}
+.debug-summary {
+  font-weight: 700;
+  font-size: 14px;
+  color: var(--muted);
+  cursor: pointer;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.debug-summary:hover { color: var(--text); }
+.debug-summary span { display: flex; align-items: center; gap: 8px; }
+.debug-content { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.debug-content pre {
+  background: #06080b;
+  border: 1px solid var(--line);
+  border-radius: 12px;
+  padding: 14px;
+  max-height: 360px;
+  overflow: auto;
+  color: #cbd4dc;
+  font: 12px/1.5 ui-monospace, monospace;
+  margin: 0;
+}
+
 /* Contenedor del Gráfico */
 .chart-card { margin-top: 16px; }
 .chart-container { position: relative; width: 100%; height: 260px; margin-top: 12px; }
@@ -169,9 +201,6 @@ details[open] summary::after { content: "－"; }
 .kv { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; }
 .kv div:nth-child(odd) { color: var(--muted); }
 .kv div:nth-child(even) { font: 13px ui-monospace, monospace; text-align: right; word-break: break-all; }
-
-.raw { margin-top: 16px; }
-.raw pre { background: #06080b; border: 1px solid var(--line); border-radius: 12px; padding: 14px; max-height: 360px; overflow: auto; color: #cbd4dc; font: 12px/1.5 ui-monospace, monospace; }
 
 .error { display: none; margin-bottom: 16px; border: 1px solid #ff647255; background: #ff647210; color: #ffdce0; border-radius: 14px; padding: 14px; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
@@ -351,13 +380,15 @@ details[open] summary::after { content: "－"; }
     </div>
   </section>
 
-  <section class="card raw">
-    <div class="section-head">
-      <h3>JSON recibido</h3>
-      <span class="muted">respuesta real</span>
+  <!-- SECCIÓN: Modo Debug / JSON Recibido (Colapsable) -->
+  <details class="debug-card">
+    <summary class="debug-summary">
+      <span>🛠️ Modo Debug / Respuesta API (JSON)</span>
+    </summary>
+    <div class="debug-content">
+      <pre id="json">{}</pre>
     </div>
-    <pre id="json">{}</pre>
-  </section>
+  </details>
 
   <footer class="footer">
     La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS y Mixed Content.
