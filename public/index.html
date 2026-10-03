@@ -1,0 +1,546 @@
+<!doctype html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECUA SERVER +593 · ATS</title>
+<meta name="description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
+
+<meta name="theme-color" content="#070a0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f1b642'/><text x='50%' y='65%' font-size='50' font-weight='900' font-family='sans-serif' text-anchor='middle' fill='%23101010'>ATS</text></svg>">
+
+<meta property="og:type" content="website">
+<meta property="og:title" content="ECUA SERVER +593 · Estado ATS">
+<meta property="og:description" content="Consulta en tiempo real jugadores conectados, estado del servidor dedicado e historial de conexiones de ECUA SERVER +593.">
+<meta property="og:image" content="https://ecuaserver.com/og-preview.jpg">
+
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+<style>
+:root {
+  --bg: #070a0e;
+  --card: #11171e;
+  --line: #28333e;
+  --text: #edf2f6;
+  --muted: #9aa7b5;
+  --gold: #f1b642;
+  --green: #39d17f;
+  --red: #ff6472;
+}
+
+* { box-sizing: border-box; }
+body {
+  margin: 0;
+  background: radial-gradient(circle at 15% 0, #3b2a0b33, transparent 28%),
+              radial-gradient(circle at 90% 15%, #16447722, transparent 28%),
+              var(--bg);
+  color: var(--text);
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.5;
+}
+
+.wrap { max-width: 1180px; margin: auto; padding: 28px 18px 50px; }
+.top { display: flex; justify-content: space-between; gap: 18px; align-items: center; margin-bottom: 20px; }
+.brand { display: flex; align-items: center; gap: 14px; }
+.logo {
+  width: 54px; height: 54px; border-radius: 14px;
+  background: linear-gradient(145deg, #f2b944, #b86c16);
+  display: grid; place-items: center; color: #101010; font-weight: 950; font-size: 22px;
+}
+.title { font-size: clamp(23px, 4vw, 36px); font-weight: 900; letter-spacing: -.8px; margin: 0; }
+.sub { color: var(--muted); margin-top: 4px; font-size: 16px; }
+.refresh { border: 1px solid var(--line); background: #0e141b; border-radius: 14px; padding: 11px 14px; color: var(--muted); white-space: nowrap; }
+.refresh b { color: var(--text); }
+
+.card {
+  background: linear-gradient(180deg, #141b23, #0e141a);
+  border: 1px solid var(--line); border-radius: 18px; padding: 20px;
+  box-shadow: 0 18px 50px #00000030;
+}
+.hero { display: grid; grid-template-columns: 1.15fr .85fr; gap: 16px; }
+.label { font-size: 13px; color: var(--gold); font-weight: 900; letter-spacing: 1.5px; text-transform: uppercase; margin-bottom: 13px; }
+.status { display: flex; align-items: center; gap: 14px; }
+.dot {
+  width: 18px; height: 18px; border-radius: 50%; background: var(--green);
+  box-shadow: 0 0 0 8px #39d17f18, 0 0 22px #39d17f80; flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
+}
+.dot.off { background: var(--red); box-shadow: 0 0 0 8px #ff647218, 0 0 22px #ff647280; }
+.status h2 { font-size: 25px; margin: 0; }
+.muted { color: var(--muted); }
+.server { font: 16px ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
+
+.server-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
+.btn {
+  background: var(--line); color: var(--text); border: 1px solid #3a4754;
+  padding: 8px 14px; border-radius: 10px; cursor: pointer; font-size: 13px;
+  font-weight: 600; text-decoration: none; display: inline-flex; align-items: center; gap: 6px;
+  transition: background 0.2s, transform 0.1s;
+}
+.btn:hover { background: #334150; }
+.btn:active { transform: scale(0.98); }
+.btn-primary { background: #1a3828; color: #57df92; border-color: #39d17f44; }
+.btn-primary:hover { background: #224a35; }
+.btn-discord { background: #1e2247; color: #8ea1ff; border-color: rgba(88, 101, 242, 0.35); }
+.btn-discord:hover { background: #272c5c; }
+.btn-whatsapp { background: #0f331d; color: #60e695; border-color: rgba(37, 211, 102, 0.35); }
+.btn-whatsapp:hover { background: #154527; }
+
+.community-card { margin-top: 16px; }
+.social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.social-card {
+  border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  background: #ffffff04; display: flex; justify-content: space-between; align-items: center;
+}
+.social-info { display: flex; flex-direction: column; }
+.social-info strong { font-size: 15px; }
+.social-info span { font-size: 12px; color: var(--muted); }
+
+.rules-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+details {
+  background: #080d12; border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; transition: border-color 0.2s;
+}
+details[open] { border-color: var(--gold); }
+summary {
+  font-weight: 700; cursor: pointer; font-size: 14px; color: var(--text);
+  list-style: none; display: flex; justify-content: space-between; align-items: center;
+  user-select: none;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
+details[open] summary::after { content: "－"; }
+.rule-content { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid #1a232c; padding-top: 8px; }
+
+.debug-card { margin-top: 16px; background: linear-gradient(180deg, #141b23, #0e141a); border: 1px solid var(--line); border-radius: 18px; padding: 14px 20px; }
+.debug-summary { font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; }
+.debug-summary:hover { color: var(--text); }
+.debug-content { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
+.debug-content pre { background: #06080b; border: 1px solid var(--line); border-radius: 12px; padding: 14px; max-height: 360px; overflow: auto; color: #cbd4dc; font: 12px/1.5 ui-monospace, monospace; margin: 0; }
+
+.chart-card { margin-top: 16px; }
+.chart-container { position: relative; width: 100%; height: 260px; margin-top: 12px; }
+
+.progress-container { width: 100%; background: #080d12; height: 8px; border-radius: 99px; margin-top: 10px; overflow: hidden; border: 1px solid var(--line); }
+.progress-bar { width: 0%; background: var(--green); height: 100%; transition: width 0.4s ease, background 0.4s ease; }
+
+.grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 14px; margin-top: 16px; }
+.metric .k { font-size: 12px; color: var(--muted); letter-spacing: 1.2px; text-transform: uppercase; }
+.metric .v { font-size: 29px; font-weight: 900; margin-top: 8px; }
+.metric .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
+
+.players-card { margin-top: 16px; }
+.section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
+.section-head h3 { margin: 0; font-size: 19px; }
+.head-controls { display: flex; align-items: center; gap: 10px; }
+.search-input { background: #080d12; border: 1px solid var(--line); border-radius: 10px; padding: 6px 12px; color: var(--text); font-size: 13px; outline: none; }
+.search-input:focus { border-color: var(--gold); }
+.pill { border: 1px solid #39d17f44; background: #39d17f12; color: #57df92; border-radius: 999px; padding: 7px 11px; font-weight: 800; font-size: 12px; }
+
+.players { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.player { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #ffffff08; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
+.player strong { font-size: 14px; word-break: break-word; }
+.player code { color: var(--muted); font-size: 12px; }
+
+.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
+.kv { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; }
+.kv div:nth-child(odd) { color: var(--muted); }
+.kv div:nth-child(even) { font: 13px ui-monospace, monospace; text-align: right; word-break: break-all; }
+
+.error { display: none; margin-bottom: 16px; border: 1px solid #ff647255; background: #ff647210; color: #ffdce0; border-radius: 14px; padding: 14px; }
+.ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
+.footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
+
+@media(max-width:850px) { .hero, .two { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .refresh { font-size: 13px; width: 100%; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header class="top">
+    <div class="brand">
+      <div class="logo">ATS</div>
+      <div>
+        <h1 class="title">ECUA SERVER +593</h1>
+        <div class="sub">American Truck Simulator · Estado del servidor</div>
+      </div>
+    </div>
+    <div class="refresh" aria-live="polite">Actualización: <b id="timer">10s</b></div>
+  </header>
+
+  <div id="error" class="error" role="alert"></div>
+  <div id="ok" class="ok" role="status">✓ API conectada. Datos recibidos correctamente.</div>
+
+  <section class="hero">
+    <div class="card">
+      <div class="label">Estado en tiempo real</div>
+      <div class="status">
+        <span id="dot" class="dot off" aria-hidden="true"></span>
+        <div>
+          <h2 id="status">Conectando…</h2>
+          <div class="muted" id="statusText">Consultando el proxy del servidor…</div>
+        </div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="label">Servidor dedicado</div>
+      <div class="server" id="serverName">—</div>
+      <div class="server muted" style="font-size:13px;margin-top:6px">IP: 159.89.51.54</div>
+      
+      <div class="server-actions">
+        <button id="copyBtn" class="btn" onclick="copyIP()" aria-label="Copiar dirección IP del servidor">📋 Copiar IP</button>
+        <a href="steam://run/270880" class="btn btn-primary" aria-label="Abrir juego American Truck Simulator">🎮 Abrir ATS</a>
+      </div>
+    </div>
+  </section>
+
+  <section class="card community-card">
+    <div class="section-head">
+      <h3>Comunidad ECUA SERVER</h3>
+      <span class="muted">Únete a nuestras redes sociales</span>
+    </div>
+    
+    <div class="social-grid">
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Discord Oficial</strong>
+          <span>Comunidad y soporte</span>
+        </div>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn btn-discord" aria-label="Unirse al servidor de Discord">Unirse</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Grupo de WhatsApp</strong>
+          <span>Alertas y convoys</span>
+        </div>
+        <a href="https://wa.link/k18cir" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" aria-label="Entrar al grupo de WhatsApp">Entrar</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Soporte / Reportes</strong>
+          <span>Notificar incidencias</span>
+        </div>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn" aria-label="Abrir canal de soporte en Discord">Reportar</a>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 10px;">
+      <h3>Reglas del Servidor</h3>
+    </div>
+    <div class="rules-container">
+      <details>
+        <summary>1. Respeto y Conducción Segura</summary>
+        <div class="rule-content">
+          Mantén la distancia de seguridad entre camiones. No realices maniobras bruscas ni te detengas en medio de la vía pública sin usar luces de emergencia.
+        </div>
+      </details>
+      <details>
+        <summary>2. Adelantamientos y Velocidad</summary>
+        <div class="rule-content">
+          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usa las luces direccionales para avisar.
+        </div>
+      </details>
+      <details>
+        <summary>3. Uso del Chat y Comportamiento</summary>
+        <div class="rule-content">
+          Queda totalmente prohibido el spam, insultos o comportamiento tóxico en el chat global del juego o en los canales de voz.
+        </div>
+      </details>
+    </div>
+  </section>
+
+  <section class="grid">
+    <div class="card metric">
+      <div class="k">Jugadores</div>
+      <div class="v" id="players">—</div>
+      <div class="progress-container" role="progressbar" id="progressWrapper" aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+        <div id="playerBar" class="progress-bar"></div>
+      </div>
+      <div class="s" id="slots" style="margin-top:8px">—</div>
+    </div>
+    <div class="card metric"><div class="k">Versión ATS</div><div class="v" id="version">—</div><div class="s" id="beta">—</div></div>
+    <div class="card metric"><div class="k">API uptime</div><div class="v" id="uptime">—</div><div class="s">segundos reportados</div></div>
+    <div class="card metric"><div class="k">Líneas de log</div><div class="v" id="logLines">—</div><div class="s" id="logState">—</div></div>
+  </section>
+
+  <section class="card chart-card">
+    <div class="section-head">
+      <h3>Historial de Jugadores en Vivo</h3>
+      <span class="muted">Tendencia de conexión reciente</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="playersChart" aria-label="Gráfico de jugadores conectados en el tiempo" role="img"></canvas>
+    </div>
+  </section>
+
+  <section class="card players-card">
+    <div class="section-head">
+      <h3>Jugadores conectados</h3>
+      <div class="head-controls">
+        <label for="playerSearch" class="sr-only">Buscar jugador por nombre o id</label>
+        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()" aria-label="Buscar jugador conectado">
+        <span class="pill" id="playerCount">0 conectados</span>
+      </div>
+    </div>
+    <div class="players" id="playerList">
+      <div class="muted">Cargando…</div>
+    </div>
+  </section>
+
+  <section class="two">
+    <div class="card">
+      <div class="section-head"><h3>Información de la sesión</h3></div>
+      <div class="kv">
+        <div>Session ID</div><div id="session">—</div>
+        <div>Slots configurados</div><div id="slotCount">—</div>
+        <div>Juego</div><div id="game">—</div>
+        <div>Servidor activo</div><div id="running">—</div>
+      </div>
+    </div>
+    <div class="card">
+      <div class="section-head"><h3>Diagnóstico de la API</h3></div>
+      <div class="kv">
+        <div>Log file existe</div><div id="logExists">—</div>
+        <div>Tail iniciado</div><div id="tail">—</div>
+        <div>Última consulta</div><div id="updated">—</div>
+        <div>Fuente</div><div>/api/status → 159.89.51.54/status</div>
+      </div>
+    </div>
+  </section>
+
+  <details class="debug-card">
+    <summary class="debug-summary">🛠️ Modo Debug / Respuesta API (JSON)</summary>
+    <div class="debug-content">
+      <pre id="json">{}</pre>
+    </div>
+  </details>
+
+  <footer class="footer">
+    La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS y Mixed Content.
+  </footer>
+</div>
+
+<script>
+const REFRESH_INTERVAL = 10;
+let left = REFRESH_INTERVAL;
+let isFetching = false;
+let currentPlayers = [];
+
+const MAX_HISTORY = 15;
+let historyLabels = [];
+let historyData = [];
+let playersChart = null;
+
+try {
+  historyLabels = JSON.parse(localStorage.getItem("ecuaserver_labels") || "[]").slice(-MAX_HISTORY);
+  historyData = JSON.parse(localStorage.getItem("ecuaserver_data") || "[]").slice(-MAX_HISTORY);
+} catch (e) {
+  historyLabels = [];
+  historyData = [];
+}
+
+const $ = id => document.getElementById(id);
+const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
+
+function initChart() {
+  const ctx = document.getElementById("playersChart").getContext("2d");
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, "rgba(57, 209, 127, 0.35)");
+  gradient.addColorStop(1, "rgba(57, 209, 127, 0)");
+
+  playersChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: historyLabels,
+      datasets: [{
+        label: "Jugadores Conectados",
+        data: historyData,
+        borderColor: "#39d17f",
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: "#f1b642",
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: { legend: { display: false } },
+      scales: {
+        x: { grid: { color: "#28333e33" }, ticks: { color: "#9aa7b5", font: { size: 11, family: 'Inter' } } },
+        y: { beginAtZero: true, suggestedMax: 8, grid: { color: "#28333e66" }, ticks: { color: "#9aa7b5", precision: 0, stepSize: 1, font: { size: 11, family: 'Inter' } } }
+      }
+    }
+  });
+}
+
+function updateChart(count, maxSlots) {
+  const now = new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  if (historyLabels.length >= MAX_HISTORY) {
+    historyLabels.shift();
+    historyData.shift();
+  }
+  historyLabels.push(now);
+  historyData.push(count);
+
+  try {
+    localStorage.setItem("ecuaserver_labels", JSON.stringify(historyLabels));
+    localStorage.setItem("ecuaserver_data", JSON.stringify(historyData));
+  } catch (e) {
+    console.warn("No se pudo guardar el historial en localStorage", e);
+  }
+
+  if (playersChart) {
+    if (maxSlots && maxSlots > 0) playersChart.options.scales.y.suggestedMax = maxSlots;
+    playersChart.update();
+  }
+}
+
+async function copyIP() {
+  try {
+    await navigator.clipboard.writeText("159.89.51.54");
+    const btn = $("copyBtn");
+    btn.textContent = "¡IP Copiada!";
+    setTimeout(() => btn.textContent = "📋 Copiar IP", 2000);
+  } catch (err) {
+    console.error("Error al copiar IP: ", err);
+  }
+}
+
+function showError(msg) {
+  $("error").style.display = "block";
+  $("error").textContent = msg;
+  $("ok").style.display = "none";
+}
+
+function renderPlayers(playersToDisplay) {
+  const list = $("playerList");
+  list.innerHTML = "";
+
+  if (playersToDisplay.length > 0) {
+    const fragment = document.createDocumentFragment();
+    playersToDisplay.forEach(p => {
+      const e = document.createElement("div");
+      e.className = "player";
+      
+      const name = document.createElement("strong");
+      name.textContent = p.username ?? "Anónimo";
+      
+      const clientId = document.createElement("code");
+      clientId.textContent = `client_id: ${p.client_id ?? "—"}`;
+
+      e.appendChild(name);
+      e.appendChild(clientId);
+      fragment.appendChild(e);
+    });
+    list.appendChild(fragment);
+  } else {
+    list.innerHTML = '<div class="muted">No se encontraron jugadores.</div>';
+  }
+}
+
+function filterPlayers() {
+  const query = $("playerSearch").value.toLowerCase().trim();
+  const filtered = currentPlayers.filter(p => 
+    (p.username ?? "").toLowerCase().includes(query) || 
+    String(p.client_id ?? "").includes(query)
+  );
+  renderPlayers(filtered);
+}
+
+function render(d) {
+  $("error").style.display = "none";
+  $("ok").style.display = "block";
+  $("json").textContent = JSON.stringify(d, null, 2);
+
+  const online = d.serverRunning === true;
+  $("dot").classList.toggle("off", !online);
+  $("status").textContent = online ? "Servidor en línea" : d.serverRunning === false ? "Servidor fuera de línea" : "Estado recibido";
+  $("statusText").textContent = online ? "La API confirma que el servidor está ejecutándose." : "Respuesta recibida desde la API.";
+  $("serverName").textContent = d.serverName ?? "—";
+
+  currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
+  const count = currentPlayers.length;
+  const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
+
+  $("players").textContent = count;
+  $("playerCount").textContent = `${count} conectados`;
+  $("slots").textContent = maxSlots > 0 ? `${maxSlots} slots disponibles` : "Slots no especificados";
+
+  const bar = $("playerBar");
+  const wrapper = $("progressWrapper");
+  if (maxSlots > 0) {
+    const pct = Math.min(Math.round((count / maxSlots) * 100), 100);
+    bar.style.width = pct + "%";
+    bar.style.background = pct >= 90 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
+    wrapper.setAttribute("aria-valuenow", pct);
+  } else {
+    bar.style.width = "0%";
+    wrapper.setAttribute("aria-valuenow", 0);
+  }
+
+  updateChart(count, maxSlots);
+
+  $("version").textContent = d.gameVersion ?? "—";
+  $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
+  $("uptime").textContent = d.apiUptime != null ? `${Math.round(d.apiUptime)} s` : "—";
+  $("logLines").textContent = d.totalLogLines ?? "—";
+  $("logState").textContent = d.logFileExists === true ? "archivo de log detectado" : "—";
+  $("session").textContent = d.sessionID ?? "—";
+  $("slotCount").textContent = d.slots ?? "—";
+  $("game").textContent = d.game ?? "—";
+  $("running").textContent = yn(d.serverRunning);
+  $("logExists").textContent = yn(d.logFileExists);
+  $("tail").textContent = yn(d.tailStarted);
+  $("updated").textContent = new Date().toLocaleTimeString("es-EC");
+
+  filterPlayers();
+}
+
+async function load() {
+  if (isFetching) return;
+  isFetching = true;
+
+  try {
+    const r = await fetch("/api/status?ts=" + Date.now(), { cache: "no-store" });
+    const d = await r.json();
+    if (!r.ok || d.error) throw new Error(d.error || ("HTTP " + r.status));
+    render(d);
+  } catch (e) {
+    $("dot").classList.add("off");
+    $("status").textContent = "API no disponible";
+    $("statusText").textContent = "El proxy no pudo obtener una respuesta del servidor dedicado.";
+    showError(`No se pudo obtener el estado real: ${e.message}. Comprueba que 159.89.51.54/status esté accesible.`);
+  } finally {
+    isFetching = false;
+    left = REFRESH_INTERVAL;
+  }
+}
+
+window.addEventListener("DOMContentLoaded", () => {
+  initChart();
+  load();
+});
+
+setInterval(() => {
+  left--;
+  if (left <= 0) {
+    load();
+  }
+  $("timer").textContent = `${Math.max(left, 0)}s`;
+}, 1000);
+</script>
+</body>
+</html>
