@@ -15,6 +15,8 @@
   --gold: #f1b642;
   --green: #39d17f;
   --red: #ff6472;
+  --discord: #5865f2;
+  --whatsapp: #25d366;
 }
 
 * { box-sizing: border-box; }
@@ -58,7 +60,7 @@ body {
 .muted { color: var(--muted); }
 .server { font: 16px ui-monospace, SFMono-Regular, Menlo, monospace; word-break: break-all; }
 
-/* Botonera de acciones rápidas */
+/* Botonera de acciones */
 .server-actions { display: flex; gap: 10px; margin-top: 14px; flex-wrap: wrap; }
 .btn {
   background: var(--line); color: var(--text); border: 1px solid #3a4754;
@@ -71,6 +73,38 @@ body {
 .btn-primary { background: #1a3828; color: #57df92; border-color: #39d17f44; }
 .btn-primary:hover { background: #224a35; }
 
+.btn-discord { background: #1e2247; color: #8ea1ff; border-color: #5865f255; }
+.btn-discord:hover { background: #272c5c; }
+.btn-whatsapp { background: #0f331d; color: #60e695; border-color: #25d36655; }
+.btn-whatsapp:hover { background: #154527; }
+
+/* Sección Comunidad y Reglas */
+.community-card { margin-top: 16px; }
+.social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
+.social-card {
+  border: 1px solid var(--line); border-radius: 14px; padding: 14px;
+  background: #ffffff04; display: flex; justify-content: space-between; align-items: center;
+}
+.social-info { display: flex; flex-direction: column; }
+.social-info strong { font-size: 15px; }
+.social-info span { font-size: 12px; color: var(--muted); }
+
+/* Reglas Desplegables */
+.rules-container { display: flex; flex-direction: column; gap: 8px; margin-top: 12px; }
+details {
+  background: #080d12; border: 1px solid var(--line); border-radius: 12px;
+  padding: 12px 16px; transition: border-color 0.2s;
+}
+details[open] { border-color: var(--gold); }
+summary {
+  font-weight: 700; cursor: pointer; font-size: 14px; color: var(--text);
+  list-style: none; display: flex; justify-content: space-between; align-items: center;
+}
+summary::-webkit-details-marker { display: none; }
+summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
+details[open] summary::after { content: "－"; }
+.rule-content { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid #1a232c; padding-top: 8px; }
+
 /* Barra de progreso de ocupación */
 .progress-container { width: 100%; background: #080d12; height: 8px; border-radius: 99px; margin-top: 10px; overflow: hidden; border: 1px solid var(--line); }
 .progress-bar { width: 0%; background: var(--green); height: 100%; transition: width 0.4s ease, background 0.4s ease; }
@@ -80,7 +114,6 @@ body {
 .metric .v { font-size: 29px; font-weight: 900; margin-top: 8px; }
 .metric .s { font-size: 12px; color: var(--muted); margin-top: 4px; }
 
-/* Buscador de jugadores y lista */
 .players-card { margin-top: 16px; }
 .section-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; margin-bottom: 14px; flex-wrap: wrap; }
 .section-head h3 { margin: 0; font-size: 19px; }
@@ -158,7 +191,6 @@ body {
       <div class="server" id="serverName">—</div>
       <div class="server muted" style="font-size:13px;margin-top:6px">IP: 159.89.51.54</div>
       
-      <!-- Acciones rápidas -->
       <div class="server-actions">
         <button id="copyBtn" class="btn" onclick="copyIP()">📋 Copiar IP</button>
         <a href="steam://run/270880" class="btn btn-primary">🎮 Abrir ATS</a>
@@ -166,11 +198,68 @@ body {
     </div>
   </section>
 
+  <!-- SECCIÓN: Integración Comunitaria y Reglas -->
+  <section class="card community-card">
+    <div class="section-head">
+      <h3>Comunidad ECUA SERVER</h3>
+      <span class="muted">Únete a nuestras redes sociales</span>
+    </div>
+    
+    <div class="social-grid">
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Discord Oficial</strong>
+          <span>Comunidad y soporte</span>
+        </div>
+        <a href="https://discord.gg/ejemplo" target="_blank" rel="noopener" class="btn btn-discord">Unirse</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Grupo de WhatsApp</strong>
+          <span>Alertas y convoys</span>
+        </div>
+        <a href="https://chat.whatsapp.com/ejemplo" target="_blank" rel="noopener" class="btn btn-whatsapp">Entrar</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Soporte / Reportes</strong>
+          <span>Notificar incidencias</span>
+        </div>
+        <a href="https://discord.gg/ejemplo" target="_blank" rel="noopener" class="btn">Reportar</a>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 10px;">
+      <h3>Reglas del Servidor</h3>
+    </div>
+    <div class="rules-container">
+      <details>
+        <summary>1. Respeto y Conducción Segura</summary>
+        <div class="rule-content">
+          Mantén la distancia de seguridad entre camiones. No realices maniobras bruscas ni te detengas en medio de la vía pública sin usar luces de emergencia.
+        </div>
+      </details>
+      <details>
+        <summary>2. Adelantamientos y Velocidad</summary>
+        <div class="rule-content">
+          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usa las luces direccionales para avisar.
+        </div>
+      </details>
+      <details>
+        <summary>3. Uso del Chat y Comportamiento</summary>
+        <div class="rule-content">
+          Queda totalmente prohibido el spam, insultos o comportamiento tóxico en el chat global del juego o en los canales de voz.
+        </div>
+      </details>
+    </div>
+  </section>
+
   <section class="grid">
     <div class="card metric">
       <div class="k">Jugadores</div>
       <div class="v" id="players">—</div>
-      <!-- Barra visual de ocupación -->
       <div class="progress-container">
         <div id="playerBar" class="progress-bar"></div>
       </div>
@@ -304,7 +393,6 @@ function render(d) {
   $("playerCount").textContent = `${count} conectados`;
   $("slots").textContent = maxSlots ? `${maxSlots} slots disponibles` : "—";
 
-  // Actualización de la barra de progreso
   const bar = $("playerBar");
   if (maxSlots > 0) {
     const pct = Math.min((count / maxSlots) * 100, 100);
