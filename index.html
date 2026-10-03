@@ -69,7 +69,7 @@ body {
   background: linear-gradient(145deg, #f2b944, #b86c16);
   display: grid; place-items: center; color: #101010; font-weight: 950; font-size: 22px;
 }
-.title { font-size: clamp(23px, 4vw, 36px); font-weight: 900; letter-spacing: -.8px; }
+.title { font-size: clamp(23px, 4vw, 36px); font-weight: 900; letter-spacing: -.8px; margin: 0; }
 .sub { color: var(--muted); margin-top: 4px; font-size: 16px; }
 .refresh { border: 1px solid var(--line); background: #0e141b; border-radius: 14px; padding: 11px 14px; color: var(--muted); white-space: nowrap; }
 .refresh b { color: var(--text); }
@@ -85,6 +85,7 @@ body {
 .dot {
   width: 18px; height: 18px; border-radius: 50%; background: var(--green);
   box-shadow: 0 0 0 8px #39d17f18, 0 0 22px #39d17f80; flex-shrink: 0;
+  transition: background 0.3s ease, box-shadow 0.3s ease;
 }
 .dot.off { background: var(--red); box-shadow: 0 0 0 8px #ff647218, 0 0 22px #ff647280; }
 .status h2 { font-size: 25px; margin: 0; }
@@ -104,9 +105,9 @@ body {
 .btn-primary { background: #1a3828; color: #57df92; border-color: #39d17f44; }
 .btn-primary:hover { background: #224a35; }
 
-.btn-discord { background: #1e2247; color: #8ea1ff; border-color: #5865f255; }
+.btn-discord { background: #1e2247; color: #8ea1ff; border-color: rgba(88, 101, 242, 0.35); }
 .btn-discord:hover { background: #272c5c; }
-.btn-whatsapp { background: #0f331d; color: #60e695; border-color: #25d36655; }
+.btn-whatsapp { background: #0f331d; color: #60e695; border-color: rgba(37, 211, 102, 0.35); }
 .btn-whatsapp:hover { background: #154527; }
 
 /* Sección Comunidad y Reglas */
@@ -130,6 +131,7 @@ details[open] { border-color: var(--gold); }
 summary {
   font-weight: 700; cursor: pointer; font-size: 14px; color: var(--text);
   list-style: none; display: flex; justify-content: space-between; align-items: center;
+  user-select: none;
 }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
@@ -149,12 +151,8 @@ details[open] summary::after { content: "－"; }
   font-size: 14px;
   color: var(--muted);
   cursor: pointer;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
 }
 .debug-summary:hover { color: var(--text); }
-.debug-summary span { display: flex; align-items: center; gap: 8px; }
 .debug-content { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
 .debug-content pre {
   background: #06080b;
@@ -206,6 +204,11 @@ details[open] summary::after { content: "－"; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
 .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
 
+.sr-only {
+  position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px;
+  overflow: hidden; clip: rect(0,0,0,0); border: 0;
+}
+
 @media(max-width:850px) {
   .hero, .two { grid-template-columns: 1fr; }
   .grid { grid-template-columns: repeat(2, 1fr); }
@@ -229,7 +232,7 @@ details[open] summary::after { content: "－"; }
     <div class="brand">
       <div class="logo">ATS</div>
       <div>
-        <h1 class="title" style="margin:0;">ECUA SERVER +593</h1>
+        <h1 class="title">ECUA SERVER +593</h1>
         <div class="sub">American Truck Simulator · Estado del servidor</div>
       </div>
     </div>
@@ -237,7 +240,7 @@ details[open] summary::after { content: "－"; }
   </header>
 
   <div id="error" class="error" role="alert"></div>
-  <div id="ok" class="ok" role="status">✓ API conectada. Datos recibidos desde el servidor dedicado.</div>
+  <div id="ok" class="ok" role="status">✓ API conectada. Datos recibidos correctamente.</div>
 
   <section class="hero">
     <div class="card">
@@ -275,7 +278,7 @@ details[open] summary::after { content: "－"; }
           <strong>Discord Oficial</strong>
           <span>Comunidad y soporte</span>
         </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn btn-discord" aria-label="Unirse al servidor de Discord">Unirse</a>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn btn-discord" aria-label="Unirse al servidor de Discord">Unirse</a>
       </div>
       
       <div class="social-card">
@@ -283,7 +286,7 @@ details[open] summary::after { content: "－"; }
           <strong>Grupo de WhatsApp</strong>
           <span>Alertas y convoys</span>
         </div>
-        <a href="https://wa.link/k18cir" target="_blank" rel="noopener" class="btn btn-whatsapp" aria-label="Entrar al grupo de WhatsApp">Entrar</a>
+        <a href="https://wa.link/k18cir" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" aria-label="Entrar al grupo de WhatsApp">Entrar</a>
       </div>
       
       <div class="social-card">
@@ -291,7 +294,7 @@ details[open] summary::after { content: "－"; }
           <strong>Soporte / Reportes</strong>
           <span>Notificar incidencias</span>
         </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener" class="btn" aria-label="Abrir canal de soporte en Discord">Reportar</a>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn" aria-label="Abrir canal de soporte en Discord">Reportar</a>
       </div>
     </div>
 
@@ -349,7 +352,7 @@ details[open] summary::after { content: "－"; }
     <div class="section-head">
       <h3>Jugadores conectados</h3>
       <div class="head-controls">
-        <label for="playerSearch" class="sr-only" style="display:none">Buscar jugador por nombre o id</label>
+        <label for="playerSearch" class="sr-only">Buscar jugador por nombre o id</label>
         <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()" aria-label="Buscar jugador conectado">
         <span class="pill" id="playerCount">0 conectados</span>
       </div>
@@ -380,11 +383,9 @@ details[open] summary::after { content: "－"; }
     </div>
   </section>
 
-  <!-- SECCIÓN: Modo Debug / JSON Recibido (Colapsable) -->
+  <!-- Modo Debug / JSON Recibido -->
   <details class="debug-card">
-    <summary class="debug-summary">
-      <span>🛠️ Modo Debug / Respuesta API (JSON)</span>
-    </summary>
+    <summary class="debug-summary">🛠️ Modo Debug / Respuesta API (JSON)</summary>
     <div class="debug-content">
       <pre id="json">{}</pre>
     </div>
@@ -401,11 +402,19 @@ let left = REFRESH_INTERVAL;
 let isFetching = false;
 let currentPlayers = [];
 
-// Historial con persistencia en localStorage
 const MAX_HISTORY = 15;
-let historyLabels = JSON.parse(localStorage.getItem("ecuaserver_labels") || "[]");
-let historyData = JSON.parse(localStorage.getItem("ecuaserver_data") || "[]");
+let historyLabels = [];
+let historyData = [];
 let playersChart = null;
+
+// Cargar y validar historial previo desde localStorage
+try {
+  historyLabels = JSON.parse(localStorage.getItem("ecuaserver_labels") || "[]").slice(-MAX_HISTORY);
+  historyData = JSON.parse(localStorage.getItem("ecuaserver_data") || "[]").slice(-MAX_HISTORY);
+} catch (e) {
+  historyLabels = [];
+  historyData = [];
+}
 
 const $ = id => document.getElementById(id);
 const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
@@ -486,11 +495,15 @@ function updateChart(count, maxSlots) {
   }
 }
 
-function copyIP() {
-  navigator.clipboard.writeText("159.89.51.54");
-  const btn = $("copyBtn");
-  btn.textContent = "¡IP Copiada!";
-  setTimeout(() => btn.textContent = "📋 Copiar IP", 2000);
+async function copyIP() {
+  try {
+    await navigator.clipboard.writeText("159.89.51.54");
+    const btn = $("copyBtn");
+    btn.textContent = "¡IP Copiada!";
+    setTimeout(() => btn.textContent = "📋 Copiar IP", 2000);
+  } catch (err) {
+    console.error("Error al copiar IP: ", err);
+  }
 }
 
 function showError(msg) {
@@ -526,7 +539,7 @@ function renderPlayers(playersToDisplay) {
 }
 
 function filterPlayers() {
-  const query = $("playerSearch").value.toLowerCase();
+  const query = $("playerSearch").value.toLowerCase().trim();
   const filtered = currentPlayers.filter(p => 
     (p.username ?? "").toLowerCase().includes(query) || 
     String(p.client_id ?? "").includes(query)
