@@ -5,6 +5,35 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ECUA SERVER +593 · ATS</title>
 <meta name="description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
+
+<!-- Meta etiquetas para Móvil y PWA -->
+<meta name="theme-color" content="#070a0e">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+
+<!-- Favicon básico SVG dinámico con iniciales ATS -->
+<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f1b642'/><text x='50%' y='65%' font-size='50' font-weight='900' font-family='sans-serif' text-anchor='middle' fill='%23101010'>ATS</text></svg>">
+
+<!-- Open Graph para tarjetas de vista previa (WhatsApp, Discord, Facebook) -->
+<meta property="og:type" content="website">
+<meta property="og:title" content="ECUA SERVER +593 · Estado ATS">
+<meta property="og:description" content="Consulta en tiempo real jugadores conectados, estado del servidor dedicado e historial de conexiones de ECUA SERVER +593.">
+<meta property="og:image" content="https://ecuaserver.com/og-preview.jpg"> <!-- Reemplazar con la URL final de tu imagen -->
+<meta property="og:image:width" content="1200">
+<meta property="og:image:height" content="630">
+<meta property="og:url" content="https://ecuaserver.com/">
+
+<!-- Twitter / X Card -->
+<meta name="twitter:card" content="summary_large_image">
+<meta name="twitter:title" content="ECUA SERVER +593 · Estado ATS">
+<meta name="twitter:description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
+<meta name="twitter:image" content="https://ecuaserver.com/og-preview.jpg">
+
+<!-- Optimización de carga de tipografía (Inter) con font-display: swap -->
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+
 <!-- Chart.js CDN para gráficos dinámicos -->
 <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
@@ -28,7 +57,7 @@ body {
               radial-gradient(circle at 90% 15%, #16447722, transparent 28%),
               var(--bg);
   color: var(--text);
-  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
+  font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
   line-height: 1.5;
 }
 
@@ -382,7 +411,7 @@ function initChart() {
       scales: {
         x: {
           grid: { color: "#28333e33" },
-          ticks: { color: "#9aa7b5", font: { size: 11 } }
+          ticks: { color: "#9aa7b5", font: { size: 11, family: 'Inter' } }
         },
         y: {
           beginAtZero: true,
@@ -392,7 +421,7 @@ function initChart() {
             color: "#9aa7b5", 
             precision: 0, 
             stepSize: 1,
-            font: { size: 11 } 
+            font: { size: 11, family: 'Inter' } 
           }
         }
       }
@@ -411,7 +440,6 @@ function updateChart(count, maxSlots) {
   historyLabels.push(now);
   historyData.push(count);
 
-  // Guardar en localStorage para no perder el historial al recargar
   try {
     localStorage.setItem("ecuaserver_labels", JSON.stringify(historyLabels));
     localStorage.setItem("ecuaserver_data", JSON.stringify(historyData));
@@ -494,7 +522,6 @@ function render(d) {
   $("playerCount").textContent = `${count} conectados`;
   $("slots").textContent = maxSlots > 0 ? `${maxSlots} slots disponibles` : "Slots no especificados";
 
-  // Actualizar la barra de progreso de forma defensiva
   const bar = $("playerBar");
   const wrapper = $("progressWrapper");
   if (maxSlots > 0) {
@@ -507,7 +534,6 @@ function render(d) {
     wrapper.setAttribute("aria-valuenow", 0);
   }
 
-  // Actualizar el gráfico
   updateChart(count, maxSlots);
 
   $("version").textContent = d.gameVersion ?? "—";
@@ -546,7 +572,6 @@ async function load() {
   }
 }
 
-// Inicializar el gráfico al cargar la página
 window.addEventListener("DOMContentLoaded", () => {
   initChart();
   load();
