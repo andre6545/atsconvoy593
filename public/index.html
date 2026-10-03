@@ -15,7 +15,6 @@
 <meta property="og:type" content="website">
 <meta property="og:title" content="ECUA SERVER +593 · Estado ATS">
 <meta property="og:description" content="Consulta en tiempo real jugadores conectados, estado del servidor dedicado e historial de conexiones de ECUA SERVER +593.">
-<meta property="og:image" content="https://ecuaserver.com/og-preview.jpg">
 
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -92,6 +91,27 @@ body {
 .btn-whatsapp { background: #0f331d; color: #60e695; border-color: rgba(37, 211, 102, 0.35); }
 .btn-whatsapp:hover { background: #154527; }
 
+/* NUEVA SECCIÓN: CONVOY / EVENTO PROGRAMADO */
+.event-card {
+  margin-top: 16px;
+  background: linear-gradient(135deg, #1b2533, #0e141a);
+  border: 1px solid #2b3a4e;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  flex-wrap: wrap;
+  gap: 16px;
+}
+.event-details h3 { margin: 0 0 6px; font-size: 18px; color: var(--gold); }
+.event-details p { margin: 0; font-size: 14px; color: var(--muted); }
+.event-timer { display: flex; gap: 12px; }
+.timer-unit {
+  background: #080d12; border: 1px solid var(--line); padding: 8px 12px;
+  border-radius: 10px; text-align: center; min-width: 60px;
+}
+.timer-unit span { display: block; font-size: 20px; font-weight: 900; color: var(--text); }
+.timer-unit label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
+
 .community-card { margin-top: 16px; }
 .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .social-card {
@@ -144,9 +164,11 @@ details[open] summary::after { content: "－"; }
 .pill { border: 1px solid #39d17f44; background: #39d17f12; color: #57df92; border-radius: 999px; padding: 7px 11px; font-weight: 800; font-size: 12px; }
 
 .players { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-.player { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #ffffff08; display: flex; justify-content: space-between; gap: 8px; align-items: center; }
-.player strong { font-size: 14px; word-break: break-word; }
-.player code { color: var(--muted); font-size: 12px; }
+.player { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #ffffff08; display: flex; gap: 10px; align-items: center; }
+.player-avatar { width: 34px; height: 34px; border-radius: 8px; background: var(--line); color: var(--gold); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
+.player-info { display: flex; flex-direction: column; overflow: hidden; }
+.player-info strong { font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
+.player-info code { color: var(--muted); font-size: 11px; }
 
 .two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
 .kv { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; }
@@ -157,10 +179,20 @@ details[open] summary::after { content: "－"; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
 .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
 
+/* TOAST DE NOTIFICACIÓN */
+.toast {
+  position: fixed; bottom: 20px; right: 20px; background: var(--card);
+  border: 1px solid var(--gold); color: var(--text); padding: 12px 18px;
+  border-radius: 12px; box-shadow: 0 10px 30px #00000080; display: flex;
+  align-items: center; gap: 10px; z-index: 1000; transform: translateY(100px);
+  opacity: 0; transition: transform 0.3s ease, opacity 0.3s ease;
+}
+.toast.show { transform: translateY(0); opacity: 1; }
+
 .sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
 
 @media(max-width:850px) { .hero, .two { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .refresh { font-size: 13px; width: 100%; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } }
+@media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .refresh { font-size: 13px; width: 100%; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } .event-card { flex-direction: column; align-items: flex-start; } }
 </style>
 </head>
 <body>
@@ -202,60 +234,16 @@ details[open] summary::after { content: "－"; }
     </div>
   </section>
 
-  <section class="card community-card">
-    <div class="section-head">
-      <h3>Comunidad ECUA SERVER</h3>
-      <span class="muted">Únete a nuestras redes sociales</span>
+  <!-- SECCIÓN DE PRÓXIMO CONVOY / EVENTO -->
+  <section class="card event-card">
+    <div class="event-details">
+      <h3>🚚 Próximo Convoy Oficial</h3>
+      <p>Ruta Ecuador - Serranía y Costa. ¡Prepara tu camión y únete al Discord!</p>
     </div>
-    
-    <div class="social-grid">
-      <div class="social-card">
-        <div class="social-info">
-          <strong>Discord Oficial</strong>
-          <span>Comunidad y soporte</span>
-        </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn btn-discord" aria-label="Unirse al servidor de Discord">Unirse</a>
-      </div>
-      
-      <div class="social-card">
-        <div class="social-info">
-          <strong>Grupo de WhatsApp</strong>
-          <span>Alertas y convoys</span>
-        </div>
-        <a href="https://wa.link/k18cir" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp" aria-label="Entrar al grupo de WhatsApp">Entrar</a>
-      </div>
-      
-      <div class="social-card">
-        <div class="social-info">
-          <strong>Soporte / Reportes</strong>
-          <span>Notificar incidencias</span>
-        </div>
-        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn" aria-label="Abrir canal de soporte en Discord">Reportar</a>
-      </div>
-    </div>
-
-    <div class="section-head" style="margin-top: 10px;">
-      <h3>Reglas del Servidor</h3>
-    </div>
-    <div class="rules-container">
-      <details>
-        <summary>1. Respeto y Conducción Segura</summary>
-        <div class="rule-content">
-          Mantén la distancia de seguridad entre camiones. No realices maniobras bruscas ni te detengas en medio de la vía pública sin usar luces de emergencia.
-        </div>
-      </details>
-      <details>
-        <summary>2. Adelantamientos y Velocidad</summary>
-        <div class="rule-content">
-          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usa las luces direccionales para avisar.
-        </div>
-      </details>
-      <details>
-        <summary>3. Uso del Chat y Comportamiento</summary>
-        <div class="rule-content">
-          Queda totalmente prohibido el spam, insultos o comportamiento tóxico en el chat global del juego o en los canales de voz.
-        </div>
-      </details>
+    <div class="event-timer">
+      <div class="timer-unit"><span id="days">00</span><label>Días</label></div>
+      <div class="timer-unit"><span id="hours">00</span><label>Horas</label></div>
+      <div class="timer-unit"><span id="minutes">00</span><label>Min</label></div>
     </div>
   </section>
 
@@ -287,13 +275,69 @@ details[open] summary::after { content: "－"; }
     <div class="section-head">
       <h3>Jugadores conectados</h3>
       <div class="head-controls">
-        <label for="playerSearch" class="sr-only">Buscar jugador por nombre o id</label>
         <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()" aria-label="Buscar jugador conectado">
         <span class="pill" id="playerCount">0 conectados</span>
       </div>
     </div>
     <div class="players" id="playerList">
       <div class="muted">Cargando…</div>
+    </div>
+  </section>
+
+  <section class="card community-card">
+    <div class="section-head">
+      <h3>Comunidad ECUA SERVER</h3>
+      <span class="muted">Únete a nuestras redes sociales</span>
+    </div>
+    
+    <div class="social-grid">
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Discord Oficial</strong>
+          <span>Comunidad y soporte</span>
+        </div>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn btn-discord">Unirse</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Grupo de WhatsApp</strong>
+          <span>Alertas y convoys</span>
+        </div>
+        <a href="https://wa.link/k18cir" target="_blank" rel="noopener noreferrer" class="btn btn-whatsapp">Entrar</a>
+      </div>
+      
+      <div class="social-card">
+        <div class="social-info">
+          <strong>Soporte / Reportes</strong>
+          <span>Notificar incidencias</span>
+        </div>
+        <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn">Reportar</a>
+      </div>
+    </div>
+
+    <div class="section-head" style="margin-top: 10px;">
+      <h3>Reglas del Servidor</h3>
+    </div>
+    <div class="rules-container">
+      <details>
+        <summary>1. Respeto y Conducción Segura</summary>
+        <div class="rule-content">
+          Mantén la distancia de seguridad entre camiones. No realices maniobras bruscas ni te detengas en medio de la vía pública sin usar luces de emergencia.
+        </div>
+      </details>
+      <details>
+        <summary>2. Adelantamientos y Velocidad</summary>
+        <div class="rule-content">
+          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usar lucientes direccionales.
+        </div>
+      </details>
+      <details>
+        <summary>3. Uso del Chat y Comportamiento</summary>
+        <div class="rule-content">
+          Queda totalmente prohibido el spam, insultos o comportamiento tóxico en el chat global del juego o en los canales de voz.
+        </div>
+      </details>
     </div>
   </section>
 
@@ -330,6 +374,12 @@ details[open] summary::after { content: "－"; }
   </footer>
 </div>
 
+<!-- TOAST FLOTANTE -->
+<div id="toast" class="toast" role="status">
+  <span>📋</span>
+  <span id="toastMsg">IP copiada al portapapeles</span>
+</div>
+
 <script>
 const REFRESH_INTERVAL = 10;
 let left = REFRESH_INTERVAL;
@@ -351,6 +401,13 @@ try {
 
 const $ = id => document.getElementById(id);
 const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
+
+function showToast(msg) {
+  const toast = $("toast");
+  $("toastMsg").textContent = msg;
+  toast.classList.add("show");
+  setTimeout(() => toast.classList.remove("show"), 2500);
+}
 
 function initChart() {
   const ctx = document.getElementById("playersChart").getContext("2d");
@@ -398,9 +455,7 @@ function updateChart(count, maxSlots) {
   try {
     localStorage.setItem("ecuaserver_labels", JSON.stringify(historyLabels));
     localStorage.setItem("ecuaserver_data", JSON.stringify(historyData));
-  } catch (e) {
-    console.warn("No se pudo guardar el historial en localStorage", e);
-  }
+  } catch (e) {}
 
   if (playersChart) {
     if (maxSlots && maxSlots > 0) playersChart.options.scales.y.suggestedMax = maxSlots;
@@ -411,9 +466,7 @@ function updateChart(count, maxSlots) {
 async function copyIP() {
   try {
     await navigator.clipboard.writeText("159.89.51.54");
-    const btn = $("copyBtn");
-    btn.textContent = "¡IP Copiada!";
-    setTimeout(() => btn.textContent = "📋 Copiar IP", 2000);
+    showToast("¡IP (159.89.51.54) copiada al portapapeles!");
   } catch (err) {
     console.error("Error al copiar IP: ", err);
   }
@@ -423,6 +476,7 @@ function showError(msg) {
   $("error").style.display = "block";
   $("error").textContent = msg;
   $("ok").style.display = "none";
+  document.title = "🔴 [OFFLINE] ECUA SERVER +593";
 }
 
 function renderPlayers(playersToDisplay) {
@@ -435,14 +489,27 @@ function renderPlayers(playersToDisplay) {
       const e = document.createElement("div");
       e.className = "player";
       
+      const username = p.username ?? "Anónimo";
+      const initial = username.charAt(0).toUpperCase();
+
+      const avatar = document.createElement("div");
+      avatar.className = "player-avatar";
+      avatar.textContent = initial;
+
+      const info = document.createElement("div");
+      info.className = "player-info";
+
       const name = document.createElement("strong");
-      name.textContent = p.username ?? "Anónimo";
+      name.textContent = username;
       
       const clientId = document.createElement("code");
-      clientId.textContent = `client_id: ${p.client_id ?? "—"}`;
+      clientId.textContent = `ID: ${p.client_id ?? "—"}`;
 
-      e.appendChild(name);
-      e.appendChild(clientId);
+      info.appendChild(name);
+      info.appendChild(clientId);
+      
+      e.appendChild(avatar);
+      e.appendChild(info);
       fragment.appendChild(e);
     });
     list.appendChild(fragment);
@@ -467,13 +534,18 @@ function render(d) {
 
   const online = d.serverRunning === true;
   $("dot").classList.toggle("off", !online);
-  $("status").textContent = online ? "Servidor en línea" : d.serverRunning === false ? "Servidor fuera de línea" : "Estado recibido";
+  $("status").textContent = online ? "Servidor en línea" : "Servidor fuera de línea";
   $("statusText").textContent = online ? "La API confirma que el servidor está ejecutándose." : "Respuesta recibida desde la API.";
   $("serverName").textContent = d.serverName ?? "—";
 
   currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
   const count = currentPlayers.length;
   const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
+
+  // Actualizar Título del Navegador dinámicamente
+  document.title = online 
+    ? `🟢 (${count}/${maxSlots}) ECUA SERVER +593` 
+    : "🔴 [OFFLINE] ECUA SERVER +593";
 
   $("players").textContent = count;
   $("playerCount").textContent = `${count} conectados`;
@@ -509,6 +581,28 @@ function render(d) {
   filterPlayers();
 }
 
+// CUENTA REGRESIVA EVENTO (Próximo Sábado 20:00)
+function startEventCountdown() {
+  const target = new Date();
+  target.setDate(target.getDate() + ((6 + 7 - target.getDay()) % 7 || 7));
+  target.setHours(20, 0, 0, 0);
+
+  setInterval(() => {
+    const now = new Date();
+    const diff = target - now;
+
+    if (diff <= 0) return;
+
+    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
+    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
+    const m = Math.floor((diff / 1000 / 60) % 60);
+
+    $("days").textContent = String(d).padStart(2, "0");
+    $("hours").textContent = String(h).padStart(2, "0");
+    $("minutes").textContent = String(m).padStart(2, "0");
+  }, 1000);
+}
+
 async function load() {
   if (isFetching) return;
   isFetching = true;
@@ -531,6 +625,7 @@ async function load() {
 
 window.addEventListener("DOMContentLoaded", () => {
   initChart();
+  startEventCountdown();
   load();
 });
 
