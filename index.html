@@ -1,250 +1,95 @@
 <!doctype html>
 <html lang="es">
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>ECUA SERVER +593 · American Truck Simulator</title>
-  <meta name="description" content="Estado en tiempo real del servidor dedicado ECUA SERVER +593 de American Truck Simulator.">
-  <style>
-    :root{
-      --bg:#080b0f; --panel:#10151b; --panel2:#151c24; --line:#27313b;
-      --text:#eef3f7; --muted:#9aa7b3; --accent:#f2b544; --green:#35d07f;
-      --red:#ff5d6c; --blue:#5aa7ff; --shadow:0 18px 50px rgba(0,0,0,.35);
-    }
-    *{box-sizing:border-box}
-    body{margin:0;background:
-      radial-gradient(circle at 15% 0%,rgba(242,181,68,.12),transparent 28%),
-      radial-gradient(circle at 85% 15%,rgba(90,167,255,.09),transparent 25%),var(--bg);
-      color:var(--text);font-family:Inter,system-ui,-apple-system,Segoe UI,Roboto,Arial,sans-serif}
-    .wrap{max-width:1180px;margin:auto;padding:28px 18px 50px}
-    header{display:flex;justify-content:space-between;gap:20px;align-items:center;margin-bottom:22px}
-    .brand{display:flex;gap:15px;align-items:center}
-    .logo{width:54px;height:54px;border-radius:14px;display:grid;place-items:center;
-      background:linear-gradient(145deg,#f2b544,#c87512);color:#111;font-weight:1000;font-size:24px;
-      box-shadow:0 10px 30px rgba(242,181,68,.2)}
-    h1{font-size:clamp(22px,4vw,36px);margin:0;letter-spacing:-.7px}
-    .subtitle{color:var(--muted);margin-top:4px}
-    .refresh{border:1px solid var(--line);background:var(--panel);padding:10px 13px;border-radius:12px;color:var(--muted)}
-    .refresh b{color:var(--text)}
-    .hero{display:grid;grid-template-columns:1.25fr .75fr;gap:18px;margin-bottom:18px}
-    .card{background:linear-gradient(180deg,rgba(21,28,36,.98),rgba(13,18,23,.98));
-      border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:var(--shadow)}
-    .status{display:flex;align-items:center;gap:14px}
-    .dot{width:17px;height:17px;border-radius:50%;background:var(--green);box-shadow:0 0 0 7px rgba(53,208,127,.12),0 0 24px rgba(53,208,127,.55)}
-    .dot.off{background:var(--red);box-shadow:0 0 0 7px rgba(255,93,108,.12),0 0 24px rgba(255,93,108,.4)}
-    .status h2{margin:0;font-size:25px}
-    .status p{margin:5px 0 0;color:var(--muted)}
-    .server-title{font-size:14px;text-transform:uppercase;letter-spacing:1.4px;color:var(--accent);font-weight:800;margin-bottom:12px}
-    .address{font-family:ui-monospace,SFMono-Regular,Menlo,monospace;font-size:18px;word-break:break-all}
-    .grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-bottom:18px}
-    .metric .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:1px}
-    .metric .value{font-size:28px;font-weight:850;margin-top:7px}
-    .metric .sub{font-size:12px;color:var(--muted);margin-top:4px}
-    .section-title{display:flex;justify-content:space-between;align-items:center;margin-bottom:14px}
-    h3{margin:0;font-size:18px}
-    .pill{padding:6px 10px;border-radius:999px;font-size:12px;font-weight:800;background:rgba(53,208,127,.12);color:var(--green);border:1px solid rgba(53,208,127,.25)}
-    .players{display:grid;grid-template-columns:repeat(auto-fill,minmax(210px,1fr));gap:10px}
-    .player{border:1px solid var(--line);background:rgba(255,255,255,.025);padding:12px;border-radius:12px;display:flex;justify-content:space-between;gap:10px}
-    .player strong{font-size:14px}.player span{font-family:monospace;color:var(--muted)}
-    .empty{color:var(--muted);padding:18px;border:1px dashed var(--line);border-radius:12px;text-align:center}
-    .two{display:grid;grid-template-columns:1fr 1fr;gap:18px;margin-top:18px}
-    .kv{display:grid;grid-template-columns:1fr auto;gap:9px 15px}
-    .kv div:nth-child(odd){color:var(--muted)}
-    .kv div:nth-child(even){font-family:ui-monospace,monospace;text-align:right;word-break:break-word}
-    .raw{max-height:380px;overflow:auto;background:#07090c;border:1px solid var(--line);border-radius:12px;padding:14px}
-    pre{margin:0;white-space:pre-wrap;word-break:break-word;font-size:12px;line-height:1.55;color:#cbd5df}
-    footer{margin-top:18px;color:var(--muted);font-size:12px;text-align:center}
-    .error{display:none;margin-bottom:18px;border:1px solid rgba(255,93,108,.35);background:rgba(255,93,108,.08);color:#ffd9dd;padding:14px;border-radius:14px}
-    @media(max-width:850px){.hero,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}
-    @media(max-width:480px){.wrap{padding:18px 12px 35px}header{align-items:flex-start}.refresh{font-size:11px}.grid{grid-template-columns:1fr 1fr}.metric .value{font-size:23px}}
-  </style>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ECUA SERVER +593 · ATS</title>
+<meta name="description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
+<style>
+:root{--bg:#070a0e;--card:#11171e;--line:#28333e;--text:#edf2f6;--muted:#9aa7b5;--gold:#f1b642;--green:#39d17f;--red:#ff6472}
+*{box-sizing:border-box}body{margin:0;background:radial-gradient(circle at 15% 0,#3b2a0b33,transparent 28%),radial-gradient(circle at 90% 15%,#16447722,transparent 28%),var(--bg);color:var(--text);font-family:Inter,system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",sans-serif}
+.wrap{max-width:1180px;margin:auto;padding:28px 18px 50px}.top{display:flex;justify-content:space-between;gap:18px;align-items:center;margin-bottom:20px}.brand{display:flex;align-items:center;gap:14px}.logo{width:54px;height:54px;border-radius:14px;background:linear-gradient(145deg,#f2b944,#b86c16);display:grid;place-items:center;color:#101010;font-weight:950;font-size:22px}.title{font-size:clamp(23px,4vw,36px);font-weight:900;letter-spacing:-.8px}.sub{color:var(--muted);margin-top:4px;font-size:16px}.refresh{border:1px solid var(--line);background:#0e141b;border-radius:14px;padding:11px 14px;color:var(--muted);white-space:nowrap}.refresh b{color:var(--text)}
+.card{background:linear-gradient(180deg,#141b23,#0e141a);border:1px solid var(--line);border-radius:18px;padding:20px;box-shadow:0 18px 50px #00000030}.hero{display:grid;grid-template-columns:1.15fr .85fr;gap:16px}.label{font-size:13px;color:var(--gold);font-weight:900;letter-spacing:1.5px;text-transform:uppercase;margin-bottom:13px}.status{display:flex;align-items:center;gap:14px}.dot{width:18px;height:18px;border-radius:50%;background:var(--green);box-shadow:0 0 0 8px #39d17f18,0 0 22px #39d17f80}.dot.off{background:var(--red);box-shadow:0 0 0 8px #ff647218,0 0 22px #ff647280}.status h2{font-size:25px;margin:0}.muted{color:var(--muted)}.server{font:16px ui-monospace,SFMono-Regular,Menlo,monospace;word-break:break-all}.grid{display:grid;grid-template-columns:repeat(4,1fr);gap:14px;margin-top:16px}.metric .k{font-size:12px;color:var(--muted);letter-spacing:1.2px;text-transform:uppercase}.metric .v{font-size:29px;font-weight:900;margin-top:8px}.metric .s{font-size:12px;color:var(--muted);margin-top:4px}.players-card{margin-top:16px}.section-head{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:14px}.section-head h3{margin:0;font-size:19px}.pill{border:1px solid #39d17f44;background:#39d17f12;color:#57df92;border-radius:999px;padding:7px 11px;font-weight:800;font-size:12px}.players{display:grid;grid-template-columns:repeat(auto-fill,minmax(220px,1fr));gap:10px}.player{border:1px solid var(--line);border-radius:12px;padding:12px;background:#ffffff04;display:flex;justify-content:space-between;gap:8px}.player strong{font-size:14px}.player code{color:var(--muted)}.two{display:grid;grid-template-columns:1fr 1fr;gap:16px;margin-top:16px}.kv{display:grid;grid-template-columns:1fr auto;gap:10px 14px}.kv div:nth-child(odd){color:var(--muted)}.kv div:nth-child(even){font:13px ui-monospace,monospace;text-align:right;word-break:break-all}.raw{margin-top:16px}.raw pre{background:#06080b;border:1px solid var(--line);border-radius:12px;padding:14px;max-height:360px;overflow:auto;color:#cbd4dc;font:12px/1.5 ui-monospace,monospace}.error{display:none;margin-bottom:16px;border:1px solid #ff647255;background:#ff647210;color:#ffdce0;border-radius:14px;padding:14px;line-height:1.45}.ok{display:none;margin-bottom:16px;border:1px solid #39d17f55;background:#39d17f0e;color:#c9f7dc;border-radius:14px;padding:12px}.footer{text-align:center;color:var(--muted);font-size:12px;margin-top:16px}
+@media(max-width:850px){.hero,.two{grid-template-columns:1fr}.grid{grid-template-columns:repeat(2,1fr)}}@media(max-width:520px){.wrap{padding:18px 12px 35px}.top{align-items:flex-start}.refresh{font-size:11px}.grid{grid-template-columns:1fr 1fr}.metric .v{font-size:24px}.title{font-size:24px}.sub{font-size:15px}}
+</style>
 </head>
 <body>
 <div class="wrap">
-  <header>
-    <div class="brand">
-      <div class="logo">ATS</div>
-      <div>
-        <h1>ECUA SERVER +593</h1>
-        <div class="subtitle">American Truck Simulator · Estado del servidor</div>
-      </div>
-    </div>
-    <div class="refresh">Actualización: <b id="countdown">10s</b></div>
-  </header>
+<header class="top">
+  <div class="brand"><div class="logo">ATS</div><div><div class="title">ECUA SERVER +593</div><div class="sub">American Truck Simulator · Estado del servidor</div></div></div>
+  <div class="refresh">Actualización: <b id="timer">10s</b></div>
+</header>
 
-  <div id="error" class="error"></div>
+<div id="error" class="error"></div>
+<div id="ok" class="ok">✓ API conectada. Datos recibidos desde el servidor dedicado.</div>
 
-  <section class="hero">
-    <div class="card">
-      <div class="server-title">Estado en tiempo real</div>
-      <div class="status">
-        <div id="dot" class="dot"></div>
-        <div>
-          <h2 id="serverStatus">Consultando API…</h2>
-          <p id="statusText">Obteniendo datos reales desde el endpoint.</p>
-        </div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="server-title">Servidor dedicado</div>
-      <div class="address" id="serverName">—</div>
-      <div style="height:10px"></div>
-      <div class="address" style="font-size:14px;color:var(--muted)" id="endpoint">http://159.89.51.54/status</div>
-    </div>
-  </section>
+<section class="hero">
+  <div class="card"><div class="label">Estado en tiempo real</div><div class="status"><span id="dot" class="dot off"></span><div><h2 id="status">Conectando…</h2><div class="muted" id="statusText">Consultando el proxy del servidor…</div></div></div></div>
+  <div class="card"><div class="label">Servidor dedicado</div><div class="server" id="serverName">—</div><div class="server muted" style="font-size:13px;margin-top:12px">API: /api/status</div></div>
+</section>
 
-  <section class="grid">
-    <div class="card metric"><div class="label">Jugadores</div><div class="value" id="players">—</div><div class="sub" id="slots">—</div></div>
-    <div class="card metric"><div class="label">Versión ATS</div><div class="value" id="version">—</div><div class="sub" id="beta">—</div></div>
-    <div class="card metric"><div class="label">API uptime</div><div class="value" id="apiUptime">—</div><div class="sub">tiempo reportado por la API</div></div>
-    <div class="card metric"><div class="label">Líneas de log</div><div class="value" id="logLines">—</div><div class="sub" id="logState">—</div></div>
-  </section>
+<section class="grid">
+  <div class="card metric"><div class="k">Jugadores</div><div class="v" id="players">—</div><div class="s" id="slots">—</div></div>
+  <div class="card metric"><div class="k">Versión ATS</div><div class="v" id="version">—</div><div class="s" id="beta">—</div></div>
+  <div class="card metric"><div class="k">API uptime</div><div class="v" id="uptime">—</div><div class="s">segundos reportados</div></div>
+  <div class="card metric"><div class="k">Líneas de log</div><div class="v" id="logLines">—</div><div class="s" id="logState">—</div></div>
+</section>
 
-  <section class="card">
-    <div class="section-title">
-      <h3>Jugadores conectados</h3>
-      <span class="pill" id="playerCount">0 conectados</span>
-    </div>
-    <div id="playersList" class="players"><div class="empty">Cargando jugadores…</div></div>
-  </section>
+<section class="card players-card"><div class="section-head"><h3>Jugadores conectados</h3><span class="pill" id="playerCount">0 conectados</span></div><div class="players" id="playerList"><div class="muted">Cargando…</div></div></section>
 
-  <div class="two">
-    <section class="card">
-      <div class="section-title"><h3>Información de la sesión</h3></div>
-      <div class="kv">
-        <div>Session ID</div><div id="sessionId">—</div>
-        <div>Slots configurados</div><div id="slotCount">—</div>
-        <div>Juego</div><div id="game">—</div>
-        <div>API plugin time</div><div id="apiTime">—</div>
-        <div>Servidor activo</div><div id="running">—</div>
-      </div>
-    </section>
+<section class="two">
+  <div class="card"><div class="section-head"><h3>Información de la sesión</h3></div><div class="kv">
+    <div>Session ID</div><div id="session">—</div><div>Slots configurados</div><div id="slotCount">—</div>
+    <div>Juego</div><div id="game">—</div><div>Servidor activo</div><div id="running">—</div>
+  </div></div>
+  <div class="card"><div class="section-head"><h3>Diagnóstico de la API</h3></div><div class="kv">
+    <div>Log file existe</div><div id="logExists">—</div><div>Tail iniciado</div><div id="tail">—</div>
+    <div>Última consulta</div><div id="updated">—</div><div>Fuente</div><div>/api/status → 159.89.51.54/status</div>
+  </div></div>
+</section>
 
-    <section class="card">
-      <div class="section-title"><h3>Diagnóstico de la API</h3></div>
-      <div class="kv">
-        <div>Log file existe</div><div id="logsExist">—</div>
-        <div>Tail iniciado</div><div id="tailStarted">—</div>
-        <div>Última actualización</div><div id="updatedAt">—</div>
-        <div>Endpoint</div><div>GET /status</div>
-      </div>
-    </section>
-  </div>
-
-  <section class="card" style="margin-top:18px">
-    <div class="section-title">
-      <h3>Respuesta JSON de la API</h3>
-      <span style="font-size:12px;color:var(--muted)">Datos sin inventar · respuesta actual</span>
-    </div>
-    <div class="raw"><pre id="raw">{}</pre></div>
-  </section>
-
-  <footer>
-    Esta página consulta automáticamente el endpoint configurado y no utiliza datos simulados.
-    Última consulta: <span id="lastFetch">—</span>
-  </footer>
+<section class="card raw"><div class="section-head"><h3>JSON recibido</h3><span class="muted">respuesta real</span></div><pre id="json">{}</pre></section>
+<div class="footer">La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS y Mixed Content.</div>
 </div>
 
 <script>
-const API_URL = "http://159.89.51.54/status";
-const REFRESH_SECONDS = 10;
-let remaining = REFRESH_SECONDS;
-
-const $ = id => document.getElementById(id);
-const yesNo = v => v === true ? "Sí" : v === false ? "No" : "—";
-const fmt = v => v === null || v === undefined || v === "" ? "—" : String(v);
-
-function setError(msg) {
-  $("error").style.display = "block";
-  $("error").textContent = msg;
+const REFRESH=10;let left=REFRESH;
+const $=id=>document.getElementById(id);
+const yn=v=>v===true?"Sí":v===false?"No":"—";
+const esc=v=>String(v??"—").replace(/[&<>"']/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"}[c]));
+function showError(msg){$("error").style.display="block";$("error").textContent=msg;$("ok").style.display="none";}
+function render(d){
+  $("error").style.display="none";$("ok").style.display="block";$("json").textContent=JSON.stringify(d,null,2);
+  const online=d.serverRunning===true;$("dot").classList.toggle("off",!online);
+  $("status").textContent=online?"Servidor en línea":d.serverRunning===false?"Servidor fuera de línea":"Estado recibido";
+  $("statusText").textContent=online?"La API confirma que el servidor está ejecutándose.":"Respuesta recibida desde la API.";
+  $("serverName").textContent=d.serverName??"—";
+  const count=Array.isArray(d.connectedPlayers)?d.connectedPlayers.length:0;
+  $("players").textContent=count;$("playerCount").textContent=count+" conectados";$("slots").textContent=d.slots!=null?d.slots+" slots disponibles":"—";
+  $("version").textContent=d.gameVersion??"—";$("beta").textContent=d.beta!=null?"beta: "+d.beta:"—";
+  $("uptime").textContent=d.apiUptime!=null?Number(d.apiUptime).toFixed(0)+" s":"—";$("logLines").textContent=d.totalLogLines??"—";
+  $("logState").textContent=d.logFileExists===true?"archivo de log detectado":"—";
+  $("session").textContent=d.sessionID??"—";$("slotCount").textContent=d.slots??"—";$("game").textContent=d.game??"—";$("running").textContent=yn(d.serverRunning);
+  $("logExists").textContent=yn(d.logFileExists);$("tail").textContent=yn(d.tailStarted);$("updated").textContent=new Date().toLocaleTimeString("es-EC");
+  const list=$("playerList");list.innerHTML="";
+  if(count) d.connectedPlayers.forEach(p=>{const e=document.createElement("div");e.className="player";e.innerHTML="<strong>"+esc(p.username)+"</strong><code>client_id: "+esc(p.client_id)+"</code>";list.appendChild(e)});
+  else list.innerHTML='<div class="muted">No hay jugadores conectados en este momento.</div>';
 }
-function clearError(){ $("error").style.display = "none"; }
-
-function render(data) {
-  clearError();
-  $("raw").textContent = JSON.stringify(data, null, 2);
-
-  const running = data.serverRunning;
-  $("dot").classList.toggle("off", running === false);
-  $("serverStatus").textContent =
-    running === true ? "Servidor en línea" :
-    running === false ? "Servidor fuera de línea" : "Estado recibido";
-  $("statusText").textContent =
-    running === true ? "La API confirma que el servidor está ejecutándose." :
-    running === false ? "La API indica que el servidor no está ejecutándose." :
-    "La API respondió correctamente.";
-
-  $("serverName").textContent = fmt(data.serverName);
-  $("players").textContent = Array.isArray(data.connectedPlayers) ? data.connectedPlayers.length : "—";
-  $("slots").textContent = data.slots != null ? `${data.slots} slots disponibles` : "—";
-  $("version").textContent = fmt(data.gameVersion);
-  $("beta").textContent = data.beta != null ? `beta: ${data.beta}` : "—";
-  $("apiUptime").textContent = data.apiUptime != null ? `${Number(data.apiUptime).toFixed(0)} s` : "—";
-  $("logLines").textContent = fmt(data.totalLogLines);
-  $("logState").textContent = data.logFileExists === true ? "archivo de log detectado" : "—";
-
-  $("playerCount").textContent = `${Array.isArray(data.connectedPlayers) ? data.connectedPlayers.length : 0} conectados`;
-
-  const list = $("playersList");
-  list.innerHTML = "";
-  if (Array.isArray(data.connectedPlayers) && data.connectedPlayers.length) {
-    data.connectedPlayers.forEach(p => {
-      const el = document.createElement("div");
-      el.className = "player";
-      el.innerHTML = `<strong>${escapeHtml(p.username ?? "Jugador")}</strong><span>client_id: ${escapeHtml(p.client_id ?? "—")}</span>`;
-      list.appendChild(el);
-    });
-  } else {
-    list.innerHTML = '<div class="empty">No hay jugadores conectados en este momento.</div>';
+async function load(){
+  try{
+    const r=await fetch("/api/status?ts="+Date.now(),{cache:"no-store"});
+    const d=await r.json();
+    if(!r.ok||d.error)throw new Error(d.error||("HTTP "+r.status));
+    render(d);
+  }catch(e){
+    $("dot").classList.add("off");$("status").textContent="API no disponible";
+    $("statusText").textContent="El proxy no pudo obtener una respuesta del servidor dedicado.";
+    showError("No se pudo obtener el estado real: "+e.message+". Comprueba que 159.89.51.54/status esté accesible desde Internet y que el servidor esté escuchando en el puerto HTTP.");
   }
-
-  $("sessionId").textContent = fmt(data.sessionID);
-  $("slotCount").textContent = fmt(data.slots);
-  $("game").textContent = fmt(data.game);
-  $("apiTime").textContent = data.apiUptime != null ? `${Number(data.apiUptime).toFixed(3)} s` : "—";
-  $("running").textContent = yesNo(data.serverRunning);
-
-  $("logsExist").textContent = yesNo(data.logFileExists);
-  $("tailStarted").textContent = yesNo(data.tailStarted);
-  $("updatedAt").textContent = new Date().toLocaleString("es-EC");
-  $("lastFetch").textContent = new Date().toLocaleTimeString("es-EC");
+  left=REFRESH;
 }
-
-function escapeHtml(v) {
-  return String(v).replace(/[&<>"']/g, c => ({
-    "&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;","'":"&#039;"
-  }[c]));
-}
-
-async function loadStatus() {
-  try {
-    const response = await fetch(API_URL + "?t=" + Date.now(), {
-      cache: "no-store",
-      headers: { "Accept": "application/json" }
-    });
-    if (!response.ok) throw new Error(`HTTP ${response.status}`);
-    const data = await response.json();
-    render(data);
-  } catch (err) {
-    setError(
-      `No se pudo consultar la API (${err.message}). ` +
-      `Si esta página está alojada en otro dominio, el servidor debe permitir CORS. ` +
-      `Si la página usa HTTPS, el navegador también puede bloquear una API HTTP por contenido mixto.`
-    );
-    $("serverStatus").textContent = "API no disponible desde el navegador";
-    $("statusText").textContent = "Revisa CORS, HTTP/HTTPS o la conectividad del endpoint.";
-    $("dot").classList.add("off");
-  }
-  remaining = REFRESH_SECONDS;
-}
-
-setInterval(() => {
-  remaining--;
-  $("countdown").textContent = `${Math.max(remaining,0)}s`;
-  if (remaining <= 0) loadStatus();
-}, 1000);
-
-loadStatus();
+setInterval(()=>{left--;if(left<=0)load();$("timer").textContent=Math.max(left,0)+"s"},1000);
+load();
 </script>
 </body>
 </html>
