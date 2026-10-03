@@ -5,6 +5,8 @@
 <meta name="viewport" content="width=device-width,initial-scale=1">
 <title>ECUA SERVER +593 · ATS</title>
 <meta name="description" content="Estado en tiempo real de ECUA SERVER +593 para American Truck Simulator.">
+<!-- Chart.js CDN para gráficos dinámicos -->
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 <style>
 :root {
   --bg: #070a0e;
@@ -104,6 +106,10 @@ summary::-webkit-details-marker { display: none; }
 summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
 details[open] summary::after { content: "－"; }
 .rule-content { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid #1a232c; padding-top: 8px; }
+
+/* Contenedor del Gráfico */
+.chart-card { margin-top: 16px; }
+.chart-container { position: relative; width: 100%; height: 260px; margin-top: 12px; }
 
 /* Barra de progreso de ocupación */
 .progress-container { width: 100%; background: #080d12; height: 8px; border-radius: 99px; margin-top: 10px; overflow: hidden; border: 1px solid var(--line); }
@@ -270,6 +276,17 @@ details[open] summary::after { content: "－"; }
     <div class="card metric"><div class="k">Líneas de log</div><div class="v" id="logLines">—</div><div class="s" id="logState">—</div></div>
   </section>
 
+  <!-- SECCIÓN: Gráfico Histórico de Jugadores con Chart.js -->
+  <section class="card chart-card">
+    <div class="section-head">
+      <h3>Historial de Jugadores en Vivo</h3>
+      <span class="muted">Tendencia de conexión en la sesión actual</span>
+    </div>
+    <div class="chart-container">
+      <canvas id="playersChart"></canvas>
+    </div>
+  </section>
+
   <section class="card players-card">
     <div class="section-head">
       <h3>Jugadores conectados</h3>
@@ -323,8 +340,75 @@ let left = REFRESH_INTERVAL;
 let isFetching = false;
 let currentPlayers = [];
 
+// Historial para Chart.js
+const MAX_HISTORY = 15;
+const historyLabels = [];
+const historyData = [];
+let playersChart = null;
+
 const $ = id => document.getElementById(id);
 const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
+
+function initChart() {
+  const ctx = document.getElementById("playersChart").getContext("2d");
+  
+  // Gradiente de color verde bajo la línea
+  const gradient = ctx.createLinearGradient(0, 0, 0, 200);
+  gradient.addColorStop(0, "rgba(57, 209, 127, 0.35)");
+  gradient.addColorStop(1, "rgba(57, 209, 127, 0)");
+
+  playersChart = new Chart(ctx, {
+    type: "line",
+    data: {
+      labels: historyLabels,
+      datasets: [{
+        label: "Jugadores Conectados",
+        data: historyData,
+        borderColor: "#39d17f",
+        borderWidth: 2,
+        backgroundColor: gradient,
+        fill: true,
+        tension: 0.3,
+        pointBackgroundColor: "#f1b642",
+        pointRadius: 4
+      }]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false }
+      },
+      scales: {
+        x: {
+          grid: { color: "#28333e33" },
+          ticks: { color: "#9aa7b5", font: { size: 11 } }
+        },
+        y: {
+          beginAtZero: true,
+          grid: { color: "#28333e66" },
+          ticks: { color: "#9aa7b5", precision: 0, font: { size: 11 } }
+        }
+      }
+    }
+  });
+}
+
+function updateChart(count) {
+  const now = new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
+  
+  if (historyLabels.length >= MAX_HISTORY) {
+    historyLabels.shift();
+    historyData.shift();
+  }
+
+  historyLabels.push(now);
+  historyData.push(count);
+
+  if (playersChart) {
+    playersChart.update();
+  }
+}
 
 function copyIP() {
   navigator.clipboard.writeText("159.89.51.54");
@@ -393,6 +477,7 @@ function render(d) {
   $("playerCount").textContent = `${count} conectados`;
   $("slots").textContent = maxSlots ? `${maxSlots} slots disponibles` : "—";
 
+  // Actualizar la barra de progreso
   const bar = $("playerBar");
   if (maxSlots > 0) {
     const pct = Math.min((count / maxSlots) * 100, 100);
@@ -401,6 +486,9 @@ function render(d) {
   } else {
     bar.style.width = "0%";
   }
+
+  // Actualizar el gráfico
+  updateChart(count);
 
   $("version").textContent = d.gameVersion ?? "—";
   $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
@@ -438,6 +526,12 @@ async function load() {
   }
 }
 
+// Inicializar el gráfico al cargar la página
+window.addEventListener("DOMContentLoaded", () => {
+  initChart();
+  load();
+});
+
 setInterval(() => {
   left--;
   if (left <= 0) {
@@ -445,8 +539,6 @@ setInterval(() => {
   }
   $("timer").textContent = `${Math.max(left, 0)}s`;
 }, 1000);
-
-load();
 </script>
 </body>
 </html>
