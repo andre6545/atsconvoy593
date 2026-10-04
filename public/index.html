@@ -795,108 +795,109 @@ function render(d) {
   $("serverName").textContent = d.serverName ?? "—";
 
   currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
-  const count = currentPlayers.length;
-  const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
+  
+  const count = d.playersCount ?? currentPlayers.length;
+  const max = d.maxPlayers ?? 0;
+  
+  $("players").textContent = count;
+  $("slots").textContent = max > 0 ? `${count} / ${max} slots ocupados` : "Sin información de slots";
+  $("playerCount").textContent = `${count} conectados`;
 
-  // Notificación de restauración de servidor
-  if (lastServerState === false && online === true) {
-    sendDesktopNotification("🟢 ECUA SERVER +593 Restablecido", "El servidor vuelve a estar disponible.");
+  // Barra de progreso de slots
+  if (max > 0) {
+    const pct = Math.min(100, Math.round((count / max) * 100));
+    $("playerBar").style.width = `${pct}%`;
+    $("playerBar").style.background = pct > 85 ? "var(--red)" : (pct > 60 ? "var(--gold)" : "var(--green)");
+    $("progressWrapper").setAttribute("aria-valuenow", pct);
+  }
+
+  $("version").textContent = d.atsVersion ?? "—";
+  $("beta").textContent = d.isBeta ? "Versión Beta activa" : "Rama pública estable";
+  $("uptime").textContent = d.uptimeSeconds != null ? Number(d.uptimeSeconds).toLocaleString("es-EC") : "—";
+  $("logLines").textContent = d.logLinesAnalyzed != null ? Number(d.logLinesAnalyzed).toLocaleString("es-EC") : "—";
+  $("logState").textContent = d.logFileFound === true ? "Log detectado en VPS" : (d.logFileFound === false ? "No se halló game.log.txt" : "Estado desconocido");
+
+  // Notificación si el servidor cambia de estado
+  if (lastServerState !== null && lastServerState !== online) {
+    if (online) {
+      sendDesktopNotification("🟢 Servidor en Línea", "ECUA SERVER +593 vuelve a estar activo.");
+    } else {
+      sendDesktopNotification("🔴 Servidor Caído", "ECUA SERVER +593 ha dejado de responder.");
+    }
   }
   lastServerState = online;
 
-  document.title = online 
-    ? `🟢 (${count}/${maxSlots}) ECUA SERVER +593` 
-    : "🔴 [OFFLINE] ECUA SERVER +593";
-
-  // Actualizar Favicon Dinámico
+  document.title = online ? `🟢 (${count}) ECUA SERVER +593` : "🔴 [OFFLINE] ECUA SERVER +593";
   updateDynamicFavicon(count, online);
 
-  $("players").textContent = count;
-  $("playerCount").textContent = `${count} conectados`;
-  $("slots").textContent = maxSlots > 0 ? `${maxSlots} slots disponibles` : "Slots no especificados";
-
-  const bar = $("playerBar");
-  const wrapper = $("progressWrapper");
-  if (maxSlots > 0) {
-    const pct = Math.min(Math.round((count / maxSlots) * 100), 100);
-    bar.style.width = pct + "%";
-    bar.style.background = pct >= 90 ? "var(--red)" : pct >= 70 ? "var(--gold)" : "var(--green)";
-    wrapper.setAttribute("aria-valuenow", pct);
-  } else {
-    bar.style.width = "0%";
-    wrapper.setAttribute("aria-valuenow", 0);
-  }
-
-  if (Array.isArray(d.serverHistory)) {
-    updateChartFromHistory(d.serverHistory, maxSlots);
-  }
-
-  $("version").textContent = d.gameVersion ?? "—";
-  $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
-  $("uptime").textContent = d.apiUptime != null ? `${Math.round(d.apiUptime)} s` : "—";
-  $("logLines").textContent = d.totalLogLines ?? "—";
-  $("logState").textContent = d.logFileExists === true ? "archivo de log detectado" : "—";
-
   filterPlayers();
+
+  if (Array.isArray(d.history)) {
+    updateChartFromHistory(d.history, max);
+  }
 }
 
-function startEventCountdown() {
-  const target = new Date();
-  target.setDate(target.getDate() + ((6 + 7 - target.getDay()) % 7 || 7));
-  target.setHours(20, 0, 0, 0);
-
-  setInterval(() => {
-    const now = new Date();
-    const diff = target - now;
-
-    if (diff <= 0) return;
-
-    const d = Math.floor(diff / (1000 * 60 * 60 * 24));
-    const h = Math.floor((diff / (1000 * 60 * 60)) % 24);
-    const m = Math.floor((diff / 1000 / 60) % 60);
-
-    $("days").textContent = String(d).padStart(2, "0");
-    $("hours").textContent = String(h).padStart(2, "0");
-    $("minutes").textContent = String(m).padStart(2, "0");
-  }, 1000);
-}
-
-async function load() {
+async function fetchData() {
   if (isFetching) return;
   isFetching = true;
 
   try {
-    const r = await fetch("/api/status?ts=" + Date.now(), { cache: "no-store" });
-    const d = await r.json();
-    if (!r.ok || d.error) throw new Error(d.error || ("HTTP " + r.status));
-    render(d);
-  } catch (e) {
-    $("dot").classList.add("off");
-    $("status").textContent = "API no disponible";
-    $("statusText").textContent = "El proxy no pudo obtener una respuesta del servidor dedicado.";
-    showError(`No se pudo obtener el estado real: ${e.message}. Comprueba que 159.89.51.54/status esté accesible.`);
+    const res = await fetch("/api/status", { cache: "no-store" });
+    if (!res.ok) {
+      throw new Error(`Error en servidor proxy: HTTP ${res.status}`);
+    }
+    const data = await res.json();
+    render(data);
+  } catch (err) {
+    console.error("Fetch error:", err);
+    showError(`Error al consultar el servidor: ${err.message}`);
   } finally {
     isFetching = false;
-    left = REFRESH_INTERVAL;
-    $("timer").textContent = `${left}s`;
   }
+}
+
+function updateCountdown() {
+  $("timer").textContent = `${left}s`;
+  if (left <= 0) {
+    left = REFRESH_INTERVAL;
+    fetchData();
+  } else {
+    left--;
+  }
+}
+
+// CONTADOR REGRESIVO PARA EL CONVOY PROGRAMADO
+function startEventCountdown() {
+  // Ajusta la fecha del próximo convoy aquí (Año, Mes-1, Día, Hora, Minutos)
+  const eventDate = new Date(2026, 9, 15, 20, 0, 0).getTime();
+
+  setInterval(() => {
+    const now = new Date().getTime();
+    const distance = eventDate - now;
+
+    if (distance < 0) {
+      $("days").textContent = "00";
+      $("hours").textContent = "00";
+      $("minutes").textContent = "00";
+      return;
+    }
+
+    const d = Math.floor(distance / (1000 * 60 * 60 * 24));
+    const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+    const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+
+    $("days").textContent = d < 10 ? `0${d}` : d;
+    $("hours").textContent = h < 10 ? `0${h}` : h;
+    $("minutes").textContent = m < 10 ? `0${m}` : m;
+  }, 1000);
 }
 
 window.addEventListener("DOMContentLoaded", () => {
   initChart();
+  fetchData();
+  setInterval(updateCountdown, 1000);
   startEventCountdown();
-  load();
 });
-
-setInterval(() => {
-  if (isFetching) return;
-  left--;
-  if (left <= 0) {
-    load();
-  } else {
-    $("timer").textContent = `${left}s`;
-  }
-}, 1000);
 </script>
 </body>
 </html>
