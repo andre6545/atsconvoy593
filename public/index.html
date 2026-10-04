@@ -10,7 +10,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
 
-<link rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f1b642'/><text x='50%' y='65%' font-size='50' font-weight='900' font-family='sans-serif' text-anchor='middle' fill='%23101010'>ATS</text></svg>">
+<link id="dynamicFavicon" rel="icon" type="image/svg+xml" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><rect width='100' height='100' rx='20' fill='%23f1b642'/><text x='50%' y='65%' font-size='50' font-weight='900' font-family='sans-serif' text-anchor='middle' fill='%23101010'>ATS</text></svg>">
 
 <meta property="og:type" content="website">
 <meta property="og:title" content="ECUA SERVER +593 · Estado ATS">
@@ -54,6 +54,7 @@ body {
 }
 .title { font-size: clamp(23px, 4vw, 36px); font-weight: 900; letter-spacing: -.8px; margin: 0; }
 .sub { color: var(--muted); margin-top: 4px; font-size: 16px; }
+.top-controls { display: flex; align-items: center; gap: 10px; }
 .refresh { border: 1px solid var(--line); background: #0e141b; border-radius: 14px; padding: 11px 14px; color: var(--muted); white-space: nowrap; }
 .refresh b { color: var(--text); }
 
@@ -250,15 +251,26 @@ details[open] summary::after { content: "－"; }
 .pill { border: 1px solid #39d17f44; background: #39d17f12; color: #57df92; border-radius: 999px; padding: 7px 11px; font-weight: 800; font-size: 12px; }
 
 .players { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
-.player { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #ffffff08; display: flex; gap: 10px; align-items: center; }
+.player { border: 1px solid var(--line); border-radius: 12px; padding: 12px; background: #ffffff08; display: flex; gap: 10px; align-items: center; position: relative; }
+.player.fav { border-color: var(--gold); background: #f1b64210; }
 .player-avatar { width: 34px; height: 34px; border-radius: 8px; background: var(--line); color: var(--gold); display: grid; place-items: center; font-weight: 800; font-size: 13px; flex-shrink: 0; }
-.player-info { display: flex; flex-direction: column; overflow: hidden; }
+.player-info { display: flex; flex-direction: column; overflow: hidden; flex: 1; }
 .player-info strong { font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
 .player-info code { color: var(--muted); font-size: 11px; }
+.fav-star { cursor: pointer; font-size: 16px; color: #4a5868; transition: color 0.2s; user-select: none; }
+.fav-star.active { color: var(--gold); }
 
 .error { display: none; margin-bottom: 16px; border: 1px solid #ff647255; background: #ff647210; color: #ffdce0; border-radius: 14px; padding: 14px; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
 .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
+
+/* MODO STREAMER (OBS) */
+body.streamer-mode .event-card,
+body.streamer-mode .gallery-card,
+body.streamer-mode .community-card,
+body.streamer-mode .footer,
+body.streamer-mode .debug-card { display: none !important; }
+body.streamer-mode .wrap { padding: 10px; }
 
 /* TOAST DE NOTIFICACIÓN */
 .toast {
@@ -271,7 +283,7 @@ details[open] summary::after { content: "－"; }
 .toast.show { transform: translateY(0); opacity: 1; }
 
 @media(max-width:850px) { .hero { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
-@media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .refresh { font-size: 13px; width: 100%; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } .event-card { flex-direction: column; align-items: flex-start; } }
+@media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .top-controls { width: 100%; justify-content: space-between; } .refresh { font-size: 13px; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } .event-card { flex-direction: column; align-items: flex-start; } }
 </style>
 </head>
 <body>
@@ -284,7 +296,11 @@ details[open] summary::after { content: "－"; }
         <div class="sub">American Truck Simulator · Estado del servidor</div>
       </div>
     </div>
-    <div class="refresh" aria-live="polite">Actualización: <b id="timer">10s</b></div>
+    <div class="top-controls">
+      <button class="btn" onclick="toggleNotifications()" id="notifBtn" title="Activar notificaciones de escritorio">🔔 Alertas</button>
+      <button class="btn" onclick="toggleStreamerMode()" id="streamerBtn" title="Modo compacto para OBS/Streamers">🎥 Streamer</button>
+      <div class="refresh" aria-live="polite">Actualización: <b id="timer">10s</b></div>
+    </div>
   </header>
 
   <div id="error" class="error" role="alert"></div>
@@ -308,7 +324,8 @@ details[open] summary::after { content: "－"; }
       
       <div class="server-actions">
         <button id="copyBtn" class="btn" onclick="copyIP()" aria-label="Copiar dirección IP del servidor">📋 Copiar IP</button>
-        <a href="steam://run/270880" class="btn btn-primary" aria-label="Abrir juego American Truck Simulator">🎮 Abrir ATS</a>
+        <a href="steam://connect/159.89.51.54" class="btn btn-primary" aria-label="Conexión Directa mediante Steam">⚡ Conexión Directa</a>
+        <a href="steam://run/270880" class="btn" aria-label="Abrir juego American Truck Simulator">🎮 Abrir ATS</a>
       </div>
     </div>
   </section>
@@ -378,19 +395,19 @@ details[open] summary::after { content: "－"; }
     <div class="gallery-grid">
       <div class="gallery-item" onclick="openLightbox(0)">
         <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101979413938237/9b5ba595-1b4a-4497-bc4e-dbd9565d3a95.jpg?backend=b2&ex=6ac2f066&is=6ac19ee6&hm=2c4047de725283b8b2ebb82fb54b1bd6c9c0b78da6a528383eebf266ea96e786&" alt="Captura 1 ECUA SERVER">
-        <div class="gallery-caption">Convoy ECUA SERVER #1</div>
+        <div class="gallery-caption">Convoy Oficial ECUA SERVER #1</div>
       </div>
       <div class="gallery-item" onclick="openLightbox(1)">
         <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101980320038994/168eb291-8e8d-4f32-886a-330fa8ce1118.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=67a10e5f100e73c3f70387d50d2868a0456c77ed903e47a14788f4cc49a6c56c&" alt="Captura 2 ECUA SERVER">
-        <div class="gallery-caption">Convoy ECUA SERVER #2</div>
+        <div class="gallery-caption">Convoy Oficial ECUA SERVER #2</div>
       </div>
       <div class="gallery-item" onclick="openLightbox(2)">
         <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101981519749150/ef7839f4-7272-4da0-bbe4-e47428f7a507.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=245dae926259e78d71f6a1d8bcfc18eb0b34e20ac46c4177e86969e852a83e6a&" alt="Captura 3 ECUA SERVER">
-        <div class="gallery-caption">Convoy ECUA SERVER #3</div>
+        <div class="gallery-caption">Convoy Oficial ECUA SERVER #3</div>
       </div>
       <div class="gallery-item" onclick="openLightbox(3)">
         <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101982236708904/1cc4f617-0048-4404-8016-932a2ab58919.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=2078d6eb0cacb9df64e766fdfda787cbded98cc21532d7a9ad2f44242069d977&" alt="Captura 4 ECUA SERVER">
-        <div class="gallery-caption">Convoy ECUA SERVER #4</div>
+        <div class="gallery-caption">Convoy Oficial ECUA SERVER #4</div>
       </div>
     </div>
   </section>
@@ -482,8 +499,72 @@ let left = REFRESH_INTERVAL;
 let isFetching = false;
 let currentPlayers = [];
 let playersChart = null;
+let lastServerState = null;
+
+// GESTIÓN DE JUGADORES FAVORITOS
+let favoritePlayers = JSON.parse(localStorage.getItem("ecuaserver_favs") || "[]");
 
 const $ = id => document.getElementById(id);
+
+// 1. GENERADOR DE FAVICON VIVO EN CANVAS
+function updateDynamicFavicon(count, isOnline) {
+  const canvas = document.createElement("canvas");
+  canvas.width = 32; canvas.height = 32;
+  const ctx = canvas.getContext("2d");
+
+  // Fondo del icono
+  ctx.fillStyle = "#11171e";
+  ctx.beginPath(); ctx.roundRect(0, 0, 32, 32, 8); ctx.fill();
+
+  // Texto "ATS"
+  ctx.fillStyle = "#f1b642";
+  ctx.font = "bold 12px sans-serif";
+  ctx.textAlign = "center";
+  ctx.fillText("ATS", 16, 18);
+
+  // Círculo indicador de estado
+  ctx.fillStyle = isOnline ? "#39d17f" : "#ff6472";
+  ctx.beginPath(); ctx.arc(24, 24, 6, 0, Math.PI * 2); ctx.fill();
+
+  // Número de conectados dentro del Badge
+  if (isOnline && count > 0) {
+    ctx.fillStyle = "#101010";
+    ctx.font = "bold 8px sans-serif";
+    ctx.fillText(count > 99 ? "+" : count, 24, 27);
+  }
+
+  $("dynamicFavicon").href = canvas.toDataURL("image/png");
+}
+
+// 2. NOTIFICACIONES DE ESCRITORIO
+function toggleNotifications() {
+  if (!("Notification" in window)) {
+    showToast("Tu navegador no soporta notificaciones");
+    return;
+  }
+  Notification.requestPermission().then(permission => {
+    if (permission === "granted") {
+      showToast("🔔 Notificaciones activadas");
+      new Notification("ECUA SERVER +593", { body: "Alertas activadas para cambios de estado." });
+    } else {
+      showToast("Notificaciones desactivadas");
+    }
+  });
+}
+
+function sendDesktopNotification(title, body) {
+  if ("Notification" in window && Notification.permission === "granted") {
+    new Notification(title, { body, icon: $("dynamicFavicon").href });
+  }
+}
+
+// 3. MODO STREAMER (OBS)
+function toggleStreamerMode() {
+  document.body.classList.toggle("streamer-mode");
+  const isStreamer = document.body.classList.contains("streamer-mode");
+  $("streamerBtn").style.borderColor = isStreamer ? "var(--gold)" : "";
+  showToast(isStreamer ? "🎥 Modo Streamer activo" : "Modo normal activado");
+}
 
 // DATOS DE LA GALERÍA DE CAPTURAS
 const galleryData = [
@@ -620,6 +701,20 @@ function showError(msg) {
   $("error").textContent = msg;
   $("ok").style.display = "none";
   document.title = "🔴 [OFFLINE] ECUA SERVER +593";
+  updateDynamicFavicon(0, false);
+}
+
+// TOGGLE FAVORITO DE JUGADOR
+function toggleFavorite(username) {
+  if (favoritePlayers.includes(username)) {
+    favoritePlayers = favoritePlayers.filter(name => name !== username);
+    showToast(`Eliminado de favoritos: ${username}`);
+  } else {
+    favoritePlayers.push(username);
+    showToast(`⭐ Añadido a favoritos: ${username}`);
+  }
+  localStorage.setItem("ecuaserver_favs", JSON.stringify(favoritePlayers));
+  filterPlayers();
 }
 
 function renderPlayers(playersToDisplay) {
@@ -627,12 +722,21 @@ function renderPlayers(playersToDisplay) {
   list.innerHTML = "";
 
   if (playersToDisplay.length > 0) {
+    // Ordenar para colocar a los Favoritos al inicio
+    const sortedPlayers = [...playersToDisplay].sort((a, b) => {
+      const isAFav = favoritePlayers.includes(a.username);
+      const isBFav = favoritePlayers.includes(b.username);
+      return isBFav - isAFav;
+    });
+
     const fragment = document.createDocumentFragment();
-    playersToDisplay.forEach(p => {
-      const e = document.createElement("div");
-      e.className = "player";
-      
+    sortedPlayers.forEach(p => {
       const username = p.username ?? "Anónimo";
+      const isFav = favoritePlayers.includes(username);
+
+      const e = document.createElement("div");
+      e.className = `player ${isFav ? 'fav' : ''}`;
+      
       const initial = username.charAt(0).toUpperCase();
 
       const avatar = document.createElement("div");
@@ -650,9 +754,19 @@ function renderPlayers(playersToDisplay) {
 
       info.appendChild(name);
       info.appendChild(clientId);
+
+      const star = document.createElement("span");
+      star.className = `fav-star ${isFav ? 'active' : ''}`;
+      star.innerHTML = "★";
+      star.title = isFav ? "Quitar de favoritos" : "Marcar como favorito";
+      star.onclick = (event) => {
+        event.stopPropagation();
+        toggleFavorite(username);
+      };
       
       e.appendChild(avatar);
       e.appendChild(info);
+      e.appendChild(star);
       fragment.appendChild(e);
     });
     list.appendChild(fragment);
@@ -684,9 +798,18 @@ function render(d) {
   const count = currentPlayers.length;
   const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
 
+  // Notificación de restauración de servidor
+  if (lastServerState === false && online === true) {
+    sendDesktopNotification("🟢 ECUA SERVER +593 Restablecido", "El servidor vuelve a estar disponible.");
+  }
+  lastServerState = online;
+
   document.title = online 
     ? `🟢 (${count}/${maxSlots}) ECUA SERVER +593` 
     : "🔴 [OFFLINE] ECUA SERVER +593";
+
+  // Actualizar Favicon Dinámico
+  updateDynamicFavicon(count, online);
 
   $("players").textContent = count;
   $("playerCount").textContent = `${count} conectados`;
