@@ -11,57 +11,49 @@
   <div class="max-w-5xl mx-auto space-y-6">
 
     <!-- Header -->
-    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900/90 p-4 rounded-xl border border-slate-800/80 backdrop-blur gap-4">
+    <header class="flex flex-col sm:flex-row justify-between items-start sm:items-center bg-slate-900 p-4 rounded-xl border border-slate-800 gap-4">
       <div class="flex items-center gap-3">
-        <div class="bg-amber-500 text-slate-950 font-black px-3 py-2 rounded-lg text-xl tracking-wider">ATS</div>
+        <div class="bg-amber-500 text-slate-950 font-black px-3 py-2 rounded-lg text-xl">ATS</div>
         <div>
-          <h1 class="text-xl md:text-2xl font-black tracking-tight">ECUA SERVER +593</h1>
+          <h1 class="text-xl md:text-2xl font-black">ECUA SERVER +593</h1>
           <p class="text-xs text-slate-400">American Truck Simulator · Estado del servidor</p>
         </div>
       </div>
 
       <div class="flex items-center gap-2 self-end sm:self-auto">
-        <button class="bg-slate-800/80 hover:bg-slate-700 text-xs px-3 py-2 rounded-lg border border-slate-700/60 transition">🔔 Alertas</button>
-        <button class="bg-slate-800/80 hover:bg-slate-700 text-xs px-3 py-2 rounded-lg border border-slate-700/60 transition">👾 Streamer</button>
-        <span class="text-xs text-slate-500 ml-1">Actualización: 5s</span>
+        <button class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-2 rounded-lg border border-slate-700 transition">🔔 Alertas</button>
+        <button class="bg-slate-800 hover:bg-slate-700 text-xs px-3 py-2 rounded-lg border border-slate-700 transition">👾 Streamer</button>
+        <span class="text-xs text-slate-500 ml-1">Actualización: 3s</span>
       </div>
     </header>
 
-    <!-- Banner de Advertencia/Error Frontend -->
-    <div id="error-banner" class="hidden bg-red-950/60 border border-red-500/40 text-red-200 text-sm p-3.5 rounded-xl transition">
-      <span id="error-message">Error al consultar el proxy del servidor.</span>
-    </div>
-
-    <!-- Cards de Estado -->
+    <!-- Cards Principales -->
     <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-      <!-- Estado en tiempo real -->
-      <div class="bg-slate-900/80 p-6 rounded-xl border border-slate-800 flex flex-col justify-between space-y-4">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">ESTADO EN TIEMPO REAL</h2>
+      <!-- Estado en Tiempo Real -->
+      <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">ESTADO EN TIEMPO REAL</h2>
         <div class="flex items-center gap-4 py-2">
-          <div class="relative flex h-4 w-4">
-            <span id="status-ping" class="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
-            <span id="status-dot" class="relative inline-flex rounded-full h-4 w-4 bg-amber-500"></span>
-          </div>
+          <span id="status-dot" class="w-4 h-4 rounded-full bg-emerald-500 animate-pulse"></span>
           <div>
-            <div id="status-title" class="text-2xl font-bold tracking-tight">Conectando...</div>
-            <div id="status-sub" class="text-xs text-slate-400">Consultando el proxy del servidor...</div>
+            <div id="status-title" class="text-2xl font-bold">En Línea</div>
+            <div id="status-sub" class="text-xs text-slate-400">Servidor operativo</div>
           </div>
         </div>
       </div>
 
       <!-- Servidor Dedicado -->
-      <div class="bg-slate-900/80 p-6 rounded-xl border border-slate-800 space-y-4">
-        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-widest">SERVIDOR DEDICADO</h2>
+      <div class="bg-slate-900 p-6 rounded-xl border border-slate-800 space-y-4">
+        <h2 class="text-xs font-bold text-slate-400 uppercase tracking-wider">SERVIDOR DEDICADO</h2>
         <div class="text-sm font-mono text-slate-300">IP: <span id="server-ip" class="font-bold text-white">159.89.51.54</span></div>
         <div class="flex flex-wrap gap-2 pt-1">
-          <button onclick="copyIp()" class="bg-slate-800 hover:bg-slate-700 text-xs font-medium px-3.5 py-2.5 rounded-lg border border-slate-700 transition flex items-center gap-1.5">
+          <button onclick="copyIp()" class="bg-slate-800 hover:bg-slate-700 text-xs font-medium px-3.5 py-2.5 rounded-lg border border-slate-700 transition">
             📋 <span id="copy-text">Copiar IP</span>
           </button>
-          <a href="steam://connect/159.89.51.54:27015" class="bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-3.5 py-2.5 rounded-lg transition flex items-center gap-1.5">
+          <a href="steam://connect/159.89.51.54:27015" class="bg-emerald-600 hover:bg-emerald-500 text-xs font-bold px-3.5 py-2.5 rounded-lg transition">
             ⚡ Conexión Directa
           </a>
-          <a href="https://discord.gg" target="_blank" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold px-3.5 py-2.5 rounded-lg transition flex items-center gap-1.5">
+          <a href="steam://run/270880" class="bg-indigo-600 hover:bg-indigo-500 text-xs font-bold px-3.5 py-2.5 rounded-lg transition">
             🎮 Abrir ATS
           </a>
         </div>
@@ -69,8 +61,8 @@
 
     </div>
 
-    <!-- Próximo Convoy Banner -->
-    <div class="bg-slate-900/80 p-5 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
+    <!-- Próximo Convoy Oficial -->
+    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
       <div>
         <h3 class="text-base font-bold text-amber-400 flex items-center gap-2">
           🚚 Próximo Convoy Oficial
@@ -78,42 +70,42 @@
         <p class="text-xs text-slate-400 mt-1">Ruta Ecuador - Serranía y Costa. ¡Prepara tu camión y únete al Discord!</p>
       </div>
       <div class="flex gap-2 text-center self-end md:self-auto">
-        <div class="bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
+        <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
           <div class="text-base font-black">11</div>
           <div class="text-[10px] text-slate-500 uppercase">Días</div>
         </div>
-        <div class="bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
+        <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
           <div class="text-base font-black">23</div>
           <div class="text-[10px] text-slate-500 uppercase">Horas</div>
         </div>
-        <div class="bg-slate-950/80 border border-slate-800 px-3 py-1.5 rounded-lg">
+        <div class="bg-slate-950 border border-slate-800 px-3 py-1.5 rounded-lg">
           <div class="text-base font-black">48</div>
           <div class="text-[10px] text-slate-500 uppercase">Min</div>
         </div>
       </div>
     </div>
 
-    <!-- Metricas/Stats Grid -->
+    <!-- Métricas del Servidor -->
     <div class="grid grid-cols-2 md:grid-cols-4 gap-4">
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-1">
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-1">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">JUGADORES</div>
-        <div id="stat-players" class="text-xl font-black">—</div>
+        <div id="stat-players" class="text-xl font-black">0</div>
       </div>
 
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-1">
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-1">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">VERSIÓN ATS</div>
-        <div id="stat-version" class="text-xl font-black">—</div>
+        <div id="stat-version" class="text-xl font-black">1.50.x</div>
       </div>
 
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-1">
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-1">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">API UPTIME</div>
-        <div id="stat-uptime" class="text-xl font-black">—</div>
+        <div id="stat-uptime" class="text-xl font-black">0s</div>
         <div class="text-[10px] text-slate-500">segundos reportados</div>
       </div>
 
-      <div class="bg-slate-900/80 p-4 rounded-xl border border-slate-800 space-y-1">
+      <div class="bg-slate-900 p-4 rounded-xl border border-slate-800 space-y-1">
         <div class="text-[11px] font-bold text-slate-400 uppercase tracking-wider">LÍNEAS DE LOG</div>
-        <div id="stat-status" class="text-xl font-black text-slate-500">—</div>
+        <div id="stat-log" class="text-xl font-black text-emerald-400">OK</div>
       </div>
     </div>
 
@@ -130,59 +122,29 @@
     }
 
     async function fetchServerStatus() {
-      const errorBanner = document.getElementById('error-banner');
-      const errorMessage = document.getElementById('error-message');
-      const statusDot = document.getElementById('status-dot');
-      const statusPing = document.getElementById('status-ping');
-      const statusTitle = document.getElementById('status-title');
-      const statusSub = document.getElementById('status-sub');
-
       try {
         const response = await fetch('/api/status');
-        
-        if (!response.ok) {
-          throw new Error(`HTTP Error status: ${response.status}`);
-        }
+        if (!response.ok) return;
 
         const data = await response.json();
-        errorBanner.classList.add('hidden');
 
         if (data.online) {
-          statusDot.className = "relative inline-flex rounded-full h-4 w-4 bg-emerald-500";
-          statusPing.className = "animate-ping absolute inline-flex h-full w-full rounded-full bg-emerald-400 opacity-75";
-          statusTitle.textContent = "En Línea";
-          statusSub.textContent = "Servidor funcionando correctamente";
-          document.getElementById('stat-players').textContent = `${data.players} / ${data.maxPlayers}`;
+          document.getElementById('status-dot').className = "w-4 h-4 rounded-full bg-emerald-500 animate-pulse";
+          document.getElementById('status-title').textContent = "En Línea";
+          document.getElementById('status-sub').textContent = "Servidor operativo";
+          document.getElementById('stat-players').textContent = `${data.players}`;
           document.getElementById('stat-version').textContent = data.version;
-          document.getElementById('stat-status').textContent = "ONLINE";
-          document.getElementById('stat-status').className = "text-xl font-black text-emerald-400";
-        } else {
-          statusDot.className = "relative inline-flex rounded-full h-4 w-4 bg-red-500";
-          statusPing.className = "hidden";
-          statusTitle.textContent = "Fuera de Línea";
-          statusSub.textContent = data.message || "El servidor no responde en este momento";
-          document.getElementById('stat-players').textContent = "0";
-          document.getElementById('stat-version').textContent = "—";
-          document.getElementById('stat-status').textContent = "OFFLINE";
-          document.getElementById('stat-status').className = "text-xl font-black text-red-400";
+          document.getElementById('stat-uptime').textContent = `${data.uptime}s`;
+          document.getElementById('stat-log').textContent = data.logLines || "OK";
+          document.getElementById('stat-log').className = "text-xl font-black text-emerald-400";
         }
-
-        document.getElementById('stat-uptime').textContent = `${data.uptime}s`;
-
       } catch (err) {
-        errorBanner.classList.remove('hidden');
-        errorMessage.textContent = `Error al consultar el servidor: Error en servidor proxy: ${err.message}`;
-        
-        statusDot.className = "relative inline-flex rounded-full h-4 w-4 bg-amber-500";
-        statusPing.className = "hidden";
-        statusTitle.textContent = "Error de Consulta";
-        statusSub.textContent = "Reintentando conexión con la API...";
+        console.error("Error al obtener estado:", err);
       }
     }
 
-    // Consulta inicial y loop cada 5 segundos
     fetchServerStatus();
-    setInterval(fetchServerStatus, 5000);
+    setInterval(fetchServerStatus, 3000);
   </script>
 </body>
 </html>
