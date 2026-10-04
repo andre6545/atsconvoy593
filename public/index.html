@@ -138,12 +138,6 @@ summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
 details[open] summary::after { content: "－"; }
 .rule-content { margin-top: 10px; font-size: 13px; color: var(--muted); line-height: 1.6; border-top: 1px solid #1a232c; padding-top: 8px; }
 
-.debug-card { margin-top: 16px; background: linear-gradient(180deg, #141b23, #0e141a); border: 1px solid var(--line); border-radius: 18px; padding: 14px 20px; }
-.debug-summary { font-weight: 700; font-size: 14px; color: var(--muted); cursor: pointer; }
-.debug-summary:hover { color: var(--text); }
-.debug-content { margin-top: 14px; border-top: 1px solid var(--line); padding-top: 12px; }
-.debug-content pre { background: #06080b; border: 1px solid var(--line); border-radius: 12px; padding: 14px; max-height: 360px; overflow: auto; color: #cbd4dc; font: 12px/1.5 ui-monospace, monospace; margin: 0; }
-
 .chart-card { margin-top: 16px; }
 .chart-container { position: relative; width: 100%; height: 260px; margin-top: 12px; }
 
@@ -170,11 +164,6 @@ details[open] summary::after { content: "－"; }
 .player-info strong { font-size: 14px; text-overflow: ellipsis; overflow: hidden; white-space: nowrap; }
 .player-info code { color: var(--muted); font-size: 11px; }
 
-.two { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 16px; }
-.kv { display: grid; grid-template-columns: 1fr auto; gap: 10px 14px; }
-.kv div:nth-child(odd) { color: var(--muted); }
-.kv div:nth-child(even) { font: 13px ui-monospace, monospace; text-align: right; word-break: break-all; }
-
 .error { display: none; margin-bottom: 16px; border: 1px solid #ff647255; background: #ff647210; color: #ffdce0; border-radius: 14px; padding: 14px; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
 .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
@@ -189,9 +178,7 @@ details[open] summary::after { content: "－"; }
 }
 .toast.show { transform: translateY(0); opacity: 1; }
 
-.sr-only { position: absolute; width: 1px; height: 1px; padding: 0; margin: -1px; overflow: hidden; clip: rect(0,0,0,0); border: 0; }
-
-@media(max-width:850px) { .hero, .two { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
+@media(max-width:850px) { .hero { grid-template-columns: 1fr; } .grid { grid-template-columns: repeat(2, 1fr); } }
 @media(max-width:520px) { .wrap { padding: 18px 12px 35px; } .top { flex-direction: column; align-items: flex-start; gap: 12px; } .refresh { font-size: 13px; width: 100%; text-align: center; } .grid { grid-template-columns: 1fr 1fr; } .metric .v { font-size: 24px; } .title { font-size: 24px; } .sub { font-size: 14px; } .head-controls { width: 100%; justify-content: space-between; } .search-input { width: 100%; } .event-card { flex-direction: column; align-items: flex-start; } }
 </style>
 </head>
@@ -341,34 +328,6 @@ details[open] summary::after { content: "－"; }
     </div>
   </section>
 
-  <section class="two">
-    <div class="card">
-      <div class="section-head"><h3>Información de la sesión</h3></div>
-      <div class="kv">
-        <div>Session ID</div><div id="session">—</div>
-        <div>Slots configurados</div><div id="slotCount">—</div>
-        <div>Juego</div><div id="game">—</div>
-        <div>Servidor activo</div><div id="running">—</div>
-      </div>
-    </div>
-    <div class="card">
-      <div class="section-head"><h3>Diagnóstico de la API</h3></div>
-      <div class="kv">
-        <div>Log file existe</div><div id="logExists">—</div>
-        <div>Tail iniciado</div><div id="tail">—</div>
-        <div>Última consulta</div><div id="updated">—</div>
-        <div>Fuente</div><div>/api/status → 159.89.51.54/status</div>
-      </div>
-    </div>
-  </section>
-
-  <details class="debug-card">
-    <summary class="debug-summary">🛠️ Modo Debug / Respuesta API (JSON)</summary>
-    <div class="debug-content">
-      <pre id="json">{}</pre>
-    </div>
-  </details>
-
   <footer class="footer">
     La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS y Mixed Content.
   </footer>
@@ -388,7 +347,6 @@ let currentPlayers = [];
 let playersChart = null;
 
 const $ = id => document.getElementById(id);
-const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
 
 function showToast(msg) {
   const toast = $("toast");
@@ -514,7 +472,6 @@ function filterPlayers() {
 function render(d) {
   $("error").style.display = "none";
   $("ok").style.display = "block";
-  $("json").textContent = JSON.stringify(d, null, 2);
 
   const online = d.serverRunning === true;
   $("dot").classList.toggle("off", !online);
@@ -526,7 +483,6 @@ function render(d) {
   const count = currentPlayers.length;
   const maxSlots = Number.isInteger(d.slots) && d.slots > 0 ? d.slots : 0;
 
-  // Actualizar Título del Navegador dinámicamente
   document.title = online 
     ? `🟢 (${count}/${maxSlots}) ECUA SERVER +593` 
     : "🔴 [OFFLINE] ECUA SERVER +593";
@@ -547,7 +503,6 @@ function render(d) {
     wrapper.setAttribute("aria-valuenow", 0);
   }
 
-  // Alimentar el gráfico directamente desde el historial centralizado del servidor
   if (Array.isArray(d.serverHistory)) {
     updateChartFromHistory(d.serverHistory, maxSlots);
   }
@@ -557,18 +512,10 @@ function render(d) {
   $("uptime").textContent = d.apiUptime != null ? `${Math.round(d.apiUptime)} s` : "—";
   $("logLines").textContent = d.totalLogLines ?? "—";
   $("logState").textContent = d.logFileExists === true ? "archivo de log detectado" : "—";
-  $("session").textContent = d.sessionID ?? "—";
-  $("slotCount").textContent = d.slots ?? "—";
-  $("game").textContent = d.game ?? "—";
-  $("running").textContent = yn(d.serverRunning);
-  $("logExists").textContent = yn(d.logFileExists);
-  $("tail").textContent = yn(d.tailStarted);
-  $("updated").textContent = new Date().toLocaleTimeString("es-EC");
 
   filterPlayers();
 }
 
-// CUENTA REGRESIVA EVENTO (Próximo Sábado 20:00)
 function startEventCountdown() {
   const target = new Date();
   target.setDate(target.getDate() + ((6 + 7 - target.getDay()) % 7 || 7));
