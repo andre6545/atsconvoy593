@@ -92,16 +92,12 @@ body {
 .btn-whatsapp { background: #0f331d; color: #60e695; border-color: rgba(37, 211, 102, 0.35); }
 .btn-whatsapp:hover { background: #154527; }
 
-/* SECCIÓN: CONVOY / EVENTO PROGRAMADO */
+/* SECCIÓN CONVOY */
 .event-card {
   margin-top: 16px;
   background: linear-gradient(135deg, #1b2533, #0e141a);
   border: 1px solid #2b3a4e;
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  flex-wrap: wrap;
-  gap: 16px;
+  display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 16px;
 }
 .event-details h3 { margin: 0 0 6px; font-size: 18px; color: var(--gold); }
 .event-details p { margin: 0; font-size: 14px; color: var(--muted); }
@@ -116,94 +112,46 @@ body {
 /* GALERÍA DE CAPTURAS */
 .gallery-card { margin-top: 16px; }
 .gallery-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
-  gap: 12px;
-  margin-top: 14px;
+  display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px; margin-top: 14px;
 }
 .gallery-item {
-  position: relative;
-  border-radius: 12px;
-  overflow: hidden;
-  border: 1px solid var(--line);
-  aspect-ratio: 16 / 9;
-  cursor: pointer;
-  background: #080d12;
+  position: relative; border-radius: 12px; overflow: hidden;
+  border: 1px solid var(--line); aspect-ratio: 16 / 9; cursor: pointer; background: #080d12;
 }
 .gallery-item img {
-  width: 100%;
-  height: 100%;
-  object-fit: cover;
-  transition: transform 0.3s ease, filter 0.3s ease;
+  width: 100%; height: 100%; object-fit: cover; transition: transform 0.3s ease, filter 0.3s ease;
 }
-.gallery-item:hover img {
-  transform: scale(1.06);
-  filter: brightness(1.1);
-}
+.gallery-item:hover img { transform: scale(1.06); filter: brightness(1.1); }
 .gallery-caption {
-  position: absolute;
-  bottom: 0; left: 0; right: 0;
-  padding: 8px 10px;
+  position: absolute; bottom: 0; left: 0; right: 0; padding: 8px 10px;
   background: linear-gradient(0deg, rgba(7,10,14,0.9), transparent);
-  font-size: 11px;
-  color: var(--text);
-  font-weight: 600;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
+  font-size: 11px; color: var(--text); font-weight: 600; white-space: nowrap; overflow: hidden; text-overflow: ellipsis;
 }
 
-/* MODAL LIGHTBOX */
+/* LIGHTBOX MODAL */
 .lightbox {
   position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-  background: rgba(7, 10, 14, 0.92);
-  backdrop-filter: blur(8px);
-  z-index: 2000;
-  display: none;
-  align-items: center;
-  justify-content: center;
-  padding: 20px;
+  background: rgba(7, 10, 14, 0.92); backdrop-filter: blur(8px);
+  z-index: 2000; display: none; align-items: center; justify-content: center; padding: 20px;
 }
 .lightbox.active { display: flex; }
 .lightbox-content {
-  position: relative;
-  max-width: 90vw;
-  max-height: 85vh;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
+  position: relative; max-width: 90vw; max-height: 85vh;
+  display: flex; flex-direction: column; align-items: center;
 }
 .lightbox-img {
-  max-width: 100%;
-  max-height: 75vh;
-  border-radius: 14px;
-  border: 1px solid var(--line);
-  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
-  object-fit: contain;
+  max-width: 100%; max-height: 75vh; border-radius: 14px;
+  border: 1px solid var(--line); box-shadow: 0 20px 50px rgba(0,0,0,0.8); object-fit: contain;
 }
-.lightbox-title {
-  margin-top: 12px;
-  font-size: 14px;
-  color: var(--gold);
-  font-weight: 700;
-}
+.lightbox-title { margin-top: 12px; font-size: 14px; color: var(--gold); font-weight: 700; }
 .lightbox-close, .lightbox-btn {
-  background: var(--card);
-  border: 1px solid var(--line);
-  color: var(--text);
-  font-size: 18px;
-  border-radius: 10px;
-  padding: 8px 14px;
-  cursor: pointer;
-  transition: background 0.2s;
+  background: var(--card); border: 1px solid var(--line); color: var(--text);
+  font-size: 18px; border-radius: 10px; padding: 8px 14px; cursor: pointer; transition: background 0.2s;
 }
 .lightbox-close:hover, .lightbox-btn:hover { background: var(--line); }
 .lightbox-close { position: absolute; top: -45px; right: 0; }
-.lightbox-nav {
-  display: flex;
-  gap: 12px;
-  margin-top: 14px;
-}
+.lightbox-nav { display: flex; gap: 12px; margin-top: 14px; }
 
 .community-card { margin-top: 16px; }
 .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
@@ -223,8 +171,7 @@ details {
 details[open] { border-color: var(--gold); }
 summary {
   font-weight: 700; cursor: pointer; font-size: 14px; color: var(--text);
-  list-style: none; display: flex; justify-content: space-between; align-items: center;
-  user-select: none;
+  list-style: none; display: flex; justify-content: space-between; align-items: center; user-select: none;
 }
 summary::-webkit-details-marker { display: none; }
 summary::after { content: "＋"; font-weight: 900; color: var(--gold); }
@@ -264,15 +211,14 @@ details[open] summary::after { content: "－"; }
 .ok { display: none; margin-bottom: 16px; border: 1px solid #39d17f55; background: #39d17f0e; color: #c9f7dc; border-radius: 14px; padding: 12px; }
 .footer { text-align: center; color: var(--muted); font-size: 12px; margin-top: 24px; }
 
-/* MODO STREAMER (OBS) */
+/* MODO STREAMER */
 body.streamer-mode .event-card,
 body.streamer-mode .gallery-card,
 body.streamer-mode .community-card,
-body.streamer-mode .footer,
-body.streamer-mode .debug-card { display: none !important; }
+body.streamer-mode .footer { display: none !important; }
 body.streamer-mode .wrap { padding: 10px; }
 
-/* TOAST DE NOTIFICACIÓN */
+/* TOAST */
 .toast {
   position: fixed; bottom: 20px; right: 20px; background: var(--card);
   border: 1px solid var(--gold); color: var(--text); padding: 12px 18px;
@@ -323,14 +269,14 @@ body.streamer-mode .wrap { padding: 10px; }
       <div class="server muted" style="font-size:13px;margin-top:6px">IP: 159.89.51.54</div>
       
       <div class="server-actions">
-        <button id="copyBtn" class="btn" onclick="copyIP()" aria-label="Copiar dirección IP del servidor">📋 Copiar IP</button>
-        <a href="steam://connect/159.89.51.54" class="btn btn-primary" aria-label="Conexión Directa mediante Steam">⚡ Conexión Directa</a>
-        <a href="steam://run/270880" class="btn" aria-label="Abrir juego American Truck Simulator">🎮 Abrir ATS</a>
+        <button id="copyBtn" class="btn" onclick="copyIP()">📋 Copiar IP</button>
+        <a href="steam://connect/159.89.51.54" class="btn btn-primary">⚡ Conexión Directa</a>
+        <a href="steam://run/270880" class="btn">🎮 Abrir ATS</a>
       </div>
     </div>
   </section>
 
-  <!-- SECCIÓN DE PRÓXIMO CONVOY / EVENTO -->
+  <!-- PRÓXIMO CONVOY -->
   <section class="card event-card">
     <div class="event-details">
       <h3>🚚 Próximo Convoy Oficial</h3>
@@ -363,7 +309,7 @@ body.streamer-mode .wrap { padding: 10px; }
       <span class="muted">Tendencia de conexión reciente (VPS)</span>
     </div>
     <div class="chart-container">
-      <canvas id="playersChart" aria-label="Gráfico de jugadores conectados en el tiempo" role="img"></canvas>
+      <canvas id="playersChart" role="img"></canvas>
     </div>
   </section>
 
@@ -371,7 +317,7 @@ body.streamer-mode .wrap { padding: 10px; }
     <div class="section-head">
       <h3>Jugadores conectados</h3>
       <div class="head-controls">
-        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()" aria-label="Buscar jugador conectado">
+        <input type="search" id="playerSearch" class="search-input" placeholder="Buscar jugador…" oninput="filterPlayers()">
         <span class="pill" id="playerCount">0 conectados</span>
       </div>
     </div>
@@ -380,7 +326,7 @@ body.streamer-mode .wrap { padding: 10px; }
     </div>
   </section>
 
-  <!-- GALERÍA DE CAPTURAS DE LA COMUNIDAD -->
+  <!-- GALERÍA DE CAPTURAS -->
   <section class="card gallery-card">
     <div class="section-head">
       <div>
@@ -470,7 +416,7 @@ body.streamer-mode .wrap { padding: 10px; }
   </section>
 
   <footer class="footer">
-    La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS y Mixed Content.
+    La página consulta automáticamente cada 10 segundos y usa un proxy server-side para evitar CORS.
   </footer>
 </div>
 
@@ -501,32 +447,25 @@ let currentPlayers = [];
 let playersChart = null;
 let lastServerState = null;
 
-// GESTIÓN DE JUGADORES FAVORITOS
 let favoritePlayers = JSON.parse(localStorage.getItem("ecuaserver_favs") || "[]");
-
 const $ = id => document.getElementById(id);
 
-// 1. GENERADOR DE FAVICON VIVO EN CANVAS
 function updateDynamicFavicon(count, isOnline) {
   const canvas = document.createElement("canvas");
   canvas.width = 32; canvas.height = 32;
   const ctx = canvas.getContext("2d");
 
-  // Fondo del icono
   ctx.fillStyle = "#11171e";
   ctx.beginPath(); ctx.roundRect(0, 0, 32, 32, 8); ctx.fill();
 
-  // Texto "ATS"
   ctx.fillStyle = "#f1b642";
   ctx.font = "bold 12px sans-serif";
   ctx.textAlign = "center";
   ctx.fillText("ATS", 16, 18);
 
-  // Círculo indicador de estado
   ctx.fillStyle = isOnline ? "#39d17f" : "#ff6472";
   ctx.beginPath(); ctx.arc(24, 24, 6, 0, Math.PI * 2); ctx.fill();
 
-  // Número de conectados dentro del Badge
   if (isOnline && count > 0) {
     ctx.fillStyle = "#101010";
     ctx.font = "bold 8px sans-serif";
@@ -536,7 +475,6 @@ function updateDynamicFavicon(count, isOnline) {
   $("dynamicFavicon").href = canvas.toDataURL("image/png");
 }
 
-// 2. NOTIFICACIONES DE ESCRITORIO
 function toggleNotifications() {
   if (!("Notification" in window)) {
     showToast("Tu navegador no soporta notificaciones");
@@ -544,8 +482,8 @@ function toggleNotifications() {
   }
   Notification.requestPermission().then(permission => {
     if (permission === "granted") {
-      showToast("🔔 Notificaciones activadas");
-      new Notification("ECUA SERVER +593", { body: "Alertas activadas para cambios de estado." });
+      showToast("🔔 Alertas activadas");
+      new Notification("ECUA SERVER +593", { body: "Notificaciones activadas para cambios de estado." });
     } else {
       showToast("Notificaciones desactivadas");
     }
@@ -558,7 +496,6 @@ function sendDesktopNotification(title, body) {
   }
 }
 
-// 3. MODO STREAMER (OBS)
 function toggleStreamerMode() {
   document.body.classList.toggle("streamer-mode");
   const isStreamer = document.body.classList.contains("streamer-mode");
@@ -566,24 +503,11 @@ function toggleStreamerMode() {
   showToast(isStreamer ? "🎥 Modo Streamer activo" : "Modo normal activado");
 }
 
-// DATOS DE LA GALERÍA DE CAPTURAS
 const galleryData = [
-  {
-    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101979413938237/9b5ba595-1b4a-4497-bc4e-dbd9565d3a95.jpg?backend=b2&ex=6ac2f066&is=6ac19ee6&hm=2c4047de725283b8b2ebb82fb54b1bd6c9c0b78da6a528383eebf266ea96e786&",
-    title: "Convoy Oficial ECUA SERVER #1"
-  },
-  {
-    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101980320038994/168eb291-8e8d-4f32-886a-330fa8ce1118.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=67a10e5f100e73c3f70387d50d2868a0456c77ed903e47a14788f4cc49a6c56c&",
-    title: "Convoy Oficial ECUA SERVER #2"
-  },
-  {
-    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101981519749150/ef7839f4-7272-4da0-bbe4-e47428f7a507.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=245dae926259e78d71f6a1d8bcfc18eb0b34e20ac46c4177e86969e852a83e6a&",
-    title: "Convoy Oficial ECUA SERVER #3"
-  },
-  {
-    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101982236708904/1cc4f617-0048-4404-8016-932a2ab58919.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=2078d6eb0cacb9df64e766fdfda787cbded98cc21532d7a9ad2f44242069d977&",
-    title: "Convoy Oficial ECUA SERVER #4"
-  }
+  { src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101979413938237/9b5ba595-1b4a-4497-bc4e-dbd9565d3a95.jpg?backend=b2&ex=6ac2f066&is=6ac19ee6&hm=2c4047de725283b8b2ebb82fb54b1bd6c9c0b78da6a528383eebf266ea96e786&", title: "Convoy Oficial ECUA SERVER #1" },
+  { src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101980320038994/168eb291-8e8d-4f32-886a-330fa8ce1118.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=67a10e5f100e73c3f70387d50d2868a0456c77ed903e47a14788f4cc49a6c56c&", title: "Convoy Oficial ECUA SERVER #2" },
+  { src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101981519749150/ef7839f4-7272-4da0-bbe4-e47428f7a507.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=245dae926259e78d71f6a1d8bcfc18eb0b34e20ac46c4177e86969e852a83e6a&", title: "Convoy Oficial ECUA SERVER #3" },
+  { src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101982236708904/1cc4f617-0048-4404-8016-932a2ab58919.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=2078d6eb0cacb9df64e766fdfda787cbded98cc21532d7a9ad2f44242069d977&", title: "Convoy Oficial ECUA SERVER #4" }
 ];
 
 let currentGalleryIndex = 0;
@@ -601,18 +525,13 @@ function closeLightbox() {
 }
 
 function closeLightboxOnBg(event) {
-  if (event.target.id === "lightbox") {
-    closeLightbox();
-  }
+  if (event.target.id === "lightbox") closeLightbox();
 }
 
 function changeLightbox(direction) {
   currentGalleryIndex += direction;
-  if (currentGalleryIndex < 0) {
-    currentGalleryIndex = galleryData.length - 1;
-  } else if (currentGalleryIndex >= galleryData.length) {
-    currentGalleryIndex = 0;
-  }
+  if (currentGalleryIndex < 0) currentGalleryIndex = galleryData.length - 1;
+  else if (currentGalleryIndex >= galleryData.length) currentGalleryIndex = 0;
   updateLightboxContent();
 }
 
@@ -673,24 +592,16 @@ function initChart() {
 
 function updateChartFromHistory(historyArray, maxSlots) {
   if (!playersChart || !Array.isArray(historyArray)) return;
-
-  const labels = historyArray.map(h => h.time);
-  const data = historyArray.map(h => h.count);
-
-  playersChart.data.labels = labels;
-  playersChart.data.datasets[0].data = data;
-
-  if (maxSlots && maxSlots > 0) {
-    playersChart.options.scales.y.suggestedMax = maxSlots;
-  }
-  
+  playersChart.data.labels = historyArray.map(h => h.time);
+  playersChart.data.datasets[0].data = historyArray.map(h => h.count);
+  if (maxSlots && maxSlots > 0) playersChart.options.scales.y.suggestedMax = maxSlots;
   playersChart.update();
 }
 
 async function copyIP() {
   try {
     await navigator.clipboard.writeText("159.89.51.54");
-    showToast("¡IP (159.89.51.54) copiada al portapapeles!");
+    showToast("¡IP copiada al portapapeles!");
   } catch (err) {
     console.error("Error al copiar IP: ", err);
   }
@@ -704,7 +615,6 @@ function showError(msg) {
   updateDynamicFavicon(0, false);
 }
 
-// TOGGLE FAVORITO DE JUGADOR
 function toggleFavorite(username) {
   if (favoritePlayers.includes(username)) {
     favoritePlayers = favoritePlayers.filter(name => name !== username);
@@ -722,7 +632,6 @@ function renderPlayers(playersToDisplay) {
   list.innerHTML = "";
 
   if (playersToDisplay.length > 0) {
-    // Ordenar para colocar a los Favoritos al inicio
     const sortedPlayers = [...playersToDisplay].sort((a, b) => {
       const isAFav = favoritePlayers.includes(a.username);
       const isBFav = favoritePlayers.includes(b.username);
@@ -737,11 +646,9 @@ function renderPlayers(playersToDisplay) {
       const e = document.createElement("div");
       e.className = `player ${isFav ? 'fav' : ''}`;
       
-      const initial = username.charAt(0).toUpperCase();
-
       const avatar = document.createElement("div");
       avatar.className = "player-avatar";
-      avatar.textContent = initial;
+      avatar.textContent = username.charAt(0).toUpperCase();
 
       const info = document.createElement("div");
       info.className = "player-info";
@@ -758,7 +665,6 @@ function renderPlayers(playersToDisplay) {
       const star = document.createElement("span");
       star.className = `fav-star ${isFav ? 'active' : ''}`;
       star.innerHTML = "★";
-      star.title = isFav ? "Quitar de favoritos" : "Marcar como favorito";
       star.onclick = (event) => {
         event.stopPropagation();
         toggleFavorite(username);
@@ -795,7 +701,6 @@ function render(d) {
   $("serverName").textContent = d.serverName ?? "—";
 
   currentPlayers = Array.isArray(d.connectedPlayers) ? d.connectedPlayers : [];
-  
   const count = d.playersCount ?? currentPlayers.length;
   const max = d.maxPlayers ?? 0;
   
@@ -803,7 +708,6 @@ function render(d) {
   $("slots").textContent = max > 0 ? `${count} / ${max} slots ocupados` : "Sin información de slots";
   $("playerCount").textContent = `${count} conectados`;
 
-  // Barra de progreso de slots
   if (max > 0) {
     const pct = Math.min(100, Math.round((count / max) * 100));
     $("playerBar").style.width = `${pct}%`;
@@ -815,15 +719,11 @@ function render(d) {
   $("beta").textContent = d.isBeta ? "Versión Beta activa" : "Rama pública estable";
   $("uptime").textContent = d.uptimeSeconds != null ? Number(d.uptimeSeconds).toLocaleString("es-EC") : "—";
   $("logLines").textContent = d.logLinesAnalyzed != null ? Number(d.logLinesAnalyzed).toLocaleString("es-EC") : "—";
-  $("logState").textContent = d.logFileFound === true ? "Log detectado en VPS" : (d.logFileFound === false ? "No se halló game.log.txt" : "Estado desconocido");
+  $("logState").textContent = d.logFileFound === true ? "Log detectado en VPS" : "Estado desconocido";
 
-  // Notificación si el servidor cambia de estado
   if (lastServerState !== null && lastServerState !== online) {
-    if (online) {
-      sendDesktopNotification("🟢 Servidor en Línea", "ECUA SERVER +593 vuelve a estar activo.");
-    } else {
-      sendDesktopNotification("🔴 Servidor Caído", "ECUA SERVER +593 ha dejado de responder.");
-    }
+    if (online) sendDesktopNotification("🟢 Servidor en Línea", "ECUA SERVER +593 vuelve a estar activo.");
+    else sendDesktopNotification("🔴 Servidor Caído", "ECUA SERVER +593 ha dejado de responder.");
   }
   lastServerState = online;
 
@@ -831,10 +731,7 @@ function render(d) {
   updateDynamicFavicon(count, online);
 
   filterPlayers();
-
-  if (Array.isArray(d.history)) {
-    updateChartFromHistory(d.history, max);
-  }
+  if (Array.isArray(d.history)) updateChartFromHistory(d.history, max);
 }
 
 async function fetchData() {
@@ -843,9 +740,7 @@ async function fetchData() {
 
   try {
     const res = await fetch("/api/status", { cache: "no-store" });
-    if (!res.ok) {
-      throw new Error(`Error en servidor proxy: HTTP ${res.status}`);
-    }
+    if (!res.ok) throw new Error(`Error en servidor proxy: HTTP ${res.status}`);
     const data = await res.json();
     render(data);
   } catch (err) {
@@ -861,31 +756,20 @@ function updateCountdown() {
   if (left <= 0) {
     left = REFRESH_INTERVAL;
     fetchData();
-  } else {
-    left--;
-  }
+  } else left--;
 }
 
-// CONTADOR REGRESIVO PARA EL CONVOY PROGRAMADO
 function startEventCountdown() {
-  // Ajusta la fecha del próximo convoy aquí (Año, Mes-1, Día, Hora, Minutos)
   const eventDate = new Date(2026, 9, 15, 20, 0, 0).getTime();
-
   setInterval(() => {
-    const now = new Date().getTime();
-    const distance = eventDate - now;
-
+    const distance = eventDate - new Date().getTime();
     if (distance < 0) {
-      $("days").textContent = "00";
-      $("hours").textContent = "00";
-      $("minutes").textContent = "00";
+      $("days").textContent = "00"; $("hours").textContent = "00"; $("minutes").textContent = "00";
       return;
     }
-
     const d = Math.floor(distance / (1000 * 60 * 60 * 24));
     const h = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
     const m = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-
     $("days").textContent = d < 10 ? `0${d}` : d;
     $("hours").textContent = h < 10 ? `0${h}` : h;
     $("minutes").textContent = m < 10 ? `0${m}` : m;
