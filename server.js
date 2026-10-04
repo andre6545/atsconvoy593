@@ -8,7 +8,7 @@ const PORT = process.env.PORT || 3000;
 // CONFIGURACIÓN DE PARÁMETROS Y DISCORD WEBHOOK
 // =========================================================================
 const TARGET_SERVER_STATUS_URL = 'http://159.89.51.54/status';
-const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/TU_WEBHOOK_AQUI'; // 👈 Reemplazar con URL real
+const DISCORD_WEBHOOK_URL = 'https://discord.com/api/webhooks/1553640168496300032/owFo2YK9W7Y94qpN4h6hF-Peox2E8QNxhdAAS1XD3B4-YIUGPpLp-DNFnfp5wIUeOj-v'; // 👈 Reemplazar con URL real
 
 const MONITOR_INTERVAL_MS = 30 * 1000; // Monitoreo en segundo plano cada 30s
 const REQUEST_TIMEOUT_MS = 5000;        // Timeout de 5s
