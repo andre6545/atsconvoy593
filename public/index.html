@@ -91,7 +91,7 @@ body {
 .btn-whatsapp { background: #0f331d; color: #60e695; border-color: rgba(37, 211, 102, 0.35); }
 .btn-whatsapp:hover { background: #154527; }
 
-/* NUEVA SECCIÓN: CONVOY / EVENTO PROGRAMADO */
+/* SECCIÓN: CONVOY / EVENTO PROGRAMADO */
 .event-card {
   margin-top: 16px;
   background: linear-gradient(135deg, #1b2533, #0e141a);
@@ -264,7 +264,7 @@ details[open] summary::after { content: "－"; }
   <section class="card chart-card">
     <div class="section-head">
       <h3>Historial de Jugadores en Vivo</h3>
-      <span class="muted">Tendencia de conexión reciente</span>
+      <span class="muted">Tendencia de conexión reciente (VPS)</span>
     </div>
     <div class="chart-container">
       <canvas id="playersChart" aria-label="Gráfico de jugadores conectados en el tiempo" role="img"></canvas>
@@ -329,7 +329,7 @@ details[open] summary::after { content: "－"; }
       <details>
         <summary>2. Adelantamientos y Velocidad</summary>
         <div class="rule-content">
-          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usar lucientes direccionales.
+          Respeta los límites de velocidad del servidor. Prohibido adelantar en curvas cerradas o zonas de doble línea continua. Usar luces direccionales.
         </div>
       </details>
       <details>
@@ -385,19 +385,7 @@ const REFRESH_INTERVAL = 10;
 let left = REFRESH_INTERVAL;
 let isFetching = false;
 let currentPlayers = [];
-
-const MAX_HISTORY = 15;
-let historyLabels = [];
-let historyData = [];
 let playersChart = null;
-
-try {
-  historyLabels = JSON.parse(localStorage.getItem("ecuaserver_labels") || "[]").slice(-MAX_HISTORY);
-  historyData = JSON.parse(localStorage.getItem("ecuaserver_data") || "[]").slice(-MAX_HISTORY);
-} catch (e) {
-  historyLabels = [];
-  historyData = [];
-}
 
 const $ = id => document.getElementById(id);
 const yn = v => v === true ? "Sí" : v === false ? "No" : "—";
@@ -418,10 +406,10 @@ function initChart() {
   playersChart = new Chart(ctx, {
     type: "line",
     data: {
-      labels: historyLabels,
+      labels: [],
       datasets: [{
         label: "Jugadores Conectados",
-        data: historyData,
+        data: [],
         borderColor: "#39d17f",
         borderWidth: 2,
         backgroundColor: gradient,
@@ -443,24 +431,20 @@ function initChart() {
   });
 }
 
-function updateChart(count, maxSlots) {
-  const now = new Date().toLocaleTimeString("es-EC", { hour: "2-digit", minute: "2-digit", second: "2-digit" });
-  if (historyLabels.length >= MAX_HISTORY) {
-    historyLabels.shift();
-    historyData.shift();
-  }
-  historyLabels.push(now);
-  historyData.push(count);
+function updateChartFromHistory(historyArray, maxSlots) {
+  if (!playersChart || !Array.isArray(historyArray)) return;
 
-  try {
-    localStorage.setItem("ecuaserver_labels", JSON.stringify(historyLabels));
-    localStorage.setItem("ecuaserver_data", JSON.stringify(historyData));
-  } catch (e) {}
+  const labels = historyArray.map(h => h.time);
+  const data = historyArray.map(h => h.count);
 
-  if (playersChart) {
-    if (maxSlots && maxSlots > 0) playersChart.options.scales.y.suggestedMax = maxSlots;
-    playersChart.update();
+  playersChart.data.labels = labels;
+  playersChart.data.datasets[0].data = data;
+
+  if (maxSlots && maxSlots > 0) {
+    playersChart.options.scales.y.suggestedMax = maxSlots;
   }
+  
+  playersChart.update();
 }
 
 async function copyIP() {
@@ -563,7 +547,10 @@ function render(d) {
     wrapper.setAttribute("aria-valuenow", 0);
   }
 
-  updateChart(count, maxSlots);
+  // Alimentar el gráfico directamente desde el historial centralizado del servidor
+  if (Array.isArray(d.serverHistory)) {
+    updateChartFromHistory(d.serverHistory, maxSlots);
+  }
 
   $("version").textContent = d.gameVersion ?? "—";
   $("beta").textContent = d.beta != null ? `beta: ${d.beta}` : "—";
@@ -620,6 +607,7 @@ async function load() {
   } finally {
     isFetching = false;
     left = REFRESH_INTERVAL;
+    $("timer").textContent = `${left}s`;
   }
 }
 
@@ -630,11 +618,13 @@ window.addEventListener("DOMContentLoaded", () => {
 });
 
 setInterval(() => {
+  if (isFetching) return;
   left--;
   if (left <= 0) {
     load();
+  } else {
+    $("timer").textContent = `${left}s`;
   }
-  $("timer").textContent = `${Math.max(left, 0)}s`;
 }, 1000);
 </script>
 </body>
