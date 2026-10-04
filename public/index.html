@@ -112,6 +112,98 @@ body {
 .timer-unit span { display: block; font-size: 20px; font-weight: 900; color: var(--text); }
 .timer-unit label { font-size: 10px; color: var(--muted); text-transform: uppercase; }
 
+/* GALERÍA DE CAPTURAS */
+.gallery-card { margin-top: 16px; }
+.gallery-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 12px;
+  margin-top: 14px;
+}
+.gallery-item {
+  position: relative;
+  border-radius: 12px;
+  overflow: hidden;
+  border: 1px solid var(--line);
+  aspect-ratio: 16 / 9;
+  cursor: pointer;
+  background: #080d12;
+}
+.gallery-item img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  transition: transform 0.3s ease, filter 0.3s ease;
+}
+.gallery-item:hover img {
+  transform: scale(1.06);
+  filter: brightness(1.1);
+}
+.gallery-caption {
+  position: absolute;
+  bottom: 0; left: 0; right: 0;
+  padding: 8px 10px;
+  background: linear-gradient(0deg, rgba(7,10,14,0.9), transparent);
+  font-size: 11px;
+  color: var(--text);
+  font-weight: 600;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+/* MODAL LIGHTBOX */
+.lightbox {
+  position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(7, 10, 14, 0.92);
+  backdrop-filter: blur(8px);
+  z-index: 2000;
+  display: none;
+  align-items: center;
+  justify-content: center;
+  padding: 20px;
+}
+.lightbox.active { display: flex; }
+.lightbox-content {
+  position: relative;
+  max-width: 90vw;
+  max-height: 85vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+.lightbox-img {
+  max-width: 100%;
+  max-height: 75vh;
+  border-radius: 14px;
+  border: 1px solid var(--line);
+  box-shadow: 0 20px 50px rgba(0,0,0,0.8);
+  object-fit: contain;
+}
+.lightbox-title {
+  margin-top: 12px;
+  font-size: 14px;
+  color: var(--gold);
+  font-weight: 700;
+}
+.lightbox-close, .lightbox-btn {
+  background: var(--card);
+  border: 1px solid var(--line);
+  color: var(--text);
+  font-size: 18px;
+  border-radius: 10px;
+  padding: 8px 14px;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+.lightbox-close:hover, .lightbox-btn:hover { background: var(--line); }
+.lightbox-close { position: absolute; top: -45px; right: 0; }
+.lightbox-nav {
+  display: flex;
+  gap: 12px;
+  margin-top: 14px;
+}
+
 .community-card { margin-top: 16px; }
 .social-grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 12px; margin-bottom: 20px; }
 .social-card {
@@ -271,6 +363,38 @@ details[open] summary::after { content: "－"; }
     </div>
   </section>
 
+  <!-- GALERÍA DE CAPTURAS DE LA COMUNIDAD -->
+  <section class="card gallery-card">
+    <div class="section-head">
+      <div>
+        <h3>📸 Galería de la Comunidad</h3>
+        <span class="muted">Capturas destacadas de nuestros convoys y rutas</span>
+      </div>
+      <a href="https://discord.gg/cTk2V9feYF" target="_blank" rel="noopener noreferrer" class="btn btn-discord">
+        📷 Subir mi captura
+      </a>
+    </div>
+
+    <div class="gallery-grid">
+      <div class="gallery-item" onclick="openLightbox(0)">
+        <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101979413938237/9b5ba595-1b4a-4497-bc4e-dbd9565d3a95.jpg?backend=b2&ex=6ac2f066&is=6ac19ee6&hm=2c4047de725283b8b2ebb82fb54b1bd6c9c0b78da6a528383eebf266ea96e786&" alt="Captura 1 ECUA SERVER">
+        <div class="gallery-caption">Convoy ECUA SERVER #1</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox(1)">
+        <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101980320038994/168eb291-8e8d-4f32-886a-330fa8ce1118.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=67a10e5f100e73c3f70387d50d2868a0456c77ed903e47a14788f4cc49a6c56c&" alt="Captura 2 ECUA SERVER">
+        <div class="gallery-caption">Convoy ECUA SERVER #2</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox(2)">
+        <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101981519749150/ef7839f4-7272-4da0-bbe4-e47428f7a507.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=245dae926259e78d71f6a1d8bcfc18eb0b34e20ac46c4177e86969e852a83e6a&" alt="Captura 3 ECUA SERVER">
+        <div class="gallery-caption">Convoy ECUA SERVER #3</div>
+      </div>
+      <div class="gallery-item" onclick="openLightbox(3)">
+        <img src="https://cdn.discordapp.com/attachments/1556101328080601098/1556101982236708904/1cc4f617-0048-4404-8016-932a2ab58919.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=2078d6eb0cacb9df64e766fdfda787cbded98cc21532d7a9ad2f44242069d977&" alt="Captura 4 ECUA SERVER">
+        <div class="gallery-caption">Convoy ECUA SERVER #4</div>
+      </div>
+    </div>
+  </section>
+
   <section class="card community-card">
     <div class="section-head">
       <h3>Comunidad ECUA SERVER</h3>
@@ -333,6 +457,19 @@ details[open] summary::after { content: "－"; }
   </footer>
 </div>
 
+<!-- LIGHTBOX MODAL -->
+<div id="lightbox" class="lightbox" onclick="closeLightboxOnBg(event)">
+  <div class="lightbox-content">
+    <button class="lightbox-close" onclick="closeLightbox()">✕</button>
+    <img id="lightboxImg" class="lightbox-img" src="" alt="Captura a tamaño completo">
+    <div id="lightboxTitle" class="lightbox-title"></div>
+    <div class="lightbox-nav">
+      <button class="lightbox-btn" onclick="changeLightbox(-1)">◄ Anterior</button>
+      <button class="lightbox-btn" onclick="changeLightbox(1)">Siguiente ►</button>
+    </div>
+  </div>
+</div>
+
 <!-- TOAST FLOTANTE -->
 <div id="toast" class="toast" role="status">
   <span>📋</span>
@@ -347,6 +484,70 @@ let currentPlayers = [];
 let playersChart = null;
 
 const $ = id => document.getElementById(id);
+
+// DATOS DE LA GALERÍA DE CAPTURAS
+const galleryData = [
+  {
+    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101979413938237/9b5ba595-1b4a-4497-bc4e-dbd9565d3a95.jpg?backend=b2&ex=6ac2f066&is=6ac19ee6&hm=2c4047de725283b8b2ebb82fb54b1bd6c9c0b78da6a528383eebf266ea96e786&",
+    title: "Convoy Oficial ECUA SERVER #1"
+  },
+  {
+    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101980320038994/168eb291-8e8d-4f32-886a-330fa8ce1118.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=67a10e5f100e73c3f70387d50d2868a0456c77ed903e47a14788f4cc49a6c56c&",
+    title: "Convoy Oficial ECUA SERVER #2"
+  },
+  {
+    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101981519749150/ef7839f4-7272-4da0-bbe4-e47428f7a507.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=245dae926259e78d71f6a1d8bcfc18eb0b34e20ac46c4177e86969e852a83e6a&",
+    title: "Convoy Oficial ECUA SERVER #3"
+  },
+  {
+    src: "https://cdn.discordapp.com/attachments/1556101328080601098/1556101982236708904/1cc4f617-0048-4404-8016-932a2ab58919.jpg?backend=b2&ex=6ac2f067&is=6ac19ee7&hm=2078d6eb0cacb9df64e766fdfda787cbded98cc21532d7a9ad2f44242069d977&",
+    title: "Convoy Oficial ECUA SERVER #4"
+  }
+];
+
+let currentGalleryIndex = 0;
+
+function openLightbox(index) {
+  currentGalleryIndex = index;
+  updateLightboxContent();
+  $("lightbox").classList.add("active");
+  document.body.style.overflow = "hidden";
+}
+
+function closeLightbox() {
+  $("lightbox").classList.remove("active");
+  document.body.style.overflow = "";
+}
+
+function closeLightboxOnBg(event) {
+  if (event.target.id === "lightbox") {
+    closeLightbox();
+  }
+}
+
+function changeLightbox(direction) {
+  currentGalleryIndex += direction;
+  if (currentGalleryIndex < 0) {
+    currentGalleryIndex = galleryData.length - 1;
+  } else if (currentGalleryIndex >= galleryData.length) {
+    currentGalleryIndex = 0;
+  }
+  updateLightboxContent();
+}
+
+function updateLightboxContent() {
+  const item = galleryData[currentGalleryIndex];
+  $("lightboxImg").src = item.src;
+  $("lightboxTitle").textContent = item.title;
+}
+
+window.addEventListener("keydown", (e) => {
+  if (e.key === "Escape") closeLightbox();
+  if ($("lightbox").classList.contains("active")) {
+    if (e.key === "ArrowLeft") changeLightbox(-1);
+    if (e.key === "ArrowRight") changeLightbox(1);
+  }
+});
 
 function showToast(msg) {
   const toast = $("toast");
